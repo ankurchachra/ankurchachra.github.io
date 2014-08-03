@@ -38,7 +38,7 @@ var answer1var='';
                 }
             }
             
-            answer1var=filterkey1var;
+            
             //alert(alphabetcount);
             //alert(alphabetlist);
            for (var k = 0 ; k < alphabetlist.length ; k++ )
@@ -49,7 +49,7 @@ var answer1var='';
              }
              else
              {
-               answer1var+=alphabetlist[k];
+               filterkey1var+=alphabetlist[k];
              }
            }
      
