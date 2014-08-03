@@ -6,6 +6,7 @@ function buttonclicked()
 var alphabetlist = new Array( 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' );
 var alphabetcount = new Array('0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0' );
 
+var filterkey1;
 //alert(alphabetlist.length);
 //alert(alphabetcount.length);
   
@@ -15,7 +16,27 @@ var alphabetcount = new Array('0','0','0','0','0','0','0','0','0','0','0','0','0
   }
   else
   {
-  document.getElementById("filterkey1").value=res;
+      for (var i = 0; i < res.length; i++)
+            {
+                for (var j = 0; j < alphabetlist.length; j++)
+                {
+                    if (res.charAt(i).Equals(alphabetlist[j]))
+                    {
+                        if (alphabetcount[j] == '1')
+                        {
+
+                        }
+                        else
+                        {
+                            alphabetcount[j] = '1';
+                            filterkey1+=res.charAt(i);
+                        }
+
+                        break;
+                    }
+                }
+            }
+  document.getElementById("filterkey1").value=filterkey1;
   }
 }
 function button2clicked()
