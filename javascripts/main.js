@@ -16,7 +16,26 @@ var filterkey1var='an';
   }
   else
   { 
-    
+    for (var i = 0; i < res.length; i++)
+            {
+                for (var j = 0; j < alphabetlist.length; j++)
+                {
+                    if (res.charAt(i) == alphabetlist[j]))
+                    {
+                        if (alphabetcount[j] == '1')
+                        {
+
+                        }
+                        else
+                        {
+                            alphabetcount[j] = '1';
+                            filterkey1var+=res.charAt(i);
+                        }
+
+                        break;
+                    }
+                }
+            }
      
   document.getElementById("filterkey1").value=filterkey1var;
   }
