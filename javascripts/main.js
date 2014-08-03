@@ -1,4 +1,8 @@
 function buttonclicked()
 {
-  alert("button clicked");
+  alert("button 1");
+}
+function button2clicked()
+{
+  alert("button 2");
 }
