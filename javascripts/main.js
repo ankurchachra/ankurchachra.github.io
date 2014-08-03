@@ -54,7 +54,7 @@ var answer1var='';
            }
      
   document.getElementById("filterkey1").value=filterkey1var;
-  document.getElementById("answer1").value=filterkey1var;
+  document.getElementById("answer1").value=answer1var;
   }
 }
 function button2clicked()
