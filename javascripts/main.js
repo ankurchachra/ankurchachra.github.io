@@ -39,8 +39,8 @@ var answer1var='';
             }
             
             answer1var=filterkey1var;
-            alert(alphabetcount);
-            alert(alphabetlist);
+            //alert(alphabetcount);
+            //alert(alphabetlist);
            for (var k = 0 ; k < alphabetlist.length ; k++ )
            {
              if(alphabetcount[k]=='1')
