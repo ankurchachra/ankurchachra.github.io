@@ -40,11 +40,20 @@ var answer1var='';
             
             answer1var=filterkey1var;
             
-            var nex = 'a'.charCodeAt(0);
-           var curr = String.fromCharCode(nex++);
-           alert(curr);
+           for (var k = 0 ; k < alphabetlist.length ; k++ )
+           {
+             if(alphabetcount[k]=='1')
+             {
+               
+             }
+             else
+             {
+               answer1var+=alphabetlist[k];
+             }
+           }
      
   document.getElementById("filterkey1").value=filterkey1var;
+  document.getElementById("answer1").value=filterkey1var;
   }
 }
 function button2clicked()
