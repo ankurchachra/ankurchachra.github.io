@@ -20,7 +20,7 @@ var filterkey1;
             {
                 for (var j = 0; j < alphabetlist.length; j++)
                 {
-                    if (res.charAt(i).Equals(alphabetlist[j]))
+                    if (res.charAt(i) == alphabetlist[j]))
                     {
                         if (alphabetcount[j] == '1')
                         {
