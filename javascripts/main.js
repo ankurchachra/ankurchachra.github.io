@@ -7,9 +7,9 @@ var alphabetlist = new Array( 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 
 var alphabetcount = new Array('0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0' );
 
 var filterkey1var='an';
-//alert(alphabetlist.length);
-//alert(alphabetcount.length);
-  
+alert(alphabetlist.length);
+alert(alphabetcount.length);
+alert(res.length);
   if(res.length==0)
   {
     alert("Please enter the key before continuing");
@@ -20,7 +20,7 @@ var filterkey1var='an';
             {
                 for (var j = 0; j < alphabetlist.length; j++)
                 {
-                    if (res.charAt(i) == alphabetlist[j]))
+                    if (res.charAt(i) == alphabetlist[j])
                     {
                         if (alphabetcount[j] == '1')
                         {
