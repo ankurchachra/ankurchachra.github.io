@@ -8,7 +8,7 @@ function buttonclicked()
   }
   else
   {
-  document.getElementById("answer1").value=res;
+  document.getElementById("filterkey1").value=res;
   }
 }
 function button2clicked()
