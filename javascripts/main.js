@@ -40,7 +40,7 @@ var answer1var='';
             
             answer1var=filterkey1var;
             
-            var nex = 'z'.charCodeAt(0);
+            var nex = 'a'.charCodeAt(0);
            var curr = String.fromCharCode(nex++);
            alert(curr);
      
