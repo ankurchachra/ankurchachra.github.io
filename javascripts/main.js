@@ -6,7 +6,7 @@ function buttonclicked()
 var alphabetlist = new Array( 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' );
 var alphabetcount = new Array('0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0' );
 
-var filterkey1='an';
+var filterkey1var='an';
 //alert(alphabetlist.length);
 //alert(alphabetcount.length);
   
@@ -17,7 +17,7 @@ var filterkey1='an';
   else
   {
      
-  document.getElementById("filterkey1").value=filterkey1;
+  document.getElementById("filterkey1").value=filterkey1var;
   }
 }
 function button2clicked()
