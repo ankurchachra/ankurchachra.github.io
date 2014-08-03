@@ -7,6 +7,7 @@ var alphabetlist = new Array( 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 
 var alphabetcount = new Array('0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0' );
 
 var filterkey1var='';
+var answer1var='';
 //alert(alphabetlist.length);
 //alert(alphabetcount.length);
 //alert(res.length);
@@ -36,6 +37,12 @@ var filterkey1var='';
                     }
                 }
             }
+            
+            answer1var=filterkey1var;
+            
+            var nex = 'z'.charCodeAt(0);
+           var curr = String.fromCharCode(nex++);
+           alert(curr);
      
   document.getElementById("filterkey1").value=filterkey1var;
   }
