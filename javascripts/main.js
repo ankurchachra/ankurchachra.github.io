@@ -6,10 +6,10 @@ function buttonclicked()
 var alphabetlist = new Array( 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' );
 var alphabetcount = new Array('0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0' );
 
-var filterkey1var='an';
-alert(alphabetlist.length);
-alert(alphabetcount.length);
-alert(res.length);
+var filterkey1var='';
+//alert(alphabetlist.length);
+//alert(alphabetcount.length);
+//alert(res.length);
   if(res.length==0)
   {
     alert("Please enter the key before continuing");
