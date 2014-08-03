@@ -54,9 +54,22 @@ var answer1var='';
              }
            }
      answer1var = codecleaned1;
+     var answer1final='';
+     for(var ctr=0;ctr<answer1var.length;ctr++)
+     {
+       
+       for(var ctr2=0;ctr<filterkey1var.length;ctr2++)
+       {
+         if(answer1var.charAt(ctr) == filterkey1var.charAt(ctr2))
+         {
+           answer1final+=alphabetlist[ctr2];
+           break;
+         }
+       }
+     }
      
   document.getElementById("filterkey1").value=filterkey1var;
-  document.getElementById("answer1").value=answer1var;
+  document.getElementById("answer1").value=answer1final;
   }
 }
 function button2clicked()
