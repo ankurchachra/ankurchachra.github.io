@@ -413,7 +413,6 @@ function initFirebase(config) {
       if (el) el.textContent = snap.val() ? 'Synced' : 'Offline';
     });
     document.getElementById('loading').style.display = 'none';
-    document.getElementById('setup-page').style.display = 'none';
     // Check if data exists, if not seed it
     db.ref('matches').once('value').then(snap => {
       if (!snap.exists()) {
@@ -423,10 +422,8 @@ function initFirebase(config) {
     });
   } catch (e) {
     document.getElementById('loading').style.display = 'none';
-    document.getElementById('setup-page').style.display = 'block';
-    const err = document.getElementById('setup-error');
-    err.textContent = 'Connection failed: ' + e.message;
-    err.style.display = 'block';
+    console.error('Firebase connection failed:', e);
+    alert('Firebase connection failed: ' + e.message);
   }
 }
 
