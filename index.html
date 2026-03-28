@@ -388,11 +388,11 @@
           <h4>Select Captain (2x points) and Vice-Captain (1.5x points)</h4>
           <div class="captain-btns" id="captain-btns"></div>
         </div>
-        <div style="margin-top:16px;display:flex;gap:12px;flex-wrap:wrap">
-          <button class="btn btn-green" id="lock-btn" onclick="lockTeam()" disabled>Lock Team</button>
-          <button class="btn btn-accent" onclick="clearSelection()">Clear All</button>
+        <div style="margin-top:16px;display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+          <button class="btn btn-green" id="lock-btn" onclick="lockTeam()" disabled>🔒 Lock Team</button>
+          <button class="btn btn-accent" id="clear-btn" onclick="clearSelection()">Clear All</button>
+          <button class="btn btn-gold" id="unlock-btn" onclick="unlockTeam()" style="display:none">🔓 Unlock & Edit</button>
         </div>
-        <div id="unlock-container"></div>
         <div id="validation-errors"></div>
         <div id="lock-countdown" style="margin-top:8px"></div>
       </div>
@@ -1200,24 +1200,45 @@ function renderSelectedPanel() {
     captainArea.style.display = 'none';
   }
 
-  // Lock button + unlock button
-  const unlockContainer = document.getElementById('unlock-container');
+  // Lock / unlock buttons
+  const unlockBtn = document.getElementById('unlock-btn');
+  const clearBtn = document.getElementById('clear-btn');
+
   if (isLocked && !isLockExpired()) {
-    lockBtn.disabled = true;
-    lockBtn.textContent = '✅ Team Locked';
-    if (unlockContainer) unlockContainer.innerHTML = '<button class="btn btn-accent" style="margin-top:8px" onclick="unlockTeam()">🔓 Unlock & Edit Team</button>';
+    // Locked but can still edit before deadline
+    lockBtn.style.display = 'none';
+    clearBtn.style.display = 'none';
+    unlockBtn.style.display = '';
   } else if (isLocked && isLockExpired()) {
+    // Locked and deadline passed — final
+    lockBtn.style.display = '';
     lockBtn.disabled = true;
-    lockBtn.textContent = '✅ Team Locked';
-    if (unlockContainer) unlockContainer.innerHTML = '<span style="color:#888;font-size:0.85em">Deadline passed — team cannot be changed.</span>';
-  } else if (selectedPlayers.length === 11 && captainId && viceCaptainId) {
-    lockBtn.disabled = false;
-    lockBtn.textContent = '🔒 Lock Team';
-    if (unlockContainer) unlockContainer.innerHTML = '';
+    lockBtn.textContent = '✅ Team Locked (Final)';
+    clearBtn.style.display = 'none';
+    unlockBtn.style.display = 'none';
+  } else if (isLockExpired()) {
+    // Not locked and deadline passed
+    lockBtn.style.display = '';
+    lockBtn.disabled = true;
+    lockBtn.textContent = '⏰ Deadline Passed';
+    clearBtn.style.display = 'none';
+    unlockBtn.style.display = 'none';
   } else {
-    lockBtn.disabled = true;
-    lockBtn.textContent = '🔒 Lock Team';
-    if (unlockContainer) unlockContainer.innerHTML = '';
+    // Not locked, before deadline — normal pick mode
+    lockBtn.style.display = '';
+    clearBtn.style.display = '';
+    unlockBtn.style.display = 'none';
+    if (selectedPlayers.length === 11 && captainId && viceCaptainId) {
+      lockBtn.disabled = false;
+      lockBtn.textContent = '🔒 Lock Team';
+    } else {
+      lockBtn.disabled = true;
+      let hint = '';
+      if (selectedPlayers.length < 11) hint = '(pick ' + (11 - selectedPlayers.length) + ' more)';
+      else if (!captainId) hint = '(select Captain)';
+      else if (!viceCaptainId) hint = '(select Vice-Captain)';
+      lockBtn.textContent = '🔒 Lock Team ' + hint;
+    }
   }
 }
 
@@ -1348,14 +1369,20 @@ function unlockTeam() {
     showToast('Deadline passed — cannot unlock!', 'error');
     return;
   }
-  if (!confirm('Unlock your team for editing? You\'ll need to re-lock before 8 PM.')) return;
+  if (!confirm('Unlock your team for editing? Your current picks will stay — just make changes and re-lock before 8 PM.')) return;
 
   const teamKey = currentUser + '_' + MATCH_ID;
+  const existingTeam = DATA.teams[teamKey];
+
+  // Keep current selections so they can just tweak
+  if (existingTeam && existingTeam.players) {
+    selectedPlayers = [...existingTeam.players];
+    captainId = existingTeam.captain || null;
+    viceCaptainId = existingTeam.viceCaptain || null;
+  }
+
   db.ref('teams/' + teamKey).remove().then(() => {
-    selectedPlayers = [];
-    captainId = null;
-    viceCaptainId = null;
-    showToast('Team unlocked! Make your changes and re-lock.', 'success');
+    showToast('Team unlocked! Edit and re-lock before 8 PM.', 'success');
     renderSelectedPanel();
     renderPlayersGrid();
     renderMatchCard();
