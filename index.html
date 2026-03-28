@@ -848,6 +848,30 @@ function startApp() {
     currentUser = savedUser;
   }
 
+  // Auto-seed: if Firebase has no data or wrong match, write correct defaults
+  db.ref('matches/' + MATCH_ID).once('value').then(snap => {
+    const existing = snap.val();
+    if (!existing || existing.team1 !== 'MI' || existing.team2 !== 'KKR') {
+      console.log('[Fantasy XI] Seeding match data for MI vs KKR...');
+      const defaults = getDefaultMatch();
+      // Preserve live fields if they exist (status, playerScores, result)
+      if (existing) {
+        defaults.status = existing.status || defaults.status;
+        defaults.playerScores = existing.playerScores || defaults.playerScores;
+        defaults.result = existing.result || defaults.result;
+      }
+      db.ref('matches/' + MATCH_ID).set(defaults);
+      // Also ensure leaderboard exists
+      db.ref('leaderboard').once('value').then(lbSnap => {
+        if (!lbSnap.val()) {
+          const lb = {};
+          Object.keys(USERS).forEach(uid => { lb[uid] = { total: 0 }; });
+          db.ref('leaderboard').set(lb);
+        }
+      });
+    }
+  });
+
   db.ref('matches/' + MATCH_ID).on('value', snap => {
     DATA.match = snap.val();
     if (currentUser) {
@@ -967,10 +991,12 @@ function isLockExpired() {
 // ============ MATCH CARD (Tab 1) ============
 function renderMatchCard() {
   const match = DATA.match;
-  if (!match) return;
   const area = document.getElementById('match-card-area');
-  const status = match.status || 'upcoming';
-  const matchTime = new Date(match.time);
+  // Use code constants as source of truth for match metadata
+  const defaults = getDefaultMatch();
+  const status = (match && match.status) || 'upcoming';
+  const result = (match && match.result) || '';
+  const matchTime = new Date(MATCH_TIME);
   const dateStr = matchTime.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   const timeStr = matchTime.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
 
@@ -984,18 +1010,18 @@ function renderMatchCard() {
   area.innerHTML = `
     <div class="match-card" style="border-color:${status === 'live' ? 'var(--accent)' : '#2a3a4a'}">
       <div class="match-header">
-        <span class="match-num">Match ${match.num || MATCH_ID}</span>
+        <span class="match-num">Match ${defaults.num}</span>
         <span class="match-status ${statusClass}">${statusLabel}</span>
       </div>
       <div class="match-teams">
-        <span class="team-name" style="color:${IPL_TEAMS[match.team1]?.color || '#888'}">${match.team1}</span>
+        <span class="team-name" style="color:${IPL_TEAMS[defaults.team1]?.color || '#888'}">${defaults.team1}</span>
         <span class="vs">VS</span>
-        <span class="team-name" style="color:${IPL_TEAMS[match.team2]?.color || '#888'}">${match.team2}</span>
+        <span class="team-name" style="color:${IPL_TEAMS[defaults.team2]?.color || '#888'}">${defaults.team2}</span>
       </div>
       <div class="match-meta">
         <div>${dateStr} | ${timeStr} IST</div>
-        <div style="margin-top:4px">${match.venue}</div>
-        ${match.result ? '<div style="margin-top:8px;color:var(--green);font-weight:600">' + match.result + '</div>' : ''}
+        <div style="margin-top:4px">${defaults.venue}</div>
+        ${result ? '<div style="margin-top:8px;color:var(--green);font-weight:600">' + result + '</div>' : ''}
       </div>
       <div style="text-align:center;margin-top:16px">
         <div id="match-countdown"></div>
