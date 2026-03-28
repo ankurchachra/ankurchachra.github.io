@@ -392,6 +392,7 @@
           <button class="btn btn-green" id="lock-btn" onclick="lockTeam()" disabled>Lock Team</button>
           <button class="btn btn-accent" onclick="clearSelection()">Clear All</button>
         </div>
+        <div id="unlock-container"></div>
         <div id="validation-errors"></div>
         <div id="lock-countdown" style="margin-top:8px"></div>
       </div>
@@ -536,15 +537,28 @@
     </div>
 
     <div class="admin-section">
+      <h3>⚡ Auto-Fetch Live Scores from ESPN</h3>
+      <p style="color:#888;font-size:0.85em;margin-bottom:12px">
+        Fetches live batting &amp; bowling stats from ESPN and auto-fills all player fields. Click once or enable auto-poll.
+      </p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+        <button class="btn btn-gold" onclick="fetchESPNScores()" id="espn-fetch-btn">🔄 Fetch Live Scores</button>
+        <button class="btn btn-green" onclick="toggleAutoPoll()" id="auto-poll-btn">▶ Start Auto-Poll (30s)</button>
+        <span id="espn-status" style="color:#888;font-size:0.85em"></span>
+      </div>
+      <div id="espn-log" style="margin-top:8px;max-height:100px;overflow-y:auto;font-size:0.8em;color:#888;background:var(--secondary);border-radius:6px;padding:8px;display:none"></div>
+    </div>
+
+    <div class="admin-section">
       <h3>Live Scoring - Update Player Stats</h3>
       <p style="color:#888;font-size:0.85em;margin-bottom:12px">
-        Enter raw stats for each player. Fantasy points are auto-calculated based on the scoring system.
+        Auto-filled by ESPN fetch, or enter manually. Fantasy points are auto-calculated.
       </p>
       <input type="text" class="admin-player-search" id="admin-search" placeholder="Search player name..." oninput="renderAdminScoring()"/>
       <div id="admin-scoring-area"></div>
       <div style="margin-top:16px;display:flex;gap:12px">
-        <button class="btn btn-green" onclick="saveAllScores()">Save All Scores</button>
-        <button class="btn btn-gold" onclick="recalcLeaderboard()">Recalculate Leaderboard</button>
+        <button class="btn btn-green" onclick="saveAllScores()">💾 Save All Scores</button>
+        <button class="btn btn-gold" onclick="recalcLeaderboard()">📊 Recalculate Leaderboard</button>
       </div>
     </div>
 
@@ -597,7 +611,7 @@ function initFirebase(config) {
 
 // ============ CONSTANTS ============
 const MATCH_ID = 'match_1';
-const MATCH_TIME = '2026-03-28T19:30:00+05:30';
+const MATCH_TIME = '2026-03-28T20:00:00+05:30';
 
 const IPL_TEAMS = {
   RCB: { name: 'Royal Challengers Bengaluru', short: 'RCB', color: '#ec1c24' },
@@ -1187,16 +1201,24 @@ function renderSelectedPanel() {
     captainArea.style.display = 'none';
   }
 
-  // Lock button
-  if (isLocked) {
+  // Lock button + unlock button
+  const unlockContainer = document.getElementById('unlock-container');
+  if (isLocked && !isLockExpired()) {
     lockBtn.disabled = true;
-    lockBtn.textContent = 'Team Locked';
+    lockBtn.textContent = '✅ Team Locked';
+    if (unlockContainer) unlockContainer.innerHTML = '<button class="btn btn-accent" style="margin-top:8px" onclick="unlockTeam()">🔓 Unlock & Edit Team</button>';
+  } else if (isLocked && isLockExpired()) {
+    lockBtn.disabled = true;
+    lockBtn.textContent = '✅ Team Locked';
+    if (unlockContainer) unlockContainer.innerHTML = '<span style="color:#888;font-size:0.85em">Deadline passed — team cannot be changed.</span>';
   } else if (selectedPlayers.length === 11 && captainId && viceCaptainId) {
     lockBtn.disabled = false;
-    lockBtn.textContent = 'Lock Team';
+    lockBtn.textContent = '🔒 Lock Team';
+    if (unlockContainer) unlockContainer.innerHTML = '';
   } else {
     lockBtn.disabled = true;
-    lockBtn.textContent = 'Lock Team';
+    lockBtn.textContent = '🔒 Lock Team';
+    if (unlockContainer) unlockContainer.innerHTML = '';
   }
 }
 
@@ -1300,7 +1322,7 @@ function lockTeam() {
   }
   errDiv.innerHTML = '';
 
-  if (!confirm('Lock this team? You cannot change it after locking.')) return;
+  if (!confirm('Lock this team? You can still unlock and edit before the deadline.')) return;
 
   const teamData = {
     matchId: MATCH_ID,
@@ -1314,6 +1336,27 @@ function lockTeam() {
 
   db.ref('teams/' + teamKey).set(teamData).then(() => {
     showToast('Team locked successfully!', 'success');
+    renderSelectedPanel();
+    renderPlayersGrid();
+    renderMatchCard();
+  }).catch(err => {
+    showToast('Error: ' + err.message, 'error');
+  });
+}
+
+function unlockTeam() {
+  if (isLockExpired()) {
+    showToast('Deadline passed — cannot unlock!', 'error');
+    return;
+  }
+  if (!confirm('Unlock your team for editing? You\'ll need to re-lock before 8 PM.')) return;
+
+  const teamKey = currentUser + '_' + MATCH_ID;
+  db.ref('teams/' + teamKey).remove().then(() => {
+    selectedPlayers = [];
+    captainId = null;
+    viceCaptainId = null;
+    showToast('Team unlocked! Make your changes and re-lock.', 'success');
     renderSelectedPanel();
     renderPlayersGrid();
     renderMatchCard();
@@ -1633,6 +1676,302 @@ function recalcLeaderboard() {
   db.ref('leaderboard').set(lbUpdate).then(() => {
     showToast('Leaderboard recalculated!', 'success');
   });
+}
+
+// ============ ESPN LIVE SCORE FETCH ============
+const ESPN_MATCH_ID = '1527674';
+const ESPN_API_URL = `https://site.api.espn.com/apis/site/v2/sports/cricket/8048/summary?event=${ESPN_MATCH_ID}`;
+let autoPollInterval = null;
+
+// Name mapping: ESPN uses short names, we need to match to our full names
+// This fuzzy matcher handles "V Kohli" -> "Virat Kohli", "JC Bethell" -> "Jacob Bethell" etc.
+function matchPlayerName(espnName, allPlayers) {
+  if (!espnName) return null;
+  const clean = espnName.trim().toLowerCase();
+
+  // Try exact match first
+  let match = allPlayers.find(p => p.name.toLowerCase() === clean);
+  if (match) return match;
+
+  // Try last-name match (ESPN often uses "RG Patidar" style)
+  const parts = clean.split(/\s+/);
+  const lastName = parts[parts.length - 1];
+
+  // Find all players whose last name matches
+  const lastNameMatches = allPlayers.filter(p => {
+    const pParts = p.name.toLowerCase().split(/\s+/);
+    return pParts[pParts.length - 1] === lastName;
+  });
+
+  if (lastNameMatches.length === 1) return lastNameMatches[0];
+
+  // If multiple last-name matches, try first initial
+  if (lastNameMatches.length > 1 && parts.length > 1) {
+    const firstInitial = parts[0][0];
+    const initialMatch = lastNameMatches.find(p => p.name.toLowerCase()[0] === firstInitial);
+    if (initialMatch) return initialMatch;
+  }
+
+  // Try substring matching (e.g. "Abhishek" in "Abhishek Sharma")
+  const subMatch = allPlayers.find(p => {
+    const pLower = p.name.toLowerCase();
+    return pLower.includes(clean) || clean.includes(pLower.split(' ').pop());
+  });
+  if (subMatch) return subMatch;
+
+  return null;
+}
+
+function espnLog(msg) {
+  const el = document.getElementById('espn-log');
+  if (!el) return;
+  el.style.display = 'block';
+  const time = new Date().toLocaleTimeString('en-IN');
+  el.innerHTML = `<div>[${time}] ${msg}</div>` + el.innerHTML;
+  // Keep only last 20 messages
+  const divs = el.querySelectorAll('div');
+  if (divs.length > 20) {
+    for (let i = 20; i < divs.length; i++) divs[i].remove();
+  }
+}
+
+async function fetchESPNScores() {
+  const statusEl = document.getElementById('espn-status');
+  const fetchBtn = document.getElementById('espn-fetch-btn');
+
+  try {
+    fetchBtn.disabled = true;
+    fetchBtn.textContent = '⏳ Fetching...';
+    statusEl.textContent = 'Fetching from ESPN...';
+    espnLog('Fetching live data from ESPN API...');
+
+    const res = await fetch(ESPN_API_URL);
+    if (!res.ok) throw new Error('ESPN API returned ' + res.status);
+    const data = await res.json();
+
+    espnLog('Data received. Parsing scorecard...');
+
+    // Check match status
+    const competition = data.header?.competitions?.[0];
+    const matchStatus = competition?.status?.type?.description || 'Unknown';
+    espnLog('Match status: ' + matchStatus);
+
+    // Get matchcards (batting, bowling data)
+    const matchcards = data.matchcards || [];
+
+    if (matchcards.length === 0) {
+      espnLog('⚠️ No scorecard data yet. Match may not have started.');
+      statusEl.textContent = 'No scorecard data yet (match not started?)';
+      statusEl.style.color = '#f5a623';
+      return;
+    }
+
+    // Build a scores object keyed by our player IDs
+    const scores = {};
+
+    // Initialize all players with defaults
+    ALL_PLAYERS.forEach(p => {
+      scores[p.id] = {
+        runs: 0, balls: 0, fours: 0, sixes: 0,
+        wickets: 0, dots: 0, lbwBowled: 0, maidens: 0,
+        oversBowled: 0, runsConceded: 0,
+        catches: 0, stumpings: 0, runoutDirect: 0, runoutIndirect: 0,
+        inPlayingXI: false, isImpactSub: false, didBat: false,
+      };
+    });
+
+    let battingFound = 0, bowlingFound = 0, unmatchedBat = [], unmatchedBowl = [];
+
+    // Track who is in the playing XI from rosters
+    const rosters = data.rosters || [];
+    rosters.forEach(roster => {
+      (roster.roster || []).forEach(entry => {
+        const athlete = entry.athlete;
+        if (!athlete) return;
+        const displayName = athlete.displayName || athlete.shortName || '';
+        const player = matchPlayerName(displayName, ALL_PLAYERS);
+        if (player && scores[player.id]) {
+          scores[player.id].inPlayingXI = true;
+        }
+      });
+    });
+
+    // Parse matchcards for batting and bowling
+    matchcards.forEach(card => {
+      const typeID = card.typeID;
+
+      if (typeID === 11) {
+        // Batting card
+        (card.matchCard || []).forEach(entry => {
+          const name = entry.playerName || '';
+          const player = matchPlayerName(name, ALL_PLAYERS);
+          if (player) {
+            const s = scores[player.id];
+            s.runs = parseInt(entry.runs) || 0;
+            s.balls = parseInt(entry.ballsFaced) || 0;
+            s.fours = parseInt(entry.fours) || 0;
+            s.sixes = parseInt(entry.sixes) || 0;
+            s.didBat = true;
+            s.inPlayingXI = true;
+            battingFound++;
+          } else if (name && !name.includes('Extras') && !name.includes('Total')) {
+            unmatchedBat.push(name);
+          }
+        });
+      }
+
+      if (typeID === 12) {
+        // Bowling card
+        (card.matchCard || []).forEach(entry => {
+          const name = entry.playerName || '';
+          const player = matchPlayerName(name, ALL_PLAYERS);
+          if (player) {
+            const s = scores[player.id];
+            s.oversBowled = parseFloat(entry.overs) || 0;
+            s.maidens = parseInt(entry.maidens) || 0;
+            s.runsConceded = parseInt(entry.conceded) || 0;
+            s.wickets = parseInt(entry.wickets) || 0;
+            s.inPlayingXI = true;
+
+            // Try to extract economy rate for dot ball estimation
+            const overs = parseFloat(entry.overs) || 0;
+            const fullOvers = Math.floor(overs);
+            const partialBalls = Math.round((overs - fullOvers) * 10);
+            const totalBalls = fullOvers * 6 + partialBalls;
+            const runs = parseInt(entry.conceded) || 0;
+            // Estimate dots: totalBalls - runs scored off bat (rough estimate)
+            // ESPN doesn't give dot ball count directly, so estimate conservatively
+            if (totalBalls > 0) {
+              const scoringBalls = Math.min(totalBalls, Math.ceil(runs / 1.2));
+              s.dots = Math.max(0, totalBalls - scoringBalls);
+            }
+
+            bowlingFound++;
+          } else if (name) {
+            unmatchedBowl.push(name);
+          }
+        });
+      }
+    });
+
+    // Try to parse fielding from dismissal strings in batting cards
+    matchcards.forEach(card => {
+      if (card.typeID === 11) {
+        (card.matchCard || []).forEach(entry => {
+          const dismissal = (entry.dismissal || '').toLowerCase();
+          const dismissalText = (entry.dismissalText || entry.dismissal || '');
+
+          if (dismissal === 'caught') {
+            // Try to find the catcher name from dismissal text
+            // Typical: "c FielderName b BowlerName"
+            const cMatch = dismissalText.match(/c\s+(.+?)\s+b\s+/i);
+            if (cMatch) {
+              const catcherName = cMatch[1].replace('†', '').trim();
+              const catcher = matchPlayerName(catcherName, ALL_PLAYERS);
+              if (catcher && scores[catcher.id]) {
+                scores[catcher.id].catches = (scores[catcher.id].catches || 0) + 1;
+              }
+            }
+          }
+
+          if (dismissal === 'stumped') {
+            const sMatch = dismissalText.match(/st\s+(.+?)\s+b\s+/i);
+            if (sMatch) {
+              const stumperName = sMatch[1].replace('†', '').trim();
+              const stumper = matchPlayerName(stumperName, ALL_PLAYERS);
+              if (stumper && scores[stumper.id]) {
+                scores[stumper.id].stumpings = (scores[stumper.id].stumpings || 0) + 1;
+              }
+            }
+          }
+
+          if (dismissal.includes('lbw') || dismissal.includes('bowled')) {
+            // LBW/Bowled bonus for the bowler
+            const bMatch = dismissalText.match(/b\s+(.+?)$/i) || dismissalText.match(/lbw\s+b\s+(.+?)$/i);
+            if (bMatch) {
+              const bowlerName = bMatch[1].trim();
+              const bowler = matchPlayerName(bowlerName, ALL_PLAYERS);
+              if (bowler && scores[bowler.id]) {
+                scores[bowler.id].lbwBowled = (scores[bowler.id].lbwBowled || 0) + 1;
+              }
+            }
+          }
+
+          if (dismissal.includes('run out')) {
+            // Run out - hard to determine direct/indirect from text, mark as indirect by default
+            const roMatch = dismissalText.match(/run out\s*\((.+?)\)/i);
+            if (roMatch) {
+              const fielderNames = roMatch[1].split('/');
+              if (fielderNames.length === 1) {
+                // Direct hit
+                const fielder = matchPlayerName(fielderNames[0].trim(), ALL_PLAYERS);
+                if (fielder && scores[fielder.id]) {
+                  scores[fielder.id].runoutDirect = (scores[fielder.id].runoutDirect || 0) + 1;
+                }
+              } else {
+                // Not direct - last 2 fielders get indirect
+                fielderNames.slice(-2).forEach(fn => {
+                  const fielder = matchPlayerName(fn.trim(), ALL_PLAYERS);
+                  if (fielder && scores[fielder.id]) {
+                    scores[fielder.id].runoutIndirect = (scores[fielder.id].runoutIndirect || 0) + 1;
+                  }
+                });
+              }
+            }
+          }
+        });
+      }
+    });
+
+    // Update match status in Firebase if live
+    if (matchStatus.toLowerCase().includes('progress') || matchStatus.toLowerCase().includes('live')) {
+      db.ref('matches/' + MATCH_ID + '/status').set('live');
+    } else if (matchStatus.toLowerCase().includes('complete')) {
+      db.ref('matches/' + MATCH_ID + '/status').set('completed');
+    }
+
+    // Save scores to Firebase
+    await db.ref('matches/' + MATCH_ID + '/playerScores').set(scores);
+    await recalcLeaderboard();
+
+    // Re-render admin
+    renderAdminScoring();
+
+    const summary = `✅ Fetched! Batting: ${battingFound} players, Bowling: ${bowlingFound} players.`;
+    espnLog(summary);
+    if (unmatchedBat.length) espnLog('⚠️ Unmatched batters: ' + unmatchedBat.join(', '));
+    if (unmatchedBowl.length) espnLog('⚠️ Unmatched bowlers: ' + unmatchedBowl.join(', '));
+
+    statusEl.textContent = summary + ' (Last: ' + new Date().toLocaleTimeString('en-IN') + ')';
+    statusEl.style.color = 'var(--green)';
+
+  } catch (err) {
+    espnLog('❌ Error: ' + err.message);
+    statusEl.textContent = 'Error: ' + err.message;
+    statusEl.style.color = 'var(--accent)';
+  } finally {
+    fetchBtn.disabled = false;
+    fetchBtn.textContent = '🔄 Fetch Live Scores';
+  }
+}
+
+function toggleAutoPoll() {
+  const btn = document.getElementById('auto-poll-btn');
+  if (autoPollInterval) {
+    clearInterval(autoPollInterval);
+    autoPollInterval = null;
+    btn.textContent = '▶ Start Auto-Poll (30s)';
+    btn.classList.remove('btn-accent');
+    btn.classList.add('btn-green');
+    espnLog('Auto-poll stopped.');
+  } else {
+    fetchESPNScores(); // Fetch immediately
+    autoPollInterval = setInterval(fetchESPNScores, 30000); // Then every 30s
+    btn.textContent = '⏸ Stop Auto-Poll';
+    btn.classList.remove('btn-green');
+    btn.classList.add('btn-accent');
+    espnLog('Auto-poll started (every 30 seconds).');
+  }
 }
 
 // ============ TOAST ============
