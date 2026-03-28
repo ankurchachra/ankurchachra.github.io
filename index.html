@@ -363,7 +363,7 @@
 
   <!-- TAB 1: MATCH -->
   <div class="page active" id="page-match">
-    <h2 style="margin-bottom:20px">RCB vs SRH - Match 1</h2>
+    <h2 style="margin-bottom:20px">MI vs KKR - Match 2</h2>
     <div id="match-card-area"></div>
   </div>
 
@@ -372,7 +372,7 @@
     <div class="selection-header">
       <div>
         <h2>Pick Your XI</h2>
-        <p style="color:#888;margin-top:4px">Select 11 players from RCB &amp; SRH squads</p>
+        <p style="color:#888;margin-top:4px">Select 11 players from MI &amp; KKR squads</p>
       </div>
       <div class="credits-box">
         <div><div class="label">Players</div><div class="value"><span id="sel-count">0</span>/11</div></div>
@@ -402,8 +402,8 @@
         <div class="filter-btn" data-role="BOWL" onclick="filterPlayers('BOWL')">BOWL</div>
         <div class="filter-btn" data-role="AR" onclick="filterPlayers('AR')">AR</div>
         <div class="filter-btn" data-role="WK" onclick="filterPlayers('WK')">WK</div>
-        <div class="filter-btn" data-role="RCB" onclick="filterPlayers('RCB')">RCB</div>
-        <div class="filter-btn" data-role="SRH" onclick="filterPlayers('SRH')">SRH</div>
+        <div class="filter-btn" data-role="MI" onclick="filterPlayers('MI')">MI</div>
+        <div class="filter-btn" data-role="KKR" onclick="filterPlayers('KKR')">KKR</div>
       </div>
       <div class="players-grid" id="players-grid"></div>
     </div>
@@ -411,13 +411,13 @@
 
   <!-- TAB 3: MY TEAM -->
   <div class="page" id="page-my-team">
-    <h2 style="margin-bottom:20px">My Team - RCB vs SRH</h2>
+    <h2 style="margin-bottom:20px">My Team - MI vs KKR</h2>
     <div id="my-team-area"></div>
   </div>
 
   <!-- TAB 4: LEADERBOARD -->
   <div class="page" id="page-leaderboard">
-    <h2 style="margin-bottom:20px">Match Leaderboard - RCB vs SRH</h2>
+    <h2 style="margin-bottom:20px">Match Leaderboard - MI vs KKR</h2>
     <table class="leaderboard-table">
       <thead><tr><th>#</th><th>Player</th><th>Points</th><th>Team Locked</th></tr></thead>
       <tbody id="lb-body"></tbody>
@@ -610,12 +610,13 @@ function initFirebase(config) {
 }
 
 // ============ CONSTANTS ============
-const MATCH_ID = 'match_1';
-const MATCH_TIME = '2026-03-28T20:00:00+05:30';
+const MATCH_ID = 'match_2';
+const MATCH_TIME = '2026-03-29T19:30:00+05:30';  // Match starts 7:30 PM IST
+const LOCK_TIME  = '2026-03-29T19:30:00+05:30';  // Teams lock at match start (7:30 PM IST)
 
 const IPL_TEAMS = {
-  RCB: { name: 'Royal Challengers Bengaluru', short: 'RCB', color: '#ec1c24' },
-  SRH: { name: 'Sunrisers Hyderabad', short: 'SRH', color: '#ff822a' },
+  MI:  { name: 'Mumbai Indians',           short: 'MI',  color: '#004ba0' },
+  KKR: { name: 'Kolkata Knight Riders',    short: 'KKR', color: '#3a225d' },
 };
 
 const USERS = {
@@ -626,62 +627,63 @@ const USERS = {
   sharat:  { name: 'Sharat',  pass: 'sharat123',  isAdmin: false },
 };
 
-const RCB_SQUAD = [
-  { id: 'RCB_0',  name: 'Rajat Patidar',     team: 'RCB', role: 'BAT',  credits: 9.5,  isCaptain: true },
-  { id: 'RCB_1',  name: 'Abhinandan Singh',   team: 'RCB', role: 'BOWL', credits: 6.0 },
-  { id: 'RCB_2',  name: 'Jacob Bethell',       team: 'RCB', role: 'AR',   credits: 8.5 },
-  { id: 'RCB_3',  name: 'Kanishk Chouhan',     team: 'RCB', role: 'BOWL', credits: 6.0 },
-  { id: 'RCB_4',  name: 'Jordan Cox',          team: 'RCB', role: 'WK',   credits: 7.5 },
-  { id: 'RCB_5',  name: 'Tim David',           team: 'RCB', role: 'BAT',  credits: 8.5 },
-  { id: 'RCB_6',  name: 'Satvik Deswal',       team: 'RCB', role: 'BOWL', credits: 6.0 },
-  { id: 'RCB_7',  name: 'Jacob Duffy',         team: 'RCB', role: 'BOWL', credits: 7.0 },
-  { id: 'RCB_8',  name: 'Josh Hazlewood',      team: 'RCB', role: 'BOWL', credits: 9.0 },
-  { id: 'RCB_9',  name: 'Venkatesh Iyer',      team: 'RCB', role: 'AR',   credits: 8.0 },
-  { id: 'RCB_10', name: 'Virat Kohli',         team: 'RCB', role: 'BAT',  credits: 10.5 },
-  { id: 'RCB_11', name: 'Bhuvneshwar Kumar',   team: 'RCB', role: 'BOWL', credits: 8.0 },
-  { id: 'RCB_12', name: 'Vihaan Malhotra',     team: 'RCB', role: 'AR',   credits: 6.5 },
-  { id: 'RCB_13', name: 'Mangesh Yadav',       team: 'RCB', role: 'AR',   credits: 6.0 },
-  { id: 'RCB_14', name: 'Vicky Ostwal',        team: 'RCB', role: 'BOWL', credits: 6.5 },
-  { id: 'RCB_15', name: 'Devdutt Padikkal',    team: 'RCB', role: 'BAT',  credits: 7.5 },
-  { id: 'RCB_16', name: 'Krunal Pandya',       team: 'RCB', role: 'AR',   credits: 7.5 },
-  { id: 'RCB_17', name: 'Rasikh Salam',        team: 'RCB', role: 'BOWL', credits: 7.0 },
-  { id: 'RCB_18', name: 'Phil Salt',           team: 'RCB', role: 'WK',   credits: 9.5 },
-  { id: 'RCB_19', name: 'Jitesh Sharma',       team: 'RCB', role: 'WK',   credits: 7.0 },
-  { id: 'RCB_20', name: 'Romario Shepherd',    team: 'RCB', role: 'AR',   credits: 7.5 },
-  { id: 'RCB_21', name: 'Suyash Sharma',       team: 'RCB', role: 'BOWL', credits: 6.0 },
-  { id: 'RCB_22', name: 'Swapnil Singh',       team: 'RCB', role: 'BOWL', credits: 6.0 },
-  { id: 'RCB_23', name: 'Nuwan Thushara',      team: 'RCB', role: 'BOWL', credits: 7.5 },
+const MI_SQUAD = [
+  { id: 'MI_0',  name: 'Hardik Pandya',       team: 'MI', role: 'AR',   credits: 10.0, isCaptain: true },
+  { id: 'MI_1',  name: 'Rohit Sharma',        team: 'MI', role: 'BAT',  credits: 10.0 },
+  { id: 'MI_2',  name: 'Suryakumar Yadav',    team: 'MI', role: 'BAT',  credits: 10.0 },
+  { id: 'MI_3',  name: 'Jasprit Bumrah',      team: 'MI', role: 'BOWL', credits: 10.0 },
+  { id: 'MI_4',  name: 'Tilak Varma',         team: 'MI', role: 'BAT',  credits: 9.0 },
+  { id: 'MI_5',  name: 'Trent Boult',         team: 'MI', role: 'BOWL', credits: 9.0 },
+  { id: 'MI_6',  name: 'Quinton de Kock',     team: 'MI', role: 'WK',   credits: 9.5 },
+  { id: 'MI_7',  name: 'Deepak Chahar',       team: 'MI', role: 'BOWL', credits: 8.5 },
+  { id: 'MI_8',  name: 'Will Jacks',          team: 'MI', role: 'AR',   credits: 8.5 },
+  { id: 'MI_9',  name: 'Mitchell Santner',    team: 'MI', role: 'AR',   credits: 8.0 },
+  { id: 'MI_10', name: 'Shardul Thakur',      team: 'MI', role: 'AR',   credits: 8.0 },
+  { id: 'MI_11', name: 'Corbin Bosch',        team: 'MI', role: 'AR',   credits: 7.5 },
+  { id: 'MI_12', name: 'Ryan Rickelton',      team: 'MI', role: 'WK',   credits: 7.5 },
+  { id: 'MI_13', name: 'Sherfane Rutherford', team: 'MI', role: 'BAT',  credits: 7.5 },
+  { id: 'MI_14', name: 'Naman Dhir',          team: 'MI', role: 'AR',   credits: 7.0 },
+  { id: 'MI_15', name: 'AM Ghazanfar',        team: 'MI', role: 'BOWL', credits: 7.0 },
+  { id: 'MI_16', name: 'Robin Minz',          team: 'MI', role: 'WK',   credits: 6.5 },
+  { id: 'MI_17', name: 'Raj Bawa',            team: 'MI', role: 'AR',   credits: 6.5 },
+  { id: 'MI_18', name: 'Atharva Ankolekar',   team: 'MI', role: 'AR',   credits: 6.0 },
+  { id: 'MI_19', name: 'Ashwani Kumar',       team: 'MI', role: 'BOWL', credits: 6.0 },
+  { id: 'MI_20', name: 'Danish Malewar',      team: 'MI', role: 'BAT',  credits: 6.0 },
+  { id: 'MI_21', name: 'Mayank Markande',     team: 'MI', role: 'BOWL', credits: 6.0 },
+  { id: 'MI_22', name: 'Mayank Rawat',        team: 'MI', role: 'AR',   credits: 6.0 },
+  { id: 'MI_23', name: 'Mohd Izhar',          team: 'MI', role: 'BOWL', credits: 6.0 },
+  { id: 'MI_24', name: 'Raghu Sharma',        team: 'MI', role: 'BOWL', credits: 6.0 },
 ];
 
-const SRH_SQUAD = [
-  { id: 'SRH_0',  name: 'Ishan Kishan',        team: 'SRH', role: 'WK',   credits: 9.0,  isCaptain: true },
-  { id: 'SRH_1',  name: 'Abhishek Sharma',     team: 'SRH', role: 'AR',   credits: 9.0 },
-  { id: 'SRH_2',  name: 'Amit Kumar',          team: 'SRH', role: 'BOWL', credits: 6.0 },
-  { id: 'SRH_3',  name: 'Salil Arora',         team: 'SRH', role: 'WK',   credits: 6.0 },
-  { id: 'SRH_4',  name: 'Brydon Carse',        team: 'SRH', role: 'AR',   credits: 8.0 },
-  { id: 'SRH_5',  name: 'Pat Cummins',         team: 'SRH', role: 'BOWL', credits: 9.5 },
-  { id: 'SRH_6',  name: 'Harsh Dubey',         team: 'SRH', role: 'AR',   credits: 6.0 },
-  { id: 'SRH_7',  name: 'Krains Fuletra',      team: 'SRH', role: 'AR',   credits: 6.0 },
-  { id: 'SRH_8',  name: 'Travis Head',         team: 'SRH', role: 'BAT',  credits: 10.0 },
-  { id: 'SRH_9',  name: 'Praful Hinge',        team: 'SRH', role: 'BOWL', credits: 6.0 },
-  { id: 'SRH_10', name: 'Heinrich Klaasen',    team: 'SRH', role: 'WK',   credits: 9.5 },
-  { id: 'SRH_11', name: 'Liam Livingstone',    team: 'SRH', role: 'AR',   credits: 8.5 },
-  { id: 'SRH_12', name: 'Eshan Malinga',       team: 'SRH', role: 'BOWL', credits: 6.5 },
-  { id: 'SRH_13', name: 'Kamindu Mendis',      team: 'SRH', role: 'AR',   credits: 8.0 },
-  { id: 'SRH_14', name: 'Nitish Kumar Reddy',  team: 'SRH', role: 'AR',   credits: 8.5 },
-  { id: 'SRH_15', name: 'Harshal Patel',       team: 'SRH', role: 'AR',   credits: 8.0 },
-  { id: 'SRH_16', name: 'David Payne',         team: 'SRH', role: 'BOWL', credits: 6.5 },
-  { id: 'SRH_17', name: 'Sakib Hussain',       team: 'SRH', role: 'BOWL', credits: 6.0 },
-  { id: 'SRH_18', name: 'Shivam Mavi',         team: 'SRH', role: 'AR',   credits: 6.5 },
-  { id: 'SRH_19', name: 'Shivang Kumar',       team: 'SRH', role: 'AR',   credits: 6.0 },
-  { id: 'SRH_20', name: 'Ravichandran Smaran', team: 'SRH', role: 'BAT',  credits: 6.0 },
-  { id: 'SRH_21', name: 'Onkar Tarmale',       team: 'SRH', role: 'BOWL', credits: 6.0 },
-  { id: 'SRH_22', name: 'Jaydev Unadkat',      team: 'SRH', role: 'BOWL', credits: 7.5 },
-  { id: 'SRH_23', name: 'Aniket Verma',        team: 'SRH', role: 'BAT',  credits: 6.0 },
-  { id: 'SRH_24', name: 'Zeeshan Ansari',      team: 'SRH', role: 'BOWL', credits: 6.0 },
+const KKR_SQUAD = [
+  { id: 'KKR_0',  name: 'Ajinkya Rahane',        team: 'KKR', role: 'BAT',  credits: 8.5, isCaptain: true },
+  { id: 'KKR_1',  name: 'Rinku Singh',            team: 'KKR', role: 'BAT',  credits: 9.0 },
+  { id: 'KKR_2',  name: 'Sunil Narine',           team: 'KKR', role: 'AR',   credits: 9.5 },
+  { id: 'KKR_3',  name: 'Varun Chakravarthy',     team: 'KKR', role: 'BOWL', credits: 9.0 },
+  { id: 'KKR_4',  name: 'Rachin Ravindra',        team: 'KKR', role: 'AR',   credits: 8.5 },
+  { id: 'KKR_5',  name: 'Cameron Green',          team: 'KKR', role: 'AR',   credits: 8.5 },
+  { id: 'KKR_6',  name: 'Rovman Powell',          team: 'KKR', role: 'BAT',  credits: 8.0 },
+  { id: 'KKR_7',  name: 'Matheesha Pathirana',    team: 'KKR', role: 'BOWL', credits: 8.5 },
+  { id: 'KKR_8',  name: 'Finn Allen',             team: 'KKR', role: 'BAT',  credits: 8.0 },
+  { id: 'KKR_9',  name: 'Rahul Tripathi',         team: 'KKR', role: 'BAT',  credits: 7.5 },
+  { id: 'KKR_10', name: 'Manish Pandey',          team: 'KKR', role: 'BAT',  credits: 7.5 },
+  { id: 'KKR_11', name: 'Navdeep Saini',          team: 'KKR', role: 'BOWL', credits: 7.5 },
+  { id: 'KKR_12', name: 'Umran Malik',            team: 'KKR', role: 'BOWL', credits: 7.5 },
+  { id: 'KKR_13', name: 'Blessing Muzarabani',    team: 'KKR', role: 'BOWL', credits: 7.5 },
+  { id: 'KKR_14', name: 'Vaibhav Arora',          team: 'KKR', role: 'BOWL', credits: 7.0 },
+  { id: 'KKR_15', name: 'Ramandeep Singh',        team: 'KKR', role: 'BAT',  credits: 7.0 },
+  { id: 'KKR_16', name: 'Kartik Tyagi',           team: 'KKR', role: 'BOWL', credits: 6.5 },
+  { id: 'KKR_17', name: 'Anukul Roy',             team: 'KKR', role: 'AR',   credits: 6.5 },
+  { id: 'KKR_18', name: 'Tim Seifert',            team: 'KKR', role: 'WK',   credits: 7.0 },
+  { id: 'KKR_19', name: 'Angkrish Raghuvanshi',   team: 'KKR', role: 'BAT',  credits: 6.5 },
+  { id: 'KKR_20', name: 'Saurabh Dubey',          team: 'KKR', role: 'BOWL', credits: 6.0 },
+  { id: 'KKR_21', name: 'Prashant Solanki',       team: 'KKR', role: 'BOWL', credits: 6.0 },
+  { id: 'KKR_22', name: 'Tejasvi Dahiya',         team: 'KKR', role: 'WK',   credits: 6.0 },
+  { id: 'KKR_23', name: 'Sarthak Ranjan',         team: 'KKR', role: 'BAT',  credits: 6.0 },
+  { id: 'KKR_24', name: 'Daksh Kamra',            team: 'KKR', role: 'AR',   credits: 6.0 },
 ];
 
-const ALL_PLAYERS = [...RCB_SQUAD, ...SRH_SQUAD];
+const ALL_PLAYERS = [...MI_SQUAD, ...KKR_SQUAD];
 
 // Build a lookup map
 const PLAYER_MAP = {};
@@ -712,10 +714,10 @@ function getDefaultMatch() {
   });
   return {
     id: MATCH_ID,
-    num: 1,
-    team1: 'RCB',
-    team2: 'SRH',
-    venue: 'M. Chinnaswamy Stadium, Bengaluru',
+    num: 2,
+    team1: 'MI',
+    team2: 'KKR',
+    venue: 'Wankhede Stadium, Mumbai',
     time: MATCH_TIME,
     status: 'upcoming',
     result: '',
@@ -854,6 +856,8 @@ function startApp() {
       renderLeaderboard();
       renderAdminScoring();
       renderTeamSelection();
+      // React to match status changes (e.g. live → auto-poll)
+      checkAndAutoStartPoll();
     }
   });
 
@@ -877,6 +881,9 @@ function startApp() {
   } else {
     document.getElementById('login-page').style.display = 'flex';
   }
+
+  // Start auto-polling check (works for all users)
+  initAutoLivePolling();
 }
 
 // ============ AUTH ============
@@ -929,8 +936,7 @@ function startCountdown() {
   if (countdownInterval) clearInterval(countdownInterval);
   const updateCountdown = () => {
     const now = new Date();
-    const matchTime = new Date(MATCH_TIME);
-    const lockTime = matchTime; // Lock at match time (8 PM IST)
+    const lockTime = new Date(LOCK_TIME);
     const diff = lockTime - now;
     const cdEl = document.getElementById('lock-countdown');
     const cdMatchEl = document.getElementById('match-countdown');
@@ -955,8 +961,7 @@ function startCountdown() {
 }
 
 function isLockExpired() {
-  const matchTime = new Date(MATCH_TIME);
-  return new Date() >= matchTime; // Lock at match time (8 PM IST)
+  return new Date() >= new Date(LOCK_TIME); // Lock at 7:30 PM IST
 }
 
 // ============ MATCH CARD (Tab 1) ============
@@ -979,13 +984,13 @@ function renderMatchCard() {
   area.innerHTML = `
     <div class="match-card" style="border-color:${status === 'live' ? 'var(--accent)' : '#2a3a4a'}">
       <div class="match-header">
-        <span class="match-num">Match 1</span>
+        <span class="match-num">Match ${match.num || MATCH_ID}</span>
         <span class="match-status ${statusClass}">${statusLabel}</span>
       </div>
       <div class="match-teams">
-        <span class="team-name" style="color:${IPL_TEAMS.RCB.color}">RCB</span>
+        <span class="team-name" style="color:${IPL_TEAMS[match.team1]?.color || '#888'}">${match.team1}</span>
         <span class="vs">VS</span>
-        <span class="team-name" style="color:${IPL_TEAMS.SRH.color}">SRH</span>
+        <span class="team-name" style="color:${IPL_TEAMS[match.team2]?.color || '#888'}">${match.team2}</span>
       </div>
       <div class="match-meta">
         <div>${dateStr} | ${timeStr} IST</div>
@@ -1016,16 +1021,6 @@ function renderMatchCard() {
 
 // ============ TEAM SELECTION (Tab 2) ============
 function renderTeamSelection() {
-  const teamKey = currentUser + '_' + MATCH_ID;
-  const existingTeam = DATA.teams[teamKey];
-
-  // If team already locked, load it into state for display
-  if (existingTeam && existingTeam.locked) {
-    selectedPlayers = existingTeam.players || [];
-    captainId = existingTeam.captain || null;
-    viceCaptainId = existingTeam.viceCaptain || null;
-  }
-
   renderPlayersGrid();
   renderSelectedPanel();
 }
@@ -1043,10 +1038,10 @@ function renderPlayersGrid() {
   const isLocked = existingTeam && existingTeam.locked;
 
   let players = ALL_PLAYERS;
-  if (currentFilter === 'RCB') {
-    players = players.filter(p => p.team === 'RCB');
-  } else if (currentFilter === 'SRH') {
-    players = players.filter(p => p.team === 'SRH');
+  if (currentFilter === 'MI') {
+    players = players.filter(p => p.team === 'MI');
+  } else if (currentFilter === 'KKR') {
+    players = players.filter(p => p.team === 'KKR');
   } else if (currentFilter !== 'all') {
     players = players.filter(p => p.role === currentFilter);
   }
@@ -1142,6 +1137,13 @@ function renderSelectedPanel() {
   const existingTeam = DATA.teams[teamKey];
   const isLocked = existingTeam && existingTeam.locked;
 
+  // If locked, always sync local state from Firebase
+  if (isLocked && existingTeam.players) {
+    selectedPlayers = [...existingTeam.players];
+    captainId = existingTeam.captain || null;
+    viceCaptainId = existingTeam.viceCaptain || null;
+  }
+
   const usedCredits = selectedPlayers.reduce((s, id) => s + (PLAYER_MAP[id] ? PLAYER_MAP[id].credits : 0), 0);
   countEl.textContent = selectedPlayers.length;
   creditsEl.textContent = (100 - usedCredits).toFixed(1);
@@ -1149,8 +1151,18 @@ function renderSelectedPanel() {
   if (selectedPlayers.length === 0) {
     list.innerHTML = '<span style="color:#666">No players selected</span>';
     captainArea.style.display = 'none';
-    lockBtn.disabled = true;
     compSummary.innerHTML = '';
+    // Still need to handle lock/unlock buttons even when empty
+    const unlockBtn = document.getElementById('unlock-btn');
+    const clearBtn = document.getElementById('clear-btn');
+    if (isLocked && !isLockExpired()) {
+      lockBtn.style.display = 'none';
+      clearBtn.style.display = 'none';
+      unlockBtn.style.display = '';
+    } else {
+      lockBtn.disabled = true;
+      unlockBtn.style.display = 'none';
+    }
     return;
   }
 
@@ -1167,7 +1179,7 @@ function renderSelectedPanel() {
 
   // Composition summary
   const roles = { WK: 0, BAT: 0, AR: 0, BOWL: 0 };
-  const teams = { RCB: 0, SRH: 0 };
+  const teams = { MI: 0, KKR: 0 };
   selectedPlayers.forEach(id => {
     const p = PLAYER_MAP[id];
     roles[p.role] = (roles[p.role] || 0) + 1;
@@ -1179,8 +1191,8 @@ function renderSelectedPanel() {
     <span class="team-comp-item ${roles.BAT >= 1 ? 'ok' : 'warn'}">BAT: ${roles.BAT}</span>
     <span class="team-comp-item ${roles.AR >= 1 ? 'ok' : 'warn'}">AR: ${roles.AR}</span>
     <span class="team-comp-item ${roles.BOWL >= 1 ? 'ok' : 'warn'}">BOWL: ${roles.BOWL}</span>
-    <span class="team-comp-item ${teams.RCB <= 7 ? 'ok' : 'warn'}">RCB: ${teams.RCB}</span>
-    <span class="team-comp-item ${teams.SRH <= 7 ? 'ok' : 'warn'}">SRH: ${teams.SRH}</span>
+    <span class="team-comp-item ${teams.MI <= 7 ? 'ok' : 'warn'}">MI: ${teams.MI}</span>
+    <span class="team-comp-item ${teams.KKR <= 7 ? 'ok' : 'warn'}">KKR: ${teams.KKR}</span>
   `;
 
   // Captain/VC selection
@@ -1298,7 +1310,7 @@ function validateTeam() {
   if (selectedPlayers.length !== 11) errors.push('You must select exactly 11 players.');
 
   const roles = { WK: 0, BAT: 0, AR: 0, BOWL: 0 };
-  const teams = { RCB: 0, SRH: 0 };
+  const teams = { MI: 0, KKR: 0 };
   const usedCredits = selectedPlayers.reduce((s, id) => {
     const p = PLAYER_MAP[id];
     roles[p.role] = (roles[p.role] || 0) + 1;
@@ -1310,8 +1322,8 @@ function validateTeam() {
   if (roles.BAT < 1) errors.push('At least 1 Batter required.');
   if (roles.BOWL < 1) errors.push('At least 1 Bowler required.');
   if (roles.AR < 1) errors.push('At least 1 All-rounder required.');
-  if (teams.RCB > 7) errors.push('Max 7 players from RCB allowed (you have ' + teams.RCB + ').');
-  if (teams.SRH > 7) errors.push('Max 7 players from SRH allowed (you have ' + teams.SRH + ').');
+  if (teams.MI > 7) errors.push('Max 7 players from MI allowed (you have ' + teams.MI + ').');
+  if (teams.KKR > 7) errors.push('Max 7 players from KKR allowed (you have ' + teams.KKR + ').');
   if (usedCredits > 100) errors.push('Total credits exceed 100 (' + usedCredits.toFixed(1) + ').');
   if (!captainId) errors.push('You must select a Captain.');
   if (!viceCaptainId) errors.push('You must select a Vice-Captain.');
@@ -1369,7 +1381,7 @@ function unlockTeam() {
     showToast('Deadline passed — cannot unlock!', 'error');
     return;
   }
-  if (!confirm('Unlock your team for editing? Your current picks will stay — just make changes and re-lock before 8 PM.')) return;
+  if (!confirm('Unlock your team for editing? Your current picks will stay — just make changes and re-lock before 7:30 PM.')) return;
 
   const teamKey = currentUser + '_' + MATCH_ID;
   const existingTeam = DATA.teams[teamKey];
@@ -1382,7 +1394,7 @@ function unlockTeam() {
   }
 
   db.ref('teams/' + teamKey).remove().then(() => {
-    showToast('Team unlocked! Edit and re-lock before 8 PM.', 'success');
+    showToast('Team unlocked! Edit and re-lock before 7:30 PM.', 'success');
     renderSelectedPanel();
     renderPlayersGrid();
     renderMatchCard();
@@ -1446,7 +1458,7 @@ function renderMyTeam() {
     <div class="my-team-card">
       <div class="my-team-header">
         <div>
-          <h3 style="color:var(--gold)">RCB vs SRH</h3>
+          <h3 style="color:var(--gold)">MI vs KKR</h3>
           <span style="color:#888;font-size:0.85em">Locked at: ${new Date(team.lockedAt).toLocaleString('en-IN')}</span>
         </div>
         <div style="text-align:right">
@@ -1636,8 +1648,8 @@ function renderAdminScoring() {
     `;
   };
 
-  area.innerHTML = renderTeam(RCB_SQUAD, 'RCB - Royal Challengers Bengaluru') +
-                   renderTeam(SRH_SQUAD, 'SRH - Sunrisers Hyderabad');
+  area.innerHTML = renderTeam(MI_SQUAD, 'MI - Mumbai Indians') +
+                   renderTeam(KKR_SQUAD, 'KKR - Kolkata Knight Riders');
 }
 
 function updateMatchStatus() {
@@ -1705,7 +1717,7 @@ function recalcLeaderboard() {
 }
 
 // ============ ESPN LIVE SCORE FETCH ============
-const ESPN_MATCH_ID = '1527674';
+const ESPN_MATCH_ID = '1527675';
 const ESPN_API_URL = `https://site.api.espn.com/apis/site/v2/sports/cricket/8048/summary?event=${ESPN_MATCH_ID}`;
 let autoPollInterval = null;
 
@@ -1766,9 +1778,8 @@ async function fetchESPNScores() {
   const fetchBtn = document.getElementById('espn-fetch-btn');
 
   try {
-    fetchBtn.disabled = true;
-    fetchBtn.textContent = '⏳ Fetching...';
-    statusEl.textContent = 'Fetching from ESPN...';
+    if (fetchBtn) { fetchBtn.disabled = true; fetchBtn.textContent = '⏳ Fetching...'; }
+    if (statusEl) statusEl.textContent = 'Fetching from ESPN...';
     espnLog('Fetching live data from ESPN API...');
 
     const res = await fetch(ESPN_API_URL);
@@ -1780,24 +1791,16 @@ async function fetchESPNScores() {
     // Check match status
     const competition = data.header?.competitions?.[0];
     const matchStatus = competition?.status?.type?.description || 'Unknown';
-    espnLog('Match status: ' + matchStatus);
+    const matchState = competition?.status?.type?.state || '';
+    espnLog('Match status: ' + matchStatus + ' (state: ' + matchState + ')');
 
-    // Get matchcards (batting, bowling data)
-    const matchcards = data.matchcards || [];
-
-    if (matchcards.length === 0) {
-      espnLog('⚠️ No scorecard data yet. Match may not have started.');
-      statusEl.textContent = 'No scorecard data yet (match not started?)';
-      statusEl.style.color = '#f5a623';
-      return;
-    }
-
-    // Build a scores object keyed by our player IDs
+    // Build a scores object — MERGE with existing Firebase data so we don't lose manual edits
+    const existingScores = DATA.match?.playerScores || {};
     const scores = {};
 
-    // Initialize all players with defaults
+    // Initialize all players with defaults or existing data
     ALL_PLAYERS.forEach(p => {
-      scores[p.id] = {
+      scores[p.id] = existingScores[p.id] ? { ...existingScores[p.id] } : {
         runs: 0, balls: 0, fours: 0, sixes: 0,
         wickets: 0, dots: 0, lbwBowled: 0, maidens: 0,
         oversBowled: 0, runsConceded: 0,
@@ -1806,9 +1809,10 @@ async function fetchESPNScores() {
       };
     });
 
-    let battingFound = 0, bowlingFound = 0, unmatchedBat = [], unmatchedBowl = [];
+    let playingXIFound = 0, battingFound = 0, bowlingFound = 0;
+    let unmatchedBat = [], unmatchedBowl = [];
 
-    // Track who is in the playing XI from rosters
+    // ── Step 1: Mark Playing XI from rosters ──
     const rosters = data.rosters || [];
     rosters.forEach(roster => {
       (roster.roster || []).forEach(entry => {
@@ -1818,186 +1822,290 @@ async function fetchESPNScores() {
         const player = matchPlayerName(displayName, ALL_PLAYERS);
         if (player && scores[player.id]) {
           scores[player.id].inPlayingXI = true;
+          playingXIFound++;
         }
       });
     });
+    espnLog('Playing XI identified: ' + playingXIFound + ' players');
 
-    // Parse matchcards for batting and bowling
-    matchcards.forEach(card => {
-      const typeID = card.typeID;
-
-      if (typeID === 11) {
-        // Batting card
-        (card.matchCard || []).forEach(entry => {
-          const name = entry.playerName || '';
-          const player = matchPlayerName(name, ALL_PLAYERS);
-          if (player) {
-            const s = scores[player.id];
-            s.runs = parseInt(entry.runs) || 0;
-            s.balls = parseInt(entry.ballsFaced) || 0;
-            s.fours = parseInt(entry.fours) || 0;
-            s.sixes = parseInt(entry.sixes) || 0;
-            s.didBat = true;
-            s.inPlayingXI = true;
-            battingFound++;
-          } else if (name && !name.includes('Extras') && !name.includes('Total')) {
-            unmatchedBat.push(name);
-          }
-        });
-      }
-
-      if (typeID === 12) {
-        // Bowling card
-        (card.matchCard || []).forEach(entry => {
-          const name = entry.playerName || '';
-          const player = matchPlayerName(name, ALL_PLAYERS);
-          if (player) {
-            const s = scores[player.id];
-            s.oversBowled = parseFloat(entry.overs) || 0;
-            s.maidens = parseInt(entry.maidens) || 0;
-            s.runsConceded = parseInt(entry.conceded) || 0;
-            s.wickets = parseInt(entry.wickets) || 0;
-            s.inPlayingXI = true;
-
-            // Try to extract economy rate for dot ball estimation
-            const overs = parseFloat(entry.overs) || 0;
-            const fullOvers = Math.floor(overs);
-            const partialBalls = Math.round((overs - fullOvers) * 10);
-            const totalBalls = fullOvers * 6 + partialBalls;
-            const runs = parseInt(entry.conceded) || 0;
-            // Estimate dots: totalBalls - runs scored off bat (rough estimate)
-            // ESPN doesn't give dot ball count directly, so estimate conservatively
-            if (totalBalls > 0) {
-              const scoringBalls = Math.min(totalBalls, Math.ceil(runs / 1.2));
-              s.dots = Math.max(0, totalBalls - scoringBalls);
+    // ── Step 2: Extract live batting from partnerships (current batsmen at crease) ──
+    const competitors = competition?.competitors || [];
+    competitors.forEach(team => {
+      const linescores = team.linescores || [];
+      linescores.forEach(ls => {
+        const partnerships = ls.partnerships || [];
+        partnerships.forEach(p => {
+          (p.batsmen || []).forEach(b => {
+            const ath = b.athlete || {};
+            const displayName = ath.displayName || ath.shortName || '';
+            const player = matchPlayerName(displayName, ALL_PLAYERS);
+            if (player && scores[player.id]) {
+              scores[player.id].runs = parseInt(b.runs) || 0;
+              scores[player.id].balls = parseInt(b.balls) || 0;
+              scores[player.id].didBat = true;
+              scores[player.id].inPlayingXI = true;
+              battingFound++;
+              espnLog('  Bat: ' + player.name + ' — ' + b.runs + '(' + b.balls + ')');
             }
+          });
+        });
 
-            bowlingFound++;
-          } else if (name) {
-            unmatchedBowl.push(name);
+        // Also extract fall of wickets for dismissed batsmen info
+        const fow = ls.fow || [];
+        fow.forEach(f => {
+          const ath = f.athlete || f.player || {};
+          const displayName = ath.displayName || ath.shortName || '';
+          if (displayName) {
+            const player = matchPlayerName(displayName, ALL_PLAYERS);
+            if (player && scores[player.id]) {
+              scores[player.id].didBat = true;
+              scores[player.id].inPlayingXI = true;
+            }
           }
         });
-      }
+      });
     });
 
-    // Try to parse fielding from dismissal strings in batting cards
-    matchcards.forEach(card => {
-      if (card.typeID === 11) {
-        (card.matchCard || []).forEach(entry => {
-          const dismissal = (entry.dismissal || '').toLowerCase();
-          const dismissalText = (entry.dismissalText || entry.dismissal || '');
+    // ── Step 3: Parse completed innings from matchcards ──
+    const matchcards = data.matchcards || [];
+    if (matchcards.length > 0) {
+      espnLog('Parsing ' + matchcards.length + ' completed innings scorecards...');
 
-          if (dismissal === 'caught') {
-            // Try to find the catcher name from dismissal text
-            // Typical: "c FielderName b BowlerName"
-            const cMatch = dismissalText.match(/c\s+(.+?)\s+b\s+/i);
-            if (cMatch) {
-              const catcherName = cMatch[1].replace('†', '').trim();
-              const catcher = matchPlayerName(catcherName, ALL_PLAYERS);
-              if (catcher && scores[catcher.id]) {
-                scores[catcher.id].catches = (scores[catcher.id].catches || 0) + 1;
+      matchcards.forEach(card => {
+        if (card.typeID === 11) {
+          // Batting card
+          (card.matchCard || []).forEach(entry => {
+            const name = entry.playerName || '';
+            const player = matchPlayerName(name, ALL_PLAYERS);
+            if (player) {
+              const s = scores[player.id];
+              s.runs = parseInt(entry.runs) || 0;
+              s.balls = parseInt(entry.ballsFaced) || 0;
+              s.fours = parseInt(entry.fours) || 0;
+              s.sixes = parseInt(entry.sixes) || 0;
+              s.didBat = true;
+              s.inPlayingXI = true;
+              battingFound++;
+            } else if (name && !name.includes('Extras') && !name.includes('Total')) {
+              unmatchedBat.push(name);
+            }
+          });
+        }
+
+        if (card.typeID === 12) {
+          // Bowling card
+          (card.matchCard || []).forEach(entry => {
+            const name = entry.playerName || '';
+            const player = matchPlayerName(name, ALL_PLAYERS);
+            if (player) {
+              const s = scores[player.id];
+              s.oversBowled = parseFloat(entry.overs) || 0;
+              s.maidens = parseInt(entry.maidens) || 0;
+              s.runsConceded = parseInt(entry.conceded) || 0;
+              s.wickets = parseInt(entry.wickets) || 0;
+              s.inPlayingXI = true;
+
+              const overs = parseFloat(entry.overs) || 0;
+              const fullOvers = Math.floor(overs);
+              const partialBalls = Math.round((overs - fullOvers) * 10);
+              const totalBalls = fullOvers * 6 + partialBalls;
+              const runs = parseInt(entry.conceded) || 0;
+              if (totalBalls > 0) {
+                const scoringBalls = Math.min(totalBalls, Math.ceil(runs / 1.2));
+                s.dots = Math.max(0, totalBalls - scoringBalls);
+              }
+              bowlingFound++;
+            } else if (name) {
+              unmatchedBowl.push(name);
+            }
+          });
+        }
+      });
+
+      // Parse fielding from dismissals
+      matchcards.forEach(card => {
+        if (card.typeID === 11) {
+          (card.matchCard || []).forEach(entry => {
+            const dismissal = (entry.dismissal || '').toLowerCase();
+            const dismissalText = (entry.dismissalText || entry.dismissal || '');
+
+            if (dismissal === 'caught') {
+              const cMatch = dismissalText.match(/c\s+(.+?)\s+b\s+/i);
+              if (cMatch) {
+                const catcher = matchPlayerName(cMatch[1].replace('†', '').trim(), ALL_PLAYERS);
+                if (catcher && scores[catcher.id]) scores[catcher.id].catches = (scores[catcher.id].catches || 0) + 1;
               }
             }
-          }
-
-          if (dismissal === 'stumped') {
-            const sMatch = dismissalText.match(/st\s+(.+?)\s+b\s+/i);
-            if (sMatch) {
-              const stumperName = sMatch[1].replace('†', '').trim();
-              const stumper = matchPlayerName(stumperName, ALL_PLAYERS);
-              if (stumper && scores[stumper.id]) {
-                scores[stumper.id].stumpings = (scores[stumper.id].stumpings || 0) + 1;
+            if (dismissal === 'stumped') {
+              const sMatch = dismissalText.match(/st\s+(.+?)\s+b\s+/i);
+              if (sMatch) {
+                const stumper = matchPlayerName(sMatch[1].replace('†', '').trim(), ALL_PLAYERS);
+                if (stumper && scores[stumper.id]) stumper && (scores[stumper.id].stumpings = (scores[stumper.id].stumpings || 0) + 1);
               }
             }
-          }
-
-          if (dismissal.includes('lbw') || dismissal.includes('bowled')) {
-            // LBW/Bowled bonus for the bowler
-            const bMatch = dismissalText.match(/b\s+(.+?)$/i) || dismissalText.match(/lbw\s+b\s+(.+?)$/i);
-            if (bMatch) {
-              const bowlerName = bMatch[1].trim();
-              const bowler = matchPlayerName(bowlerName, ALL_PLAYERS);
-              if (bowler && scores[bowler.id]) {
-                scores[bowler.id].lbwBowled = (scores[bowler.id].lbwBowled || 0) + 1;
+            if (dismissal.includes('lbw') || dismissal.includes('bowled')) {
+              const bMatch = dismissalText.match(/b\s+(.+?)$/i) || dismissalText.match(/lbw\s+b\s+(.+?)$/i);
+              if (bMatch) {
+                const bowler = matchPlayerName(bMatch[1].trim(), ALL_PLAYERS);
+                if (bowler && scores[bowler.id]) scores[bowler.id].lbwBowled = (scores[bowler.id].lbwBowled || 0) + 1;
               }
             }
-          }
-
-          if (dismissal.includes('run out')) {
-            // Run out - hard to determine direct/indirect from text, mark as indirect by default
-            const roMatch = dismissalText.match(/run out\s*\((.+?)\)/i);
-            if (roMatch) {
-              const fielderNames = roMatch[1].split('/');
-              if (fielderNames.length === 1) {
-                // Direct hit
-                const fielder = matchPlayerName(fielderNames[0].trim(), ALL_PLAYERS);
-                if (fielder && scores[fielder.id]) {
-                  scores[fielder.id].runoutDirect = (scores[fielder.id].runoutDirect || 0) + 1;
+            if (dismissal.includes('run out')) {
+              const roMatch = dismissalText.match(/run out\s*\((.+?)\)/i);
+              if (roMatch) {
+                const names = roMatch[1].split('/');
+                if (names.length === 1) {
+                  const fielder = matchPlayerName(names[0].trim(), ALL_PLAYERS);
+                  if (fielder && scores[fielder.id]) scores[fielder.id].runoutDirect = (scores[fielder.id].runoutDirect || 0) + 1;
+                } else {
+                  names.slice(-2).forEach(fn => {
+                    const fielder = matchPlayerName(fn.trim(), ALL_PLAYERS);
+                    if (fielder && scores[fielder.id]) scores[fielder.id].runoutIndirect = (scores[fielder.id].runoutIndirect || 0) + 1;
+                  });
                 }
-              } else {
-                // Not direct - last 2 fielders get indirect
-                fielderNames.slice(-2).forEach(fn => {
-                  const fielder = matchPlayerName(fn.trim(), ALL_PLAYERS);
-                  if (fielder && scores[fielder.id]) {
-                    scores[fielder.id].runoutIndirect = (scores[fielder.id].runoutIndirect || 0) + 1;
-                  }
-                });
               }
             }
-          }
-        });
-      }
-    });
+          });
+        }
+      });
+    } else {
+      espnLog('No completed innings yet — using live partnership data for current batsmen.');
+    }
 
-    // Update match status in Firebase if live
-    if (matchStatus.toLowerCase().includes('progress') || matchStatus.toLowerCase().includes('live')) {
+    // ── Step 4: Update match status ──
+    if (matchState === 'in' || matchStatus.toLowerCase().includes('progress') || matchStatus.toLowerCase().includes('live')) {
       db.ref('matches/' + MATCH_ID + '/status').set('live');
-    } else if (matchStatus.toLowerCase().includes('complete')) {
+    } else if (matchState === 'post' || matchStatus.toLowerCase().includes('complete')) {
       db.ref('matches/' + MATCH_ID + '/status').set('completed');
     }
 
-    // Save scores to Firebase
+    // ── Step 5: Save to Firebase & recalculate ──
     await db.ref('matches/' + MATCH_ID + '/playerScores').set(scores);
     await recalcLeaderboard();
-
-    // Re-render admin
     renderAdminScoring();
 
-    const summary = `✅ Fetched! Batting: ${battingFound} players, Bowling: ${bowlingFound} players.`;
+    const xiCount = Object.values(scores).filter(s => s.inPlayingXI).length;
+    const summary = `✅ Playing XI: ${xiCount}, Batting: ${battingFound}, Bowling: ${bowlingFound}`;
     espnLog(summary);
     if (unmatchedBat.length) espnLog('⚠️ Unmatched batters: ' + unmatchedBat.join(', '));
     if (unmatchedBowl.length) espnLog('⚠️ Unmatched bowlers: ' + unmatchedBowl.join(', '));
 
-    statusEl.textContent = summary + ' (Last: ' + new Date().toLocaleTimeString('en-IN') + ')';
-    statusEl.style.color = 'var(--green)';
+    if (statusEl) { statusEl.textContent = summary + ' (Last: ' + new Date().toLocaleTimeString('en-IN') + ')'; statusEl.style.color = 'var(--green)'; }
 
   } catch (err) {
     espnLog('❌ Error: ' + err.message);
-    statusEl.textContent = 'Error: ' + err.message;
-    statusEl.style.color = 'var(--accent)';
+    if (statusEl) { statusEl.textContent = 'Error: ' + err.message; statusEl.style.color = 'var(--accent)'; }
   } finally {
-    fetchBtn.disabled = false;
-    fetchBtn.textContent = '🔄 Fetch Live Scores';
+    if (fetchBtn) { fetchBtn.disabled = false; fetchBtn.textContent = '🔄 Fetch Live Scores'; }
   }
 }
 
 function toggleAutoPoll() {
   const btn = document.getElementById('auto-poll-btn');
   if (autoPollInterval) {
-    clearInterval(autoPollInterval);
-    autoPollInterval = null;
-    btn.textContent = '▶ Start Auto-Poll (30s)';
-    btn.classList.remove('btn-accent');
-    btn.classList.add('btn-green');
+    stopAutoPoll();
+    if (btn) {
+      btn.textContent = '▶ Start Auto-Poll (30s)';
+      btn.classList.remove('btn-accent');
+      btn.classList.add('btn-green');
+    }
     espnLog('Auto-poll stopped.');
   } else {
-    fetchESPNScores(); // Fetch immediately
-    autoPollInterval = setInterval(fetchESPNScores, 30000); // Then every 30s
-    btn.textContent = '⏸ Stop Auto-Poll';
-    btn.classList.remove('btn-green');
-    btn.classList.add('btn-accent');
+    startAutoPoll();
+    if (btn) {
+      btn.textContent = '⏸ Stop Auto-Poll';
+      btn.classList.remove('btn-green');
+      btn.classList.add('btn-accent');
+    }
     espnLog('Auto-poll started (every 30 seconds).');
   }
+}
+
+function startAutoPoll() {
+  if (autoPollInterval) return; // already running
+  tryFetchWithLock();
+  autoPollInterval = setInterval(tryFetchWithLock, POLL_INTERVAL_MS);
+}
+
+function stopAutoPoll() {
+  if (autoPollInterval) {
+    clearInterval(autoPollInterval);
+    autoPollInterval = null;
+  }
+}
+
+// ── Auto-start polling when match goes live ──
+// Runs for ALL users. Uses a Firebase lock so only ONE client fetches at a time.
+// All clients see updates in real-time via Firebase listeners.
+let autoLiveCheckInterval = null;
+const POLL_LOCK_PATH = 'poll_lock/' + MATCH_ID;
+const POLL_INTERVAL_MS = 30000; // 30 seconds
+const POLL_LOCK_TTL_MS = 45000; // Lock expires after 45s (in case a client disconnects)
+
+async function tryFetchWithLock() {
+  // Check if another client recently fetched
+  const lockSnap = await db.ref(POLL_LOCK_PATH).once('value');
+  const lockData = lockSnap.val();
+  const now = Date.now();
+
+  if (lockData && (now - lockData.timestamp < POLL_INTERVAL_MS)) {
+    // Another client fetched recently — skip this cycle
+    console.log('[Fantasy XI] Another client fetched recently, skipping...');
+    return;
+  }
+
+  // Claim the lock
+  await db.ref(POLL_LOCK_PATH).set({ user: currentUser, timestamp: now });
+  // Fetch and update
+  await fetchESPNScores();
+}
+
+function checkAndAutoStartPoll() {
+  const matchStatus = DATA.match?.status || 'upcoming';
+  const now = new Date();
+  const lockTime = new Date(LOCK_TIME);
+
+  if (matchStatus === 'live' || (now >= lockTime && matchStatus !== 'completed')) {
+    // Match is live or past start time — start polling if not already
+    if (!autoPollInterval) {
+      console.log('[Fantasy XI] Match is live — auto-starting ESPN score polling...');
+      // Stagger start by random 0-10s so clients don't all fire at once
+      const jitter = Math.floor(Math.random() * 10000);
+      setTimeout(() => {
+        startAutoPoll();
+      }, jitter);
+      // Update admin button if visible
+      const btn = document.getElementById('auto-poll-btn');
+      if (btn) {
+        btn.textContent = '⏸ Stop Auto-Poll';
+        btn.classList.remove('btn-green');
+        btn.classList.add('btn-accent');
+      }
+    }
+  } else if (matchStatus === 'completed') {
+    // Match over — do one final fetch, then stop
+    if (autoPollInterval) {
+      fetchESPNScores();
+      stopAutoPoll();
+      const btn = document.getElementById('auto-poll-btn');
+      if (btn) {
+        btn.textContent = '▶ Start Auto-Poll (30s)';
+        btn.classList.remove('btn-accent');
+        btn.classList.add('btn-green');
+      }
+    }
+    if (autoLiveCheckInterval) {
+      clearInterval(autoLiveCheckInterval);
+      autoLiveCheckInterval = null;
+    }
+  }
+}
+
+function initAutoLivePolling() {
+  // Check immediately
+  checkAndAutoStartPoll();
+  // Then check every 60s in case status changes
+  autoLiveCheckInterval = setInterval(checkAndAutoStartPoll, 60000);
 }
 
 // ============ TOAST ============
