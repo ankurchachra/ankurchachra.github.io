@@ -930,7 +930,7 @@ function startCountdown() {
   const updateCountdown = () => {
     const now = new Date();
     const matchTime = new Date(MATCH_TIME);
-    const lockTime = new Date(matchTime.getTime() - 30 * 60 * 1000); // 30 min before match
+    const lockTime = matchTime; // Lock at match time (8 PM IST)
     const diff = lockTime - now;
     const cdEl = document.getElementById('lock-countdown');
     const cdMatchEl = document.getElementById('match-countdown');
@@ -956,8 +956,7 @@ function startCountdown() {
 
 function isLockExpired() {
   const matchTime = new Date(MATCH_TIME);
-  const lockTime = new Date(matchTime.getTime() - 30 * 60 * 1000);
-  return new Date() >= lockTime;
+  return new Date() >= matchTime; // Lock at match time (8 PM IST)
 }
 
 // ============ MATCH CARD (Tab 1) ============
