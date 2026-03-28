@@ -4,6 +4,9 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Fantasy Cricket League - IPL 2026</title>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
   <style>
     :root {
       --primary: #1a1a2e;
@@ -14,7 +17,6 @@
       --dark: #0f0f23;
       --light: #eee;
       --card: #1e2a3a;
-      --glass: rgba(30, 42, 58, 0.85);
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -23,7 +25,6 @@
       color: var(--light);
       min-height: 100vh;
     }
-    /* NAV */
     nav {
       background: var(--primary);
       padding: 12px 24px;
@@ -50,8 +51,6 @@
     .btn-outline { background: transparent; border: 1px solid var(--accent); color: var(--accent); }
     .btn-outline:hover { background: var(--accent); color: #fff; }
     .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-    /* TABS */
     .tabs {
       display: flex; background: var(--secondary); padding: 0 24px;
       border-bottom: 1px solid #2a3a4a;
@@ -62,12 +61,8 @@
     }
     .tab:hover { color: var(--light); }
     .tab.active { color: var(--gold); border-bottom-color: var(--gold); }
-
-    /* PAGES */
     .page { display: none; padding: 24px; max-width: 1100px; margin: 0 auto; }
     .page.active { display: block; }
-
-    /* LOGIN */
     #login-page {
       display: flex; justify-content: center; align-items: center;
       min-height: 80vh; padding: 24px;
@@ -86,8 +81,6 @@
       background: var(--secondary); color: var(--light); font-size: 1em;
     }
     .login-error { color: var(--accent); font-size: 0.85em; margin-top: 8px; display: none; }
-
-    /* MATCHES */
     .match-card {
       background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 16px;
       border: 1px solid #2a3a4a; transition: all 0.2s;
@@ -111,8 +104,6 @@
     .match-teams .vs { color: var(--accent); font-weight: 700; font-size: 0.8em; }
     .team-name { font-weight: 700; min-width: 60px; text-align: center; }
     .match-meta { color: #888; font-size: 0.85em; text-align: center; }
-
-    /* TEAM SELECTION */
     .selection-header {
       display: flex; justify-content: space-between; align-items: center;
       margin-bottom: 20px; flex-wrap: wrap; gap: 12px;
@@ -156,8 +147,6 @@
     }
     .badge-c { background: var(--gold); color: var(--dark); }
     .badge-vc { background: #9b59b6; color: #fff; }
-
-    /* SELECTED TEAM PANEL */
     .selected-panel {
       background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 20px;
       border: 1px solid #2a3a4a;
@@ -178,8 +167,6 @@
     }
     .captain-btn.is-captain { background: var(--gold); color: var(--dark); border-color: var(--gold); }
     .captain-btn.is-vc { background: #9b59b6; color: #fff; border-color: #9b59b6; }
-
-    /* LEADERBOARD */
     .leaderboard-table {
       width: 100%; border-collapse: collapse; background: var(--card); border-radius: 12px;
       overflow: hidden;
@@ -195,21 +182,6 @@
     .rank-2 { color: #c0c0c0; font-weight: 700; }
     .rank-3 { color: #cd7f32; font-weight: 700; }
     .points-cell { color: var(--green); font-weight: 700; font-size: 1.1em; }
-
-    /* SCORECARD */
-    .scorecard-section { margin-top: 20px; }
-    .scorecard-section h3 { color: var(--gold); margin-bottom: 12px; }
-    .scorecard-table {
-      width: 100%; border-collapse: collapse; background: var(--card);
-      border-radius: 8px; overflow: hidden; margin-bottom: 16px; font-size: 0.9em;
-    }
-    .scorecard-table th {
-      background: var(--secondary); padding: 10px 12px; text-align: left;
-      color: #aaa; font-size: 0.8em;
-    }
-    .scorecard-table td { padding: 10px 12px; border-bottom: 1px solid #1a2a3a; }
-
-    /* MY TEAMS */
     .my-team-card {
       background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 16px;
       border: 1px solid #2a3a4a;
@@ -221,17 +193,6 @@
     .my-team-tag {
       background: var(--secondary); padding: 6px 12px; border-radius: 6px; font-size: 0.85em;
     }
-
-    /* RESPONSIVE */
-    @media (max-width: 600px) {
-      .tabs { padding: 0 8px; overflow-x: auto; }
-      .tab { padding: 12px 14px; font-size: 0.85em; white-space: nowrap; }
-      .page { padding: 16px; }
-      .match-teams { font-size: 1em; }
-      .players-grid { grid-template-columns: 1fr; }
-    }
-
-    /* ADMIN */
     .admin-section {
       background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 20px;
       border: 1px solid #2a3a4a;
@@ -243,12 +204,6 @@
       padding: 10px; border-radius: 6px; border: 1px solid #2a3a4a;
       background: var(--secondary); color: var(--light); font-size: 0.9em; flex: 1; min-width: 120px;
     }
-    .admin-form textarea {
-      padding: 10px; border-radius: 6px; border: 1px solid #2a3a4a;
-      background: var(--secondary); color: var(--light); font-size: 0.9em;
-      width: 100%; min-height: 80px; resize: vertical;
-    }
-
     .toast {
       position: fixed; bottom: 24px; right: 24px; padding: 14px 24px;
       border-radius: 8px; color: #fff; font-weight: 600; z-index: 999;
@@ -257,19 +212,45 @@
     .toast.show { transform: translateY(0); opacity: 1; }
     .toast-success { background: var(--green); }
     .toast-error { background: var(--accent); }
-
     .countdown { color: var(--accent); font-weight: 700; font-size: 0.9em; }
     .empty-state { text-align: center; padding: 60px 20px; color: #666; }
     .empty-state h3 { color: #888; margin-bottom: 8px; }
+    .loading-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--dark); display: flex; justify-content: center; align-items: center;
+      z-index: 9999; flex-direction: column; gap: 16px;
+    }
+    .loading-overlay .spinner {
+      width: 40px; height: 40px; border: 4px solid #2a3a4a;
+      border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .sync-badge {
+      font-size: 0.7em; padding: 2px 8px; border-radius: 10px;
+      background: var(--green); color: #fff; margin-left: 8px; vertical-align: middle;
+    }
+    @media (max-width: 600px) {
+      .tabs { padding: 0 8px; overflow-x: auto; }
+      .tab { padding: 12px 14px; font-size: 0.85em; white-space: nowrap; }
+      .page { padding: 16px; }
+      .match-teams { font-size: 1em; }
+      .players-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
 
+<!-- LOADING -->
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <div style="color:var(--gold);font-weight:600">Loading FantasyXI...</div>
+</div>
+
 <!-- LOGIN PAGE -->
-<div id="login-page">
+<div id="login-page" style="display:none">
   <div class="login-box">
     <h2>Fantasy Cricket</h2>
-    <p>IPL 2026 - Private League</p>
+    <p>IPL 2026 - Private League<span class="sync-badge">Live Sync</span></p>
     <div class="form-group">
       <label>Select Player</label>
       <select id="login-user">
@@ -293,7 +274,7 @@
 <!-- MAIN APP -->
 <div id="app" style="display:none">
   <nav>
-    <div class="logo">Fantasy<span>XI</span> - IPL 2026</div>
+    <div class="logo">Fantasy<span>XI</span> - IPL 2026 <span class="sync-badge" id="sync-status">Synced</span></div>
     <div class="user-info">
       <span id="nav-user"></span>
       <button class="btn btn-outline" onclick="doLogout()">Logout</button>
@@ -307,13 +288,11 @@
     <div class="tab" data-tab="admin" onclick="switchTab('admin')" id="admin-tab" style="display:none">Admin</div>
   </div>
 
-  <!-- MATCHES PAGE -->
   <div class="page active" id="page-matches">
     <h2 style="margin-bottom:20px">Match Schedule</h2>
     <div id="matches-list"></div>
   </div>
 
-  <!-- TEAM SELECTION PAGE -->
   <div class="page" id="page-select-team">
     <div class="selection-header">
       <div>
@@ -355,13 +334,11 @@
     </div>
   </div>
 
-  <!-- MY TEAMS PAGE -->
   <div class="page" id="page-my-teams">
     <h2 style="margin-bottom:20px">My Teams</h2>
     <div id="my-teams-list"></div>
   </div>
 
-  <!-- LEADERBOARD PAGE -->
   <div class="page" id="page-leaderboard">
     <h2 style="margin-bottom:20px">Leaderboard</h2>
     <div class="form-group" style="margin-bottom:16px">
@@ -375,7 +352,6 @@
     </table>
   </div>
 
-  <!-- ADMIN PAGE -->
   <div class="page" id="page-admin">
     <h2 style="margin-bottom:20px">Admin Panel</h2>
     <div class="admin-section">
@@ -402,16 +378,59 @@
         <button class="btn btn-gold" onclick="addNewMatch()">Add Match</button>
       </div>
     </div>
+    <div class="admin-section">
+      <h3>Reset All Data</h3>
+      <p style="color:#888;font-size:0.85em;margin-bottom:12px">Careful: this resets everything to default mock data.</p>
+      <button class="btn btn-accent" onclick="resetAllData()">Reset to Defaults</button>
+    </div>
   </div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script>
-// ============ DATA STORE ============
-const STORE_KEY = 'fantasy_xi_data';
+// ============ FIREBASE CONFIG ============
+let db = null;
 
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyA6j9XpcjRA2Y4XT2nMy5ilrLLEdETpS6Q",
+  authDomain: "fantasy-xi-2bdb0.firebaseapp.com",
+  databaseURL: "https://fantasy-xi-2bdb0-default-rtdb.firebaseio.com",
+  projectId: "fantasy-xi-2bdb0",
+  storageBucket: "fantasy-xi-2bdb0.firebasestorage.app",
+  appId: "1:935492856537:web:12ef121d12fdc1e87f6cc8"
+};
+
+function initFirebase(config) {
+  try {
+    if (!firebase.apps.length) {
+      firebase.initializeApp(config);
+    }
+    db = firebase.database();
+    // Test connection
+    db.ref('.info/connected').on('value', snap => {
+      const el = document.getElementById('sync-status');
+      if (el) el.textContent = snap.val() ? 'Synced' : 'Offline';
+    });
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('setup-page').style.display = 'none';
+    // Check if data exists, if not seed it
+    db.ref('matches').once('value').then(snap => {
+      if (!snap.exists()) {
+        seedDefaultData();
+      }
+      startApp();
+    });
+  } catch (e) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('setup-page').style.display = 'block';
+    const err = document.getElementById('setup-error');
+    err.textContent = 'Connection failed: ' + e.message;
+    err.style.display = 'block';
+  }
+}
+
+// ============ CONSTANTS ============
 const IPL_TEAMS = {
   CSK: { name: 'Chennai Super Kings', short: 'CSK', color: '#f9cd05' },
   MI:  { name: 'Mumbai Indians', short: 'MI', color: '#004ba0' },
@@ -433,14 +452,24 @@ const USERS = {
   sharat:  { name: 'Sharat',  pass: 'sharat123',  isAdmin: false },
 };
 
-// Mock players for first few matches
+let currentUser = null;
+let selectedPlayers = [];
+let captainId = null;
+let viceCaptainId = null;
+let currentFilter = 'all';
+let currentMatchId = null;
+let countdownInterval = null;
+
+// Live data from Firebase
+let DATA = { matches: [], teams: {}, leaderboard: {} };
+
+// ============ MOCK DATA GENERATOR ============
 function generatePlayers(team1, team2) {
-  const roles = ['BAT','BAT','BAT','BOWL','BOWL','BOWL','AR','AR','AR','WK','WK'];
   const playerNames = {
     CSK: ['Ruturaj Gaikwad','Devon Conway','Shivam Dube','Moeen Ali','Ravindra Jadeja','MS Dhoni','Deepak Chahar','Tushar Deshpande','Matheesha Pathirana','Maheesh Theekshana','Rachin Ravindra'],
     MI: ['Rohit Sharma','Ishan Kishan','Suryakumar Yadav','Tilak Varma','Tim David','Hardik Pandya','Jasprit Bumrah','Piyush Chawla','Romario Shepherd','Naman Dhir','Trent Boult'],
     RCB: ['Virat Kohli','Faf du Plessis','Glenn Maxwell','Rajat Patidar','Dinesh Karthik','Wanindu Hasaranga','Mohammed Siraj','Josh Hazlewood','Cameron Green','Yash Dayal','Phil Salt'],
-    KKR: ['Shreyas Iyer','Venkatesh Iyer','Nitish Rana','Andre Russell','Sunil Narine','Rinku Singh','Mitchell Starc','Varun Chakravarthy','Harshit Rana','Ramandeep Singh','Phil Salt'],
+    KKR: ['Shreyas Iyer','Venkatesh Iyer','Nitish Rana','Andre Russell','Sunil Narine','Rinku Singh','Mitchell Starc','Varun Chakravarthy','Harshit Rana','Ramandeep Singh','Angkrish Raghuvanshi'],
     DC: ['David Warner','Prithvi Shaw','Rishabh Pant','Mitchell Marsh','Axar Patel','Tristan Stubbs','Anrich Nortje','Kuldeep Yadav','Mukesh Kumar','Jake Fraser-McGurk','Abishek Porel'],
     PBKS: ['Shikhar Dhawan','Jonny Bairstow','Liam Livingstone','Sam Curran','Jitesh Sharma','Kagiso Rabada','Arshdeep Singh','Rahul Chahar','Harpreet Brar','Rishi Dhawan','Prabhsimran Singh'],
     RR: ['Yashasvi Jaiswal','Jos Buttler','Sanju Samson','Shimron Hetmyer','Riyan Parag','Ravichandran Ashwin','Trent Boult','Yuzvendra Chahal','Sandeep Sharma','Dhruv Jurel','Wanindu Hasaranga'],
@@ -452,7 +481,7 @@ function generatePlayers(team1, team2) {
     CSK: ['BAT','BAT','AR','AR','AR','WK','BOWL','BOWL','BOWL','BOWL','AR'],
     MI: ['BAT','WK','BAT','BAT','AR','AR','BOWL','BOWL','AR','BAT','BOWL'],
     RCB: ['BAT','BAT','AR','BAT','WK','AR','BOWL','BOWL','AR','BOWL','WK'],
-    KKR: ['BAT','AR','BAT','AR','AR','BAT','BOWL','BOWL','BOWL','AR','WK'],
+    KKR: ['BAT','AR','BAT','AR','AR','BAT','BOWL','BOWL','BOWL','AR','BAT'],
     DC: ['BAT','BAT','WK','AR','AR','BAT','BOWL','BOWL','BOWL','BAT','WK'],
     PBKS: ['BAT','BAT','AR','AR','WK','BOWL','BOWL','BOWL','AR','AR','BAT'],
     RR: ['BAT','WK','WK','BAT','AR','AR','BOWL','BOWL','BOWL','WK','AR'],
@@ -464,20 +493,15 @@ function generatePlayers(team1, team2) {
   const credits2 = [9.5, 9, 9.5, 8.5, 8, 9, 9, 8, 8.5, 8, 8.5];
 
   const players = [];
-  const t1Names = playerNames[team1] || [];
-  const t1Roles = roleMap[team1] || [];
-  t1Names.forEach((name, i) => {
-    players.push({ id: `${team1}_${i}`, name, team: team1, role: t1Roles[i] || roles[i], credits: credits[i] || 8 });
+  (playerNames[team1] || []).forEach((name, i) => {
+    players.push({ id: team1 + '_' + i, name, team: team1, role: (roleMap[team1] || [])[i] || 'BAT', credits: credits[i] || 8 });
   });
-  const t2Names = playerNames[team2] || [];
-  const t2Roles = roleMap[team2] || [];
-  t2Names.forEach((name, i) => {
-    players.push({ id: `${team2}_${i}`, name, team: team2, role: t2Roles[i] || roles[i], credits: credits2[i] || 8 });
+  (playerNames[team2] || []).forEach((name, i) => {
+    players.push({ id: team2 + '_' + i, name, team: team2, role: (roleMap[team2] || [])[i] || 'BAT', credits: credits2[i] || 8 });
   });
   return players;
 }
 
-// Generate mock matches
 function getDefaultMatches() {
   const base = new Date('2026-03-28T20:00:00+05:30');
   const matchups = [
@@ -492,54 +516,69 @@ function getDefaultMatches() {
     ['RR','SRH','Sawai Mansingh Stadium, Jaipur'],
     ['GT','LSG','Narendra Modi Stadium, Ahmedabad'],
   ];
-  return matchups.map((m, i) => {
+  const matches = {};
+  matchups.forEach((m, i) => {
     const d = new Date(base);
     d.setDate(d.getDate() + i);
-    if (i % 3 === 1) d.setHours(15, 30); // afternoon match
-    return {
-      id: `match_${i+1}`,
-      num: i + 1,
-      team1: m[0],
-      team2: m[1],
-      venue: m[2],
-      time: d.toISOString(),
-      status: 'upcoming', // upcoming, locked, live, completed
+    if (i % 3 === 1) d.setHours(15, 30);
+    const id = 'match_' + (i + 1);
+    matches[id] = {
+      id, num: i + 1, team1: m[0], team2: m[1], venue: m[2],
+      time: d.toISOString(), status: 'upcoming', result: '',
       players: generatePlayers(m[0], m[1]),
-      result: null,
       playerScores: {},
     };
   });
+  return matches;
 }
 
-function loadData() {
-  const raw = localStorage.getItem(STORE_KEY);
-  if (raw) return JSON.parse(raw);
-  const data = {
-    matches: getDefaultMatches(),
-    teams: {},      // { matchId_userId: { players: [...ids], captain: id, viceCaptain: id, locked: bool } }
-    leaderboard: {  // { userId: { total: 0, matchPoints: { matchId: points } } }
-      ankur: { total: 0, matchPoints: {} },
-      utkarsh: { total: 0, matchPoints: {} },
-      pranit: { total: 0, matchPoints: {} },
-      nilesh: { total: 0, matchPoints: {} },
-      sharat: { total: 0, matchPoints: {} },
-    }
-  };
-  saveData(data);
-  return data;
+function seedDefaultData() {
+  const matches = getDefaultMatches();
+  const leaderboard = {};
+  Object.keys(USERS).forEach(uid => {
+    leaderboard[uid] = { total: 0, matchPoints: {} };
+  });
+  db.ref('matches').set(matches);
+  db.ref('teams').set({});
+  db.ref('leaderboard').set(leaderboard);
 }
 
-function saveData(data) {
-  localStorage.setItem(STORE_KEY, JSON.stringify(data));
+function resetAllData() {
+  if (!confirm('This will erase ALL data and reset to defaults. Are you sure?')) return;
+  seedDefaultData();
+  showToast('Data reset!', 'success');
 }
 
-let DATA = loadData();
-let currentUser = null;
-let selectedPlayers = [];
-let captainId = null;
-let viceCaptainId = null;
-let currentFilter = 'all';
-let currentMatchId = null;
+// ============ REAL-TIME LISTENERS ============
+function startApp() {
+  const savedUser = localStorage.getItem('fantasy_xi_user');
+  if (savedUser && USERS[savedUser]) {
+    currentUser = savedUser;
+  }
+
+  // Listen to all data in real-time
+  db.ref('matches').on('value', snap => {
+    const val = snap.val();
+    DATA.matches = val ? Object.values(val).sort((a, b) => a.num - b.num) : [];
+    if (currentUser) { renderMatches(); populateMatchSelects(); }
+  });
+
+  db.ref('teams').on('value', snap => {
+    DATA.teams = snap.val() || {};
+    if (currentUser) { renderMatches(); renderMyTeams(); renderLeaderboard(); refreshTeamSelection(); }
+  });
+
+  db.ref('leaderboard').on('value', snap => {
+    DATA.leaderboard = snap.val() || {};
+    if (currentUser) renderLeaderboard();
+  });
+
+  if (currentUser) {
+    showAppUI();
+  } else {
+    document.getElementById('login-page').style.display = 'flex';
+  }
+}
 
 // ============ AUTH ============
 function doLogin() {
@@ -551,7 +590,7 @@ function doLogin() {
   errEl.style.display = 'none';
   currentUser = uid;
   localStorage.setItem('fantasy_xi_user', uid);
-  showApp();
+  showAppUI();
 }
 
 function doLogout() {
@@ -561,15 +600,13 @@ function doLogout() {
   document.getElementById('login-page').style.display = 'flex';
 }
 
-function showApp() {
+function showAppUI() {
   document.getElementById('login-page').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   document.getElementById('nav-user').textContent = USERS[currentUser].name;
-  if (USERS[currentUser].isAdmin) {
-    document.getElementById('admin-tab').style.display = 'block';
-  }
+  document.getElementById('admin-tab').style.display = USERS[currentUser].isAdmin ? 'block' : 'none';
   renderMatches();
-  populateMatchSelect();
+  populateMatchSelects();
   renderMyTeams();
   renderLeaderboard();
   populateAdminSelects();
@@ -578,14 +615,14 @@ function showApp() {
 // ============ TABS ============
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+  document.querySelector('.tab[data-tab="' + tab + '"]').classList.add('active');
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById(`page-${tab}`).classList.add('active');
+  document.getElementById('page-' + tab).classList.add('active');
   if (tab === 'leaderboard') renderLeaderboard();
   if (tab === 'my-teams') renderMyTeams();
 }
 
-// ============ MATCHES ============
+// ============ HELPERS ============
 function getMatchStatus(match) {
   const now = new Date();
   const matchTime = new Date(match.time);
@@ -601,33 +638,46 @@ function formatDate(iso) {
     ' ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 }
 
+function findMatch(matchId) {
+  return DATA.matches.find(m => m.id === matchId);
+}
+
+// ============ MATCHES ============
 function renderMatches() {
   const container = document.getElementById('matches-list');
+  if (!container) return;
   container.innerHTML = '';
   DATA.matches.forEach(m => {
     const status = getMatchStatus(m);
-    const statusLabels = { upcoming: 'Upcoming', locked: 'Locked', live: 'LIVE', completed: 'Completed' };
-    const teamKey = `${m.id}_${currentUser}`;
-    const hasTeam = DATA.teams[teamKey]?.locked;
+    const labels = { upcoming: 'Upcoming', locked: 'Locked', live: 'LIVE', completed: 'Completed' };
+    const teamKey = m.id + '_' + currentUser;
+    const hasTeam = DATA.teams[teamKey] && DATA.teams[teamKey].locked;
+    // Count how many friends have locked teams
+    const lockedCount = Object.keys(USERS).filter(uid => {
+      const k = m.id + '_' + uid;
+      return DATA.teams[k] && DATA.teams[k].locked;
+    }).length;
     container.innerHTML += `
       <div class="match-card">
         <div class="match-header">
           <span class="match-num">Match ${m.num}</span>
-          <span class="match-status status-${status}">${statusLabels[status]}</span>
+          <div>
+            <span style="color:#888;font-size:0.8em;margin-right:8px">${lockedCount}/5 teams locked</span>
+            <span class="match-status status-${status}">${labels[status]}</span>
+          </div>
         </div>
         <div class="match-teams">
-          <span class="team-name" style="color:${IPL_TEAMS[m.team1]?.color || '#fff'}">${m.team1}</span>
+          <span class="team-name" style="color:${(IPL_TEAMS[m.team1] || {}).color || '#fff'}">${m.team1}</span>
           <span class="vs">VS</span>
-          <span class="team-name" style="color:${IPL_TEAMS[m.team2]?.color || '#fff'}">${m.team2}</span>
+          <span class="team-name" style="color:${(IPL_TEAMS[m.team2] || {}).color || '#fff'}">${m.team2}</span>
         </div>
         <div class="match-meta">
           ${formatDate(m.time)} &bull; ${m.venue}
-          ${hasTeam ? '<br><span style="color:#27ae60">Team Locked</span>' : ''}
-          ${status === 'upcoming' && !hasTeam ? `<br><button class="btn btn-accent" style="margin-top:8px" onclick="goPickTeam('${m.id}')">Pick Team</button>` : ''}
+          ${hasTeam ? '<br><span style="color:#27ae60">Your Team Locked</span>' : ''}
+          ${status === 'upcoming' && !hasTeam ? '<br><button class="btn btn-accent" style="margin-top:8px" onclick="goPickTeam(\'' + m.id + '\')">Pick Team</button>' : ''}
         </div>
-        ${status === 'completed' && m.result ? `<div class="match-meta" style="margin-top:8px;color:#27ae60">${m.result}</div>` : ''}
-      </div>
-    `;
+        ${status === 'completed' && m.result ? '<div class="match-meta" style="margin-top:8px;color:#27ae60">' + m.result + '</div>' : ''}
+      </div>`;
   });
 }
 
@@ -637,38 +687,42 @@ function goPickTeam(matchId) {
   switchTab('select-team');
 }
 
-// ============ TEAM SELECTION ============
-function populateMatchSelect() {
+// ============ MATCH SELECTS ============
+function populateMatchSelects() {
   const sel = document.getElementById('match-select');
   const lbSel = document.getElementById('lb-match-select');
+  if (!sel) return;
+  const currentVal = sel.value;
+  const lbVal = lbSel.value;
+  sel.innerHTML = '<option value="">Select a match...</option>';
+  lbSel.innerHTML = '<option value="overall">Overall</option>';
   DATA.matches.forEach(m => {
     const status = getMatchStatus(m);
-    const opt = document.createElement('option');
-    opt.value = m.id;
-    opt.textContent = `Match ${m.num}: ${m.team1} vs ${m.team2} - ${formatDate(m.time)}`;
-    if (status !== 'upcoming') opt.textContent += ` [${status.toUpperCase()}]`;
-    sel.appendChild(opt);
-    const lbOpt = opt.cloneNode(true);
-    lbSel.appendChild(lbOpt);
+    const text = 'Match ' + m.num + ': ' + m.team1 + ' vs ' + m.team2 + ' - ' + formatDate(m.time) + (status !== 'upcoming' ? ' [' + status.toUpperCase() + ']' : '');
+    sel.innerHTML += '<option value="' + m.id + '">' + text + '</option>';
+    lbSel.innerHTML += '<option value="' + m.id + '">' + text + '</option>';
   });
+  sel.value = currentVal;
+  lbSel.value = lbVal;
 }
 
+// ============ TEAM SELECTION ============
 function onMatchSelect() {
   const matchId = document.getElementById('match-select').value;
   currentMatchId = matchId;
+  if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
   if (!matchId) {
     document.getElementById('team-selection-area').style.display = 'none';
     return;
   }
-  const match = DATA.matches.find(m => m.id === matchId);
-  const status = getMatchStatus(match);
-  const teamKey = `${matchId}_${currentUser}`;
-  const existingTeam = DATA.teams[teamKey];
-
-  if (existingTeam?.locked) {
-    selectedPlayers = [...existingTeam.players];
-    captainId = existingTeam.captain;
-    viceCaptainId = existingTeam.viceCaptain;
+  const match = findMatch(matchId);
+  if (!match) return;
+  const teamKey = matchId + '_' + currentUser;
+  const existing = DATA.teams[teamKey];
+  if (existing && existing.locked) {
+    selectedPlayers = existing.players ? [...existing.players] : [];
+    captainId = existing.captain || null;
+    viceCaptainId = existing.viceCaptain || null;
   } else {
     selectedPlayers = [];
     captainId = null;
@@ -681,9 +735,25 @@ function onMatchSelect() {
   updateCountdown(match);
 }
 
+function refreshTeamSelection() {
+  if (!currentMatchId) return;
+  const match = findMatch(currentMatchId);
+  if (!match) return;
+  const teamKey = currentMatchId + '_' + currentUser;
+  const existing = DATA.teams[teamKey];
+  if (existing && existing.locked) {
+    selectedPlayers = existing.players ? [...existing.players] : [];
+    captainId = existing.captain || null;
+    viceCaptainId = existing.viceCaptain || null;
+    renderSelectedPanel(match);
+    renderPlayerGrid(match);
+  }
+}
+
 function renderPlayerGrid(match) {
   const grid = document.getElementById('players-grid');
-  const players = match.players.filter(p => currentFilter === 'all' || p.role === currentFilter);
+  if (!grid) return;
+  const players = (match.players || []).filter(p => currentFilter === 'all' || p.role === currentFilter);
   grid.innerHTML = '';
   players.forEach(p => {
     const isSel = selectedPlayers.includes(p.id);
@@ -701,13 +771,11 @@ function renderPlayerGrid(match) {
             ${isVC ? '<span class="player-badge badge-vc">VC</span>' : ''}
           </div>
           <div class="player-role">${p.role}</div>
-          <div class="player-team-badge" style="background:${IPL_TEAMS[p.team]?.color || '#333'};color:#fff">${p.team}</div>
+          <div class="player-team-badge" style="background:${(IPL_TEAMS[p.team] || {}).color || '#333'};color:#fff">${p.team}</div>
         </div>
         <div class="player-credits">${p.credits}</div>
-      </div>
-    `;
+      </div>`;
   });
-  // Update filter buttons
   document.querySelectorAll('.filter-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.role === currentFilter);
   });
@@ -715,22 +783,20 @@ function renderPlayerGrid(match) {
 
 function filterPlayers(role) {
   currentFilter = role;
-  const match = DATA.matches.find(m => m.id === currentMatchId);
+  const match = findMatch(currentMatchId);
   if (match) renderPlayerGrid(match);
 }
 
 function togglePlayer(playerId) {
-  const match = DATA.matches.find(m => m.id === currentMatchId);
+  const match = findMatch(currentMatchId);
   if (!match) return;
   const status = getMatchStatus(match);
-  const teamKey = `${currentMatchId}_${currentUser}`;
-  if (DATA.teams[teamKey]?.locked) {
-    showToast('Team already locked!', 'error');
-    return;
+  const teamKey = currentMatchId + '_' + currentUser;
+  if (DATA.teams[teamKey] && DATA.teams[teamKey].locked) {
+    showToast('Team already locked!', 'error'); return;
   }
   if (status !== 'upcoming') {
-    showToast('Match already started - cannot modify team', 'error');
-    return;
+    showToast('Match already started', 'error'); return;
   }
   const idx = selectedPlayers.indexOf(playerId);
   if (idx > -1) {
@@ -738,28 +804,18 @@ function togglePlayer(playerId) {
     if (captainId === playerId) captainId = null;
     if (viceCaptainId === playerId) viceCaptainId = null;
   } else {
-    if (selectedPlayers.length >= 11) {
-      showToast('Maximum 11 players selected', 'error');
-      return;
-    }
+    if (selectedPlayers.length >= 11) { showToast('Maximum 11 players', 'error'); return; }
     const player = match.players.find(p => p.id === playerId);
     const usedCredits = selectedPlayers.reduce((sum, id) => {
       const pl = match.players.find(p => p.id === id);
-      return sum + (pl?.credits || 0);
+      return sum + (pl ? pl.credits : 0);
     }, 0);
-    if (usedCredits + player.credits > 100) {
-      showToast('Not enough credits!', 'error');
-      return;
-    }
-    // Check team composition: max 7 from one team
+    if (usedCredits + player.credits > 100) { showToast('Not enough credits!', 'error'); return; }
     const teamCount = selectedPlayers.filter(id => {
       const pl = match.players.find(p => p.id === id);
-      return pl?.team === player.team;
+      return pl && pl.team === player.team;
     }).length;
-    if (teamCount >= 7) {
-      showToast('Max 7 players from one team', 'error');
-      return;
-    }
+    if (teamCount >= 7) { showToast('Max 7 from one team', 'error'); return; }
     selectedPlayers.push(playerId);
   }
   renderPlayerGrid(match);
@@ -770,45 +826,41 @@ function renderSelectedPanel(match) {
   const list = document.getElementById('selected-list');
   const capArea = document.getElementById('captain-area');
   const capBtns = document.getElementById('captain-btns');
+  if (!list) return;
   const usedCredits = selectedPlayers.reduce((sum, id) => {
-    const p = match.players.find(pl => pl.id === id);
-    return sum + (p?.credits || 0);
+    const p = (match.players || []).find(pl => pl.id === id);
+    return sum + (p ? p.credits : 0);
   }, 0);
   document.getElementById('sel-count').textContent = selectedPlayers.length;
   document.getElementById('sel-credits').textContent = (100 - usedCredits).toFixed(1);
-
-  const teamKey = `${currentMatchId}_${currentUser}`;
-  const isLocked = DATA.teams[teamKey]?.locked;
+  const teamKey = currentMatchId + '_' + currentUser;
+  const isLocked = DATA.teams[teamKey] && DATA.teams[teamKey].locked;
 
   list.innerHTML = '';
   selectedPlayers.forEach(id => {
-    const p = match.players.find(pl => pl.id === id);
+    const p = (match.players || []).find(pl => pl.id === id);
     if (!p) return;
-    list.innerHTML += `
-      <span class="selected-tag">
-        ${p.name} (${p.role})
-        ${captainId === id ? '<span class="player-badge badge-c">C</span>' : ''}
-        ${viceCaptainId === id ? '<span class="player-badge badge-vc">VC</span>' : ''}
-        ${!isLocked ? `<span class="remove" onclick="togglePlayer('${id}')">&times;</span>` : ''}
-      </span>`;
+    list.innerHTML +=
+      '<span class="selected-tag">' + p.name + ' (' + p.role + ')' +
+      (captainId === id ? ' <span class="player-badge badge-c">C</span>' : '') +
+      (viceCaptainId === id ? ' <span class="player-badge badge-vc">VC</span>' : '') +
+      (!isLocked ? ' <span class="remove" onclick="togglePlayer(\'' + id + '\')">&times;</span>' : '') +
+      '</span>';
   });
 
   if (selectedPlayers.length === 11) {
     capArea.style.display = 'block';
     capBtns.innerHTML = '';
     selectedPlayers.forEach(id => {
-      const p = match.players.find(pl => pl.id === id);
+      const p = (match.players || []).find(pl => pl.id === id);
       if (!p) return;
-      const isCap = captainId === id;
-      const isVC = viceCaptainId === id;
-      capBtns.innerHTML += `
-        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
-          <span style="font-size:0.75em;color:#888">${p.name}</span>
-          <div style="display:flex;gap:4px">
-            <button class="captain-btn ${isCap ? 'is-captain' : ''}" onclick="setCaptain('${id}')" ${isLocked ? 'disabled' : ''}>C</button>
-            <button class="captain-btn ${isVC ? 'is-vc' : ''}" onclick="setVC('${id}')" ${isLocked ? 'disabled' : ''}>VC</button>
-          </div>
-        </div>`;
+      capBtns.innerHTML +=
+        '<div style="display:flex;flex-direction:column;align-items:center;gap:4px">' +
+        '<span style="font-size:0.75em;color:#888">' + p.name + '</span>' +
+        '<div style="display:flex;gap:4px">' +
+        '<button class="captain-btn ' + (captainId === id ? 'is-captain' : '') + '" onclick="setCaptain(\'' + id + '\')" ' + (isLocked ? 'disabled' : '') + '>C</button>' +
+        '<button class="captain-btn ' + (viceCaptainId === id ? 'is-vc' : '') + '" onclick="setVC(\'' + id + '\')" ' + (isLocked ? 'disabled' : '') + '>VC</button>' +
+        '</div></div>';
     });
   } else {
     capArea.style.display = 'none';
@@ -816,14 +868,13 @@ function renderSelectedPanel(match) {
 
   const lockBtn = document.getElementById('lock-btn');
   lockBtn.disabled = selectedPlayers.length !== 11 || !captainId || !viceCaptainId || isLocked;
-  if (isLocked) lockBtn.textContent = 'Team Locked';
-  else lockBtn.textContent = 'Lock Team';
+  lockBtn.textContent = isLocked ? 'Team Locked' : 'Lock Team';
 }
 
 function setCaptain(id) {
   if (viceCaptainId === id) viceCaptainId = null;
   captainId = captainId === id ? null : id;
-  const match = DATA.matches.find(m => m.id === currentMatchId);
+  const match = findMatch(currentMatchId);
   renderPlayerGrid(match);
   renderSelectedPanel(match);
 }
@@ -831,80 +882,74 @@ function setCaptain(id) {
 function setVC(id) {
   if (captainId === id) captainId = null;
   viceCaptainId = viceCaptainId === id ? null : id;
-  const match = DATA.matches.find(m => m.id === currentMatchId);
+  const match = findMatch(currentMatchId);
   renderPlayerGrid(match);
   renderSelectedPanel(match);
 }
 
 function lockTeam() {
   if (selectedPlayers.length !== 11 || !captainId || !viceCaptainId) return;
-  const match = DATA.matches.find(m => m.id === currentMatchId);
+  const match = findMatch(currentMatchId);
   if (getMatchStatus(match) !== 'upcoming') {
-    showToast('Match already started!', 'error');
-    return;
+    showToast('Match already started!', 'error'); return;
   }
-  const teamKey = `${currentMatchId}_${currentUser}`;
-  DATA.teams[teamKey] = {
-    players: [...selectedPlayers],
+  const teamKey = currentMatchId + '_' + currentUser;
+  db.ref('teams/' + teamKey).set({
+    players: selectedPlayers,
     captain: captainId,
     viceCaptain: viceCaptainId,
     locked: true,
     lockedAt: new Date().toISOString(),
-  };
-  saveData(DATA);
-  showToast('Team locked successfully!', 'success');
-  renderSelectedPanel(match);
-  renderMatches();
-  renderMyTeams();
+    user: currentUser,
+    matchId: currentMatchId,
+  });
+  showToast('Team locked! All friends can see it now.', 'success');
 }
 
 function clearSelection() {
-  const teamKey = `${currentMatchId}_${currentUser}`;
-  if (DATA.teams[teamKey]?.locked) {
-    showToast('Cannot clear a locked team!', 'error');
-    return;
+  const teamKey = currentMatchId + '_' + currentUser;
+  if (DATA.teams[teamKey] && DATA.teams[teamKey].locked) {
+    showToast('Cannot clear a locked team!', 'error'); return;
   }
   selectedPlayers = [];
   captainId = null;
   viceCaptainId = null;
-  const match = DATA.matches.find(m => m.id === currentMatchId);
+  const match = findMatch(currentMatchId);
   renderPlayerGrid(match);
   renderSelectedPanel(match);
 }
 
 function updateCountdown(match) {
   const el = document.getElementById('lock-countdown');
-  const update = () => {
-    const now = new Date();
-    const matchTime = new Date(match.time);
-    const diff = matchTime - now;
-    if (diff <= 0) {
-      el.innerHTML = '<span class="countdown">Deadline passed!</span>';
-      return;
-    }
+  if (countdownInterval) clearInterval(countdownInterval);
+  const tick = () => {
+    const diff = new Date(match.time) - new Date();
+    if (diff <= 0) { el.innerHTML = '<span class="countdown">Deadline passed!</span>'; return; }
     const h = Math.floor(diff / 3600000);
     const m = Math.floor((diff % 3600000) / 60000);
     const s = Math.floor((diff % 60000) / 1000);
-    el.innerHTML = `<span class="countdown">Lock deadline: ${h}h ${m}m ${s}s</span>`;
+    el.innerHTML = '<span class="countdown">Lock deadline: ' + h + 'h ' + m + 'm ' + s + 's</span>';
   };
-  update();
-  setInterval(update, 1000);
+  tick();
+  countdownInterval = setInterval(tick, 1000);
 }
 
 // ============ MY TEAMS ============
 function renderMyTeams() {
   const container = document.getElementById('my-teams-list');
+  if (!container) return;
   container.innerHTML = '';
   let hasTeams = false;
   DATA.matches.forEach(match => {
-    const teamKey = `${match.id}_${currentUser}`;
+    const teamKey = match.id + '_' + currentUser;
     const team = DATA.teams[teamKey];
-    if (!team?.locked) return;
+    if (!team || !team.locked) return;
     hasTeams = true;
     const status = getMatchStatus(match);
-    const players = team.players.map(id => {
-      const p = match.players.find(pl => pl.id === id);
-      const score = match.playerScores[id] || 0;
+    const players = (team.players || []).map(id => {
+      const p = (match.players || []).find(pl => pl.id === id);
+      if (!p) return { id, name: '?', role: '?', score: 0, mult: 1, totalScore: 0 };
+      const score = (match.playerScores && match.playerScores[id]) || 0;
       let mult = 1;
       if (id === team.captain) mult = 2;
       if (id === team.viceCaptain) mult = 1.5;
@@ -921,18 +966,17 @@ function renderMyTeams() {
           </div>
           <div>
             <span class="match-status status-${status}">${status.toUpperCase()}</span>
-            ${status === 'completed' ? `<span style="color:#27ae60;font-weight:700;margin-left:12px">${totalPts.toFixed(1)} pts</span>` : ''}
+            ${status === 'completed' ? '<span style="color:#27ae60;font-weight:700;margin-left:12px">' + totalPts.toFixed(1) + ' pts</span>' : ''}
           </div>
         </div>
         <div class="my-team-players">
-          ${players.map(p => `
-            <span class="my-team-tag">
-              ${p.name} (${p.role})
-              ${p.id === team.captain ? '<span class="player-badge badge-c">C</span>' : ''}
-              ${p.id === team.viceCaptain ? '<span class="player-badge badge-vc">VC</span>' : ''}
-              ${status === 'completed' ? `<span style="color:#27ae60;margin-left:4px">${p.totalScore.toFixed(1)}</span>` : ''}
-            </span>
-          `).join('')}
+          ${players.map(p =>
+            '<span class="my-team-tag">' + p.name + ' (' + p.role + ')' +
+            (p.id === team.captain ? ' <span class="player-badge badge-c">C</span>' : '') +
+            (p.id === team.viceCaptain ? ' <span class="player-badge badge-vc">VC</span>' : '') +
+            (status === 'completed' ? ' <span style="color:#27ae60;margin-left:4px">' + p.totalScore.toFixed(1) + '</span>' : '') +
+            '</span>'
+          ).join('')}
         </div>
       </div>`;
   });
@@ -943,32 +987,31 @@ function renderMyTeams() {
 
 // ============ LEADERBOARD ============
 function renderLeaderboard() {
-  const matchFilter = document.getElementById('lb-match-select').value;
+  const matchFilter = document.getElementById('lb-match-select');
+  if (!matchFilter) return;
+  const filter = matchFilter.value;
   const tbody = document.getElementById('lb-body');
   const entries = Object.keys(USERS).map(uid => {
     const lb = DATA.leaderboard[uid] || { total: 0, matchPoints: {} };
-    let pts = 0;
-    let matchCount = 0;
-    if (matchFilter === 'overall') {
-      pts = lb.total;
-      matchCount = Object.keys(lb.matchPoints).length;
+    let pts = 0, matchCount = 0;
+    if (filter === 'overall') {
+      pts = lb.total || 0;
+      matchCount = lb.matchPoints ? Object.keys(lb.matchPoints).length : 0;
     } else {
-      pts = lb.matchPoints[matchFilter] || 0;
-      matchCount = lb.matchPoints[matchFilter] !== undefined ? 1 : 0;
+      pts = (lb.matchPoints && lb.matchPoints[filter]) || 0;
+      matchCount = (lb.matchPoints && lb.matchPoints[filter] !== undefined) ? 1 : 0;
     }
     return { uid, name: USERS[uid].name, pts, matchCount };
   });
   entries.sort((a, b) => b.pts - a.pts);
   tbody.innerHTML = '';
   entries.forEach((e, i) => {
-    const rankClass = i < 3 ? `rank-${i+1}` : '';
-    tbody.innerHTML += `
-      <tr>
-        <td class="${rankClass}">${i + 1}</td>
-        <td>${e.name} ${e.uid === currentUser ? '(You)' : ''}</td>
-        <td class="points-cell">${e.pts.toFixed(1)}</td>
-        <td>${e.matchCount}</td>
-      </tr>`;
+    const rc = i < 3 ? ' rank-' + (i + 1) : '';
+    tbody.innerHTML +=
+      '<tr><td class="' + rc + '">' + (i + 1) + '</td>' +
+      '<td>' + e.name + (e.uid === currentUser ? ' (You)' : '') + '</td>' +
+      '<td class="points-cell">' + e.pts.toFixed(1) + '</td>' +
+      '<td>' + e.matchCount + '</td></tr>';
   });
 }
 
@@ -977,13 +1020,16 @@ function populateAdminSelects() {
   const sel = document.getElementById('admin-match-select');
   const t1 = document.getElementById('new-match-team1');
   const t2 = document.getElementById('new-match-team2');
+  if (!sel) return;
   sel.innerHTML = '<option value="">Select match...</option>';
   DATA.matches.forEach(m => {
-    sel.innerHTML += `<option value="${m.id}">Match ${m.num}: ${m.team1} vs ${m.team2}</option>`;
+    sel.innerHTML += '<option value="' + m.id + '">Match ' + m.num + ': ' + m.team1 + ' vs ' + m.team2 + '</option>';
   });
+  t1.innerHTML = '<option value="">Team 1</option>';
+  t2.innerHTML = '<option value="">Team 2</option>';
   Object.keys(IPL_TEAMS).forEach(t => {
-    t1.innerHTML += `<option value="${t}">${t}</option>`;
-    t2.innerHTML += `<option value="${t}">${t}</option>`;
+    t1.innerHTML += '<option value="' + t + '">' + t + '</option>';
+    t2.innerHTML += '<option value="' + t + '">' + t + '</option>';
   });
 }
 
@@ -991,69 +1037,85 @@ function loadAdminMatch() {
   const matchId = document.getElementById('admin-match-select').value;
   const area = document.getElementById('admin-scoring-area');
   if (!matchId) { area.innerHTML = ''; return; }
-  const match = DATA.matches.find(m => m.id === matchId);
+  const match = findMatch(matchId);
+  if (!match) return;
 
-  area.innerHTML = `
+  let html = `
     <div class="form-group">
       <label>Match Status</label>
       <select id="admin-status">
-        <option value="upcoming" ${match.status==='upcoming'?'selected':''}>Upcoming</option>
-        <option value="live" ${match.status==='live'?'selected':''}>Live</option>
-        <option value="completed" ${match.status==='completed'?'selected':''}>Completed</option>
+        <option value="upcoming" ${match.status === 'upcoming' ? 'selected' : ''}>Upcoming</option>
+        <option value="live" ${match.status === 'live' ? 'selected' : ''}>Live</option>
+        <option value="completed" ${match.status === 'completed' ? 'selected' : ''}>Completed</option>
       </select>
     </div>
     <div class="form-group">
       <label>Match Result (e.g. "CSK won by 6 wickets")</label>
       <input type="text" id="admin-result" value="${match.result || ''}"/>
     </div>
-    <h4 style="color:#aaa;margin:16px 0 8px">Player Scores (Fantasy Points)</h4>
-    <p style="color:#666;font-size:0.8em;margin-bottom:12px">Enter the total fantasy points for each player based on the scoring system.</p>
-    <div style="max-height:400px;overflow-y:auto">
-    ${match.players.map(p => `
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
-        <span style="min-width:160px;font-size:0.9em">${p.name} <span style="color:#888">(${p.team})</span></span>
-        <input type="number" id="score_${p.id}" value="${match.playerScores[p.id] || 0}" style="width:80px;padding:6px;border-radius:4px;border:1px solid #2a3a4a;background:var(--secondary);color:var(--light)"/>
-      </div>
-    `).join('')}
-    </div>
-    <button class="btn btn-green" style="margin-top:16px" onclick="saveAdminMatch('${matchId}')">Save Match Data</button>
-  `;
+    <h4 style="color:#aaa;margin:16px 0 8px">Player Fantasy Points</h4>
+    <p style="color:#666;font-size:0.8em;margin-bottom:12px">Enter total fantasy points per player based on the scoring system.</p>
+    <div style="max-height:400px;overflow-y:auto">`;
+  (match.players || []).forEach(p => {
+    const score = (match.playerScores && match.playerScores[p.id]) || 0;
+    html += '<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">' +
+      '<span style="min-width:160px;font-size:0.9em">' + p.name + ' <span style="color:#888">(' + p.team + ')</span></span>' +
+      '<input type="number" id="score_' + p.id + '" value="' + score + '" style="width:80px;padding:6px;border-radius:4px;border:1px solid #2a3a4a;background:var(--secondary);color:var(--light)"/>' +
+      '</div>';
+  });
+  html += '</div><button class="btn btn-green" style="margin-top:16px" onclick="saveAdminMatch(\'' + matchId + '\')">Save & Calculate Points</button>';
+  area.innerHTML = html;
 }
 
 function saveAdminMatch(matchId) {
-  const match = DATA.matches.find(m => m.id === matchId);
-  match.status = document.getElementById('admin-status').value;
-  match.result = document.getElementById('admin-result').value;
-
-  match.players.forEach(p => {
-    const val = parseFloat(document.getElementById(`score_${p.id}`)?.value || 0);
-    match.playerScores[p.id] = val;
+  const match = findMatch(matchId);
+  if (!match) return;
+  const newStatus = document.getElementById('admin-status').value;
+  const newResult = document.getElementById('admin-result').value;
+  const scores = {};
+  (match.players || []).forEach(p => {
+    const el = document.getElementById('score_' + p.id);
+    scores[p.id] = parseFloat(el ? el.value : 0) || 0;
   });
 
-  // Recalculate leaderboard for this match
-  if (match.status === 'completed') {
+  // Update match in Firebase
+  const updates = {};
+  updates['matches/' + matchId + '/status'] = newStatus;
+  updates['matches/' + matchId + '/result'] = newResult;
+  updates['matches/' + matchId + '/playerScores'] = scores;
+
+  // Recalculate leaderboard if completed
+  if (newStatus === 'completed') {
     Object.keys(USERS).forEach(uid => {
-      const teamKey = `${matchId}_${uid}`;
+      const teamKey = matchId + '_' + uid;
       const team = DATA.teams[teamKey];
-      if (!team?.locked) return;
+      if (!team || !team.locked) return;
       let pts = 0;
-      team.players.forEach(pid => {
-        let score = match.playerScores[pid] || 0;
+      (team.players || []).forEach(pid => {
+        let score = scores[pid] || 0;
         if (pid === team.captain) score *= 2;
         if (pid === team.viceCaptain) score *= 1.5;
         pts += score;
       });
-      if (!DATA.leaderboard[uid]) DATA.leaderboard[uid] = { total: 0, matchPoints: {} };
-      const oldPts = DATA.leaderboard[uid].matchPoints[matchId] || 0;
-      DATA.leaderboard[uid].matchPoints[matchId] = pts;
-      DATA.leaderboard[uid].total = Object.values(DATA.leaderboard[uid].matchPoints).reduce((a, b) => a + b, 0);
+      updates['leaderboard/' + uid + '/matchPoints/' + matchId] = pts;
+    });
+    // Need to recalculate totals after setting match points
+    db.ref().update(updates).then(() => {
+      // Now recalculate totals
+      Object.keys(USERS).forEach(uid => {
+        db.ref('leaderboard/' + uid + '/matchPoints').once('value').then(snap => {
+          const mp = snap.val() || {};
+          const total = Object.values(mp).reduce((a, b) => a + b, 0);
+          db.ref('leaderboard/' + uid + '/total').set(total);
+        });
+      });
+      showToast('Match saved & leaderboard updated!', 'success');
+    });
+  } else {
+    db.ref().update(updates).then(() => {
+      showToast('Match data saved!', 'success');
     });
   }
-
-  saveData(DATA);
-  showToast('Match data saved!', 'success');
-  renderMatches();
-  renderLeaderboard();
 }
 
 function addNewMatch() {
@@ -1064,39 +1126,26 @@ function addNewMatch() {
   if (!t1 || !t2 || !time) { showToast('Fill all match details', 'error'); return; }
   if (t1 === t2) { showToast('Teams must be different', 'error'); return; }
   const num = DATA.matches.length + 1;
-  DATA.matches.push({
-    id: `match_${num}`,
-    num,
-    team1: t1,
-    team2: t2,
-    venue: venue || 'TBD',
-    time: new Date(time).toISOString(),
-    status: 'upcoming',
-    players: generatePlayers(t1, t2),
-    result: null,
-    playerScores: {},
+  const id = 'match_' + num;
+  db.ref('matches/' + id).set({
+    id, num, team1: t1, team2: t2, venue: venue || 'TBD',
+    time: new Date(time).toISOString(), status: 'upcoming', result: '',
+    players: generatePlayers(t1, t2), playerScores: {},
   });
-  saveData(DATA);
   showToast('Match added!', 'success');
-  renderMatches();
-  populateAdminSelects();
 }
 
 // ============ UTILS ============
 function showToast(msg, type) {
   const t = document.getElementById('toast');
   t.textContent = msg;
-  t.className = `toast toast-${type} show`;
+  t.className = 'toast toast-' + type + ' show';
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-// ============ INIT ============
+// ============ BOOT ============
 window.addEventListener('DOMContentLoaded', () => {
-  const saved = localStorage.getItem('fantasy_xi_user');
-  if (saved && USERS[saved]) {
-    currentUser = saved;
-    showApp();
-  }
+  initFirebase(FIREBASE_CONFIG);
 });
 </script>
 </body>
