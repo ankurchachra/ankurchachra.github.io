@@ -1854,11 +1854,17 @@ async function fetchESPNScores() {
     });
     espnLog('Playing XI identified: ' + playingXIFound + ' players');
 
-    // ── Step 2: Extract live batting from partnerships (current batsmen at crease) ──
+    // ── Step 2: Extract batting from linescores partnerships (works LIVE + completed) ──
+    // Partnerships give us runs & balls for EVERY batsman across all innings.
+    // We aggregate across partnerships since a batsman appears in multiple.
     const competitors = competition?.competitors || [];
+    const batAggregated = {}; // keyed by player.id → {runs, balls}
+
     competitors.forEach(team => {
       const linescores = team.linescores || [];
       linescores.forEach(ls => {
+        if (ls.runs === 0 && !ls.isBatting) return; // skip empty linescores
+
         const partnerships = ls.partnerships || [];
         partnerships.forEach(p => {
           (p.batsmen || []).forEach(b => {
@@ -1866,41 +1872,59 @@ async function fetchESPNScores() {
             const displayName = ath.displayName || ath.shortName || '';
             const player = matchPlayerName(displayName, ALL_PLAYERS);
             if (player && scores[player.id]) {
-              scores[player.id].runs = parseInt(b.runs) || 0;
-              scores[player.id].balls = parseInt(b.balls) || 0;
+              // Aggregate runs/balls across partnerships for this batsman
+              if (!batAggregated[player.id]) batAggregated[player.id] = { runs: 0, balls: 0 };
+              batAggregated[player.id].runs += parseInt(b.runs) || 0;
+              batAggregated[player.id].balls += parseInt(b.balls) || 0;
               scores[player.id].didBat = true;
               scores[player.id].inPlayingXI = true;
-              battingFound++;
-              espnLog('  Bat: ' + player.name + ' — ' + b.runs + '(' + b.balls + ')');
             }
           });
         });
 
-        // Also extract fall of wickets for dismissed batsmen info
+        // Fall of wickets — also has runsScored/ballsFaced per dismissed batsman
         const fow = ls.fow || [];
         fow.forEach(f => {
-          const ath = f.athlete || f.player || {};
+          const ath = f.athlete || {};
           const displayName = ath.displayName || ath.shortName || '';
-          if (displayName) {
-            const player = matchPlayerName(displayName, ALL_PLAYERS);
-            if (player && scores[player.id]) {
-              scores[player.id].didBat = true;
-              scores[player.id].inPlayingXI = true;
+          if (!displayName) return;
+          const player = matchPlayerName(displayName, ALL_PLAYERS);
+          if (player && scores[player.id]) {
+            scores[player.id].didBat = true;
+            scores[player.id].inPlayingXI = true;
+            // FOW has exact runs/balls for dismissed batsmen — use if available
+            if (f.runsScored !== undefined) {
+              batAggregated[player.id] = {
+                runs: parseInt(f.runsScored) || 0,
+                balls: parseInt(f.ballsFaced) || 0,
+              };
             }
           }
         });
       });
     });
 
-    // ── Step 3: Parse completed innings from matchcards ──
+    // Apply aggregated batting to scores
+    for (const [pid, bat] of Object.entries(batAggregated)) {
+      scores[pid].runs = bat.runs;
+      scores[pid].balls = bat.balls;
+      battingFound++;
+    }
+    if (battingFound > 0) espnLog('Batting from partnerships/FOW: ' + battingFound + ' players');
+
+    // ── Step 3: Parse matchcards playerDetails (detailed scorecard with 4s, 6s, bowling) ──
+    // ESPN puts detailed data in playerDetails[], NOT matchCard[] (which is always empty!)
     const matchcards = data.matchcards || [];
     if (matchcards.length > 0) {
-      espnLog('Parsing ' + matchcards.length + ' completed innings scorecards...');
+      espnLog('Parsing ' + matchcards.length + ' matchcard sections...');
 
       matchcards.forEach(card => {
-        if (card.typeID === 11) {
-          // Batting card
-          (card.matchCard || []).forEach(entry => {
+        const details = card.playerDetails || [];
+
+        if (card.typeID === 11 && details.length > 0) {
+          // Batting scorecard — has runs, ballsFaced, fours, sixes, dismissal
+          espnLog('  Batting card (' + card.teamName + ' inn ' + card.inningsNumber + '): ' + details.length + ' batsmen');
+          details.forEach(entry => {
             const name = entry.playerName || '';
             const player = matchPlayerName(name, ALL_PLAYERS);
             if (player) {
@@ -1911,26 +1935,28 @@ async function fetchESPNScores() {
               s.sixes = parseInt(entry.sixes) || 0;
               s.didBat = true;
               s.inPlayingXI = true;
-              battingFound++;
-            } else if (name && !name.includes('Extras') && !name.includes('Total')) {
+            } else if (name) {
               unmatchedBat.push(name);
             }
           });
         }
 
-        if (card.typeID === 12) {
-          // Bowling card
-          (card.matchCard || []).forEach(entry => {
+        if (card.typeID === 12 && details.length > 0) {
+          // Bowling scorecard — has overs, maidens, conceded, wickets
+          espnLog('  Bowling card (' + card.teamName + ' inn ' + card.inningsNumber + '): ' + details.length + ' bowlers');
+          details.forEach(entry => {
             const name = entry.playerName || '';
             const player = matchPlayerName(name, ALL_PLAYERS);
             if (player) {
               const s = scores[player.id];
-              s.oversBowled = parseFloat(entry.overs) || 0;
-              s.maidens = parseInt(entry.maidens) || 0;
-              s.runsConceded = parseInt(entry.conceded) || 0;
-              s.wickets = parseInt(entry.wickets) || 0;
+              // Add bowling figures (accumulate across innings)
+              s.oversBowled = (s.oversBowled || 0) + (parseFloat(entry.overs) || 0);
+              s.maidens = (s.maidens || 0) + (parseInt(entry.maidens) || 0);
+              s.runsConceded = (s.runsConceded || 0) + (parseInt(entry.conceded) || 0);
+              s.wickets = (s.wickets || 0) + (parseInt(entry.wickets) || 0);
               s.inPlayingXI = true;
 
+              // Estimate dot balls
               const overs = parseFloat(entry.overs) || 0;
               const fullOvers = Math.floor(overs);
               const partialBalls = Math.round((overs - fullOvers) * 10);
@@ -1938,7 +1964,7 @@ async function fetchESPNScores() {
               const runs = parseInt(entry.conceded) || 0;
               if (totalBalls > 0) {
                 const scoringBalls = Math.min(totalBalls, Math.ceil(runs / 1.2));
-                s.dots = Math.max(0, totalBalls - scoringBalls);
+                s.dots = (s.dots || 0) + Math.max(0, totalBalls - scoringBalls);
               }
               bowlingFound++;
             } else if (name) {
@@ -1947,61 +1973,14 @@ async function fetchESPNScores() {
           });
         }
       });
-
-      // Parse fielding from dismissals
-      matchcards.forEach(card => {
-        if (card.typeID === 11) {
-          (card.matchCard || []).forEach(entry => {
-            const dismissal = (entry.dismissal || '').toLowerCase();
-            const dismissalText = (entry.dismissalText || entry.dismissal || '');
-
-            if (dismissal === 'caught') {
-              const cMatch = dismissalText.match(/c\s+(.+?)\s+b\s+/i);
-              if (cMatch) {
-                const catcher = matchPlayerName(cMatch[1].replace('†', '').trim(), ALL_PLAYERS);
-                if (catcher && scores[catcher.id]) scores[catcher.id].catches = (scores[catcher.id].catches || 0) + 1;
-              }
-            }
-            if (dismissal === 'stumped') {
-              const sMatch = dismissalText.match(/st\s+(.+?)\s+b\s+/i);
-              if (sMatch) {
-                const stumper = matchPlayerName(sMatch[1].replace('†', '').trim(), ALL_PLAYERS);
-                if (stumper && scores[stumper.id]) stumper && (scores[stumper.id].stumpings = (scores[stumper.id].stumpings || 0) + 1);
-              }
-            }
-            if (dismissal.includes('lbw') || dismissal.includes('bowled')) {
-              const bMatch = dismissalText.match(/b\s+(.+?)$/i) || dismissalText.match(/lbw\s+b\s+(.+?)$/i);
-              if (bMatch) {
-                const bowler = matchPlayerName(bMatch[1].trim(), ALL_PLAYERS);
-                if (bowler && scores[bowler.id]) scores[bowler.id].lbwBowled = (scores[bowler.id].lbwBowled || 0) + 1;
-              }
-            }
-            if (dismissal.includes('run out')) {
-              const roMatch = dismissalText.match(/run out\s*\((.+?)\)/i);
-              if (roMatch) {
-                const names = roMatch[1].split('/');
-                if (names.length === 1) {
-                  const fielder = matchPlayerName(names[0].trim(), ALL_PLAYERS);
-                  if (fielder && scores[fielder.id]) scores[fielder.id].runoutDirect = (scores[fielder.id].runoutDirect || 0) + 1;
-                } else {
-                  names.slice(-2).forEach(fn => {
-                    const fielder = matchPlayerName(fn.trim(), ALL_PLAYERS);
-                    if (fielder && scores[fielder.id]) scores[fielder.id].runoutIndirect = (scores[fielder.id].runoutIndirect || 0) + 1;
-                  });
-                }
-              }
-            }
-          });
-        }
-      });
     } else {
-      espnLog('No completed innings yet — using live partnership data for current batsmen.');
+      espnLog('No matchcard scorecards yet — using partnership data only.');
     }
 
     // ── Step 4: Update match status ──
     if (matchState === 'in' || matchStatus.toLowerCase().includes('progress') || matchStatus.toLowerCase().includes('live')) {
       db.ref('matches/' + MATCH_ID + '/status').set('live');
-    } else if (matchState === 'post' || matchStatus.toLowerCase().includes('complete')) {
+    } else if (matchState === 'post' || matchStatus.toLowerCase().includes('complete') || matchStatus.toLowerCase().includes('result')) {
       db.ref('matches/' + MATCH_ID + '/status').set('completed');
     }
 
