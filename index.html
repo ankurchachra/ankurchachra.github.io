@@ -336,7 +336,7 @@
     </div>
     <div class="form-group">
       <label>Password</label>
-      <input type="password" id="login-pass" placeholder="Enter password"/>
+      <input type="password" id="login-pass" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()"/>
     </div>
     <div class="login-error" id="login-error">Invalid password</div>
     <button class="btn btn-gold" style="width:100%;margin-top:12px" onclick="doLogin()">Enter the Arena</button>
@@ -1549,39 +1549,52 @@ function renderLeaderboard() {
     const isCurrentUser = entry.uid === currentUser;
 
     let expandedHtml = '';
-    if (isExpanded && entry.team && entry.team.locked && entry.team.players) {
-      const playerRows = entry.team.players.map(pid => {
-        const p = PLAYER_MAP[pid];
-        if (!p) return '';
-        const stats = playerScores[pid] || {};
-        const basePoints = calcFantasyPoints(stats, p.role);
-        let multiplier = 1;
-        let mLabel = '';
-        if (pid === entry.team.captain) { multiplier = 2; mLabel = 'C (2x)'; }
-        else if (pid === entry.team.viceCaptain) { multiplier = 1.5; mLabel = 'VC (1.5x)'; }
-        const finalPoints = Math.round(basePoints * multiplier * 10) / 10;
-        return `<tr>
-          <td>${p.name} ${mLabel ? '<span class="player-badge ' + (pid === entry.team.captain ? 'badge-c' : 'badge-vc') + '">' + mLabel.split(' ')[0] + '</span>' : ''}</td>
-          <td>${p.team}</td>
-          <td>${p.role}</td>
-          <td style="text-align:right">${basePoints}</td>
-          <td style="text-align:right">${mLabel || '1x'}</td>
-          <td style="text-align:right;color:var(--green);font-weight:600">${finalPoints}</td>
-        </tr>`;
-      }).join('');
+    if (isExpanded) {
+      // Before match starts, hide other players' teams
+      if (!isCurrentUser && !isLockExpired()) {
+        expandedHtml = `
+          <tr class="expanded-team-row">
+            <td colspan="4">
+              <div class="expanded-team-detail" style="text-align:center;padding:20px;font-size:1.1em;color:var(--gold)">
+                Focus on your own team please :P
+              </div>
+            </td>
+          </tr>
+        `;
+      } else if (entry.team && entry.team.locked && entry.team.players) {
+        const playerRows = entry.team.players.map(pid => {
+          const p = PLAYER_MAP[pid];
+          if (!p) return '';
+          const stats = playerScores[pid] || {};
+          const basePoints = calcFantasyPoints(stats, p.role);
+          let multiplier = 1;
+          let mLabel = '';
+          if (pid === entry.team.captain) { multiplier = 2; mLabel = 'C (2x)'; }
+          else if (pid === entry.team.viceCaptain) { multiplier = 1.5; mLabel = 'VC (1.5x)'; }
+          const finalPoints = Math.round(basePoints * multiplier * 10) / 10;
+          return `<tr>
+            <td>${p.name} ${mLabel ? '<span class="player-badge ' + (pid === entry.team.captain ? 'badge-c' : 'badge-vc') + '">' + mLabel.split(' ')[0] + '</span>' : ''}</td>
+            <td>${p.team}</td>
+            <td>${p.role}</td>
+            <td style="text-align:right">${basePoints}</td>
+            <td style="text-align:right">${mLabel || '1x'}</td>
+            <td style="text-align:right;color:var(--green);font-weight:600">${finalPoints}</td>
+          </tr>`;
+        }).join('');
 
-      expandedHtml = `
-        <tr class="expanded-team-row">
-          <td colspan="4">
-            <div class="expanded-team-detail">
-              <table>
-                <thead><tr><th>Player</th><th>Team</th><th>Role</th><th style="text-align:right">Base</th><th style="text-align:right">Multi</th><th style="text-align:right">Points</th></tr></thead>
-                <tbody>${playerRows}</tbody>
-              </table>
-            </div>
-          </td>
-        </tr>
-      `;
+        expandedHtml = `
+          <tr class="expanded-team-row">
+            <td colspan="4">
+              <div class="expanded-team-detail">
+                <table>
+                  <thead><tr><th>Player</th><th>Team</th><th>Role</th><th style="text-align:right">Base</th><th style="text-align:right">Multi</th><th style="text-align:right">Points</th></tr></thead>
+                  <tbody>${playerRows}</tbody>
+                </table>
+              </div>
+            </td>
+          </tr>
+        `;
+      }
     }
 
     return `
