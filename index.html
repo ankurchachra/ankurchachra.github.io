@@ -363,7 +363,7 @@
 
   <!-- TAB 1: MATCH -->
   <div class="page active" id="page-match">
-    <h2 style="margin-bottom:20px">RR vs CSK - Match 3</h2>
+    <h2 style="margin-bottom:20px">LSG vs DC - Match 5</h2>
     <div id="match-card-area"></div>
   </div>
 
@@ -372,7 +372,7 @@
     <div class="selection-header">
       <div>
         <h2>Pick Your XI</h2>
-        <p style="color:#888;margin-top:4px">Select 11 players from RR &amp; CSK squads</p>
+        <p style="color:#888;margin-top:4px">Select 11 players from LSG &amp; DC squads</p>
       </div>
       <div class="credits-box">
         <div><div class="label">Players</div><div class="value"><span id="sel-count">0</span>/11</div></div>
@@ -402,8 +402,8 @@
         <div class="filter-btn" data-role="BOWL" onclick="filterPlayers('BOWL')">BOWL</div>
         <div class="filter-btn" data-role="AR" onclick="filterPlayers('AR')">AR</div>
         <div class="filter-btn" data-role="WK" onclick="filterPlayers('WK')">WK</div>
-        <div class="filter-btn" data-role="RR" onclick="filterPlayers('RR')">RR</div>
-        <div class="filter-btn" data-role="CSK" onclick="filterPlayers('CSK')">CSK</div>
+        <div class="filter-btn" data-role="LSG" onclick="filterPlayers('LSG')">LSG</div>
+        <div class="filter-btn" data-role="DC" onclick="filterPlayers('DC')">DC</div>
       </div>
       <div class="players-grid" id="players-grid"></div>
     </div>
@@ -411,13 +411,13 @@
 
   <!-- TAB 3: MY TEAM -->
   <div class="page" id="page-my-team">
-    <h2 style="margin-bottom:20px">My Team - RR vs CSK</h2>
+    <h2 style="margin-bottom:20px">My Team - LSG vs DC</h2>
     <div id="my-team-area"></div>
   </div>
 
   <!-- TAB 4: LEADERBOARD -->
   <div class="page" id="page-leaderboard">
-    <h2 style="margin-bottom:20px">Match Leaderboard - RR vs CSK</h2>
+    <h2 style="margin-bottom:20px">Match Leaderboard - LSG vs DC</h2>
     <table class="leaderboard-table">
       <thead><tr><th>#</th><th>Player</th><th>Points</th><th>Team Locked</th></tr></thead>
       <tbody id="lb-body"></tbody>
@@ -610,13 +610,13 @@ function initFirebase(config) {
 }
 
 // ============ CONSTANTS ============
-const MATCH_ID = 'match_3';
-const MATCH_TIME = '2026-03-30T19:30:00+05:30';  // Match starts 7:30 PM IST
-const LOCK_TIME  = '2026-03-30T19:30:00+05:30';  // Teams lock at match start (7:30 PM IST)
+const MATCH_ID = 'match_5';
+const MATCH_TIME = '2026-04-01T19:30:00+05:30';  // Match starts 7:30 PM IST
+const LOCK_TIME  = '2026-04-01T19:30:00+05:30';  // Teams lock at match start (7:30 PM IST)
 
 const IPL_TEAMS = {
-  RR:  { name: 'Rajasthan Royals',        short: 'RR',  color: '#ea1a85' },
-  CSK: { name: 'Chennai Super Kings',     short: 'CSK', color: '#f9cd05' },
+  LSG: { name: 'Lucknow Super Giants',    short: 'LSG', color: '#a72056' },
+  DC:  { name: 'Delhi Capitals',           short: 'DC',  color: '#17479e' },
 };
 
 const USERS = {
@@ -627,63 +627,62 @@ const USERS = {
   sharat:  { name: 'Sharat',  pass: 'sharat123',  isAdmin: false },
 };
 
-const RR_SQUAD = [
-  { id: 'RR_0',  name: 'Riyan Parag',           team: 'RR', role: 'AR',   credits: 9.0, isCaptain: true },
-  { id: 'RR_1',  name: 'Yashasvi Jaiswal',      team: 'RR', role: 'BAT',  credits: 10.0 },
-  { id: 'RR_2',  name: 'Ravindra Jadeja',       team: 'RR', role: 'AR',   credits: 9.5 },
-  { id: 'RR_3',  name: 'Jofra Archer',          team: 'RR', role: 'BOWL', credits: 9.0 },
-  { id: 'RR_4',  name: 'Shimron Hetmyer',       team: 'RR', role: 'BAT',  credits: 8.5 },
-  { id: 'RR_5',  name: 'Dhruv Jurel',           team: 'RR', role: 'WK',   credits: 8.5 },
-  { id: 'RR_6',  name: 'Ravi Bishnoi',          team: 'RR', role: 'BOWL', credits: 8.0 },
-  { id: 'RR_7',  name: 'Dasun Shanaka',         team: 'RR', role: 'AR',   credits: 8.0 },
-  { id: 'RR_8',  name: 'Donovan Ferreira',      team: 'RR', role: 'AR',   credits: 7.5 },
-  { id: 'RR_9',  name: 'Tushar Deshpande',      team: 'RR', role: 'BOWL', credits: 7.5 },
-  { id: 'RR_10', name: 'Kwena Maphaka',         team: 'RR', role: 'BOWL', credits: 7.5 },
-  { id: 'RR_11', name: 'Adam Milne',            team: 'RR', role: 'BOWL', credits: 7.0 },
-  { id: 'RR_12', name: 'Nandre Burger',         team: 'RR', role: 'BOWL', credits: 7.0 },
-  { id: 'RR_13', name: 'Lhuan-dre Pretorius',   team: 'RR', role: 'WK',   credits: 7.0 },
-  { id: 'RR_14', name: 'Kuldeep Sen',           team: 'RR', role: 'BOWL', credits: 7.0 },
-  { id: 'RR_15', name: 'Vaibhav Sooryavanshi',  team: 'RR', role: 'BAT',  credits: 7.0 },
-  { id: 'RR_16', name: 'Shubham Dubey',         team: 'RR', role: 'BAT',  credits: 6.5 },
-  { id: 'RR_17', name: 'Sandeep Sharma',        team: 'RR', role: 'BOWL', credits: 6.5 },
-  { id: 'RR_18', name: 'Sushant Mishra',        team: 'RR', role: 'BOWL', credits: 6.0 },
-  { id: 'RR_19', name: 'Ravi Singh',            team: 'RR', role: 'BAT',  credits: 6.0 },
-  { id: 'RR_20', name: 'Aman Rao',              team: 'RR', role: 'BAT',  credits: 6.0 },
-  { id: 'RR_21', name: 'Brijesh Sharma',        team: 'RR', role: 'BOWL', credits: 6.0 },
-  { id: 'RR_22', name: 'Vignesh Puthur',        team: 'RR', role: 'BOWL', credits: 6.0 },
-  { id: 'RR_23', name: 'Yash Raj Punja',        team: 'RR', role: 'BOWL', credits: 6.0 },
-  { id: 'RR_24', name: 'Yudhvir Singh',         team: 'RR', role: 'BOWL', credits: 6.0 },
+const LSG_SQUAD = [
+  { id: 'LSG_0',  name: 'Rishabh Pant',         team: 'LSG', role: 'WK',   credits: 10.5, isCaptain: true },
+  { id: 'LSG_1',  name: 'Mitchell Marsh',       team: 'LSG', role: 'AR',   credits: 9.5 },
+  { id: 'LSG_2',  name: 'Nicholas Pooran',      team: 'LSG', role: 'WK',   credits: 9.5 },
+  { id: 'LSG_3',  name: 'Aiden Markram',        team: 'LSG', role: 'BAT',  credits: 8.5 },
+  { id: 'LSG_4',  name: 'Wanindu Hasaranga',    team: 'LSG', role: 'AR',   credits: 9.0 },
+  { id: 'LSG_5',  name: 'Mohammed Shami',       team: 'LSG', role: 'BOWL', credits: 9.0 },
+  { id: 'LSG_6',  name: 'Anrich Nortje',        team: 'LSG', role: 'BOWL', credits: 8.5 },
+  { id: 'LSG_7',  name: 'Mayank Yadav',         team: 'LSG', role: 'BOWL', credits: 8.0 },
+  { id: 'LSG_8',  name: 'Avesh Khan',           team: 'LSG', role: 'BOWL', credits: 8.0 },
+  { id: 'LSG_9',  name: 'Ayush Badoni',         team: 'LSG', role: 'BAT',  credits: 8.0 },
+  { id: 'LSG_10', name: 'Shahbaz Ahmed',        team: 'LSG', role: 'AR',   credits: 7.5 },
+  { id: 'LSG_11', name: 'Josh Inglis',          team: 'LSG', role: 'WK',   credits: 7.5 },
+  { id: 'LSG_12', name: 'Matthew Breetzke',     team: 'LSG', role: 'BAT',  credits: 7.0 },
+  { id: 'LSG_13', name: 'Arshin Kulkarni',      team: 'LSG', role: 'AR',   credits: 7.0 },
+  { id: 'LSG_14', name: 'Manimaran Siddharth',  team: 'LSG', role: 'BOWL', credits: 7.0 },
+  { id: 'LSG_15', name: 'Abdul Samad',          team: 'LSG', role: 'BAT',  credits: 7.0 },
+  { id: 'LSG_16', name: 'Mohsin Khan',          team: 'LSG', role: 'BOWL', credits: 7.0 },
+  { id: 'LSG_17', name: 'Himmat Singh',         team: 'LSG', role: 'BAT',  credits: 6.5 },
+  { id: 'LSG_18', name: 'Akshat Raghuwanshi',   team: 'LSG', role: 'BAT',  credits: 6.5 },
+  { id: 'LSG_19', name: 'Mukul Choudhary',      team: 'LSG', role: 'BAT',  credits: 6.0 },
+  { id: 'LSG_20', name: 'Akash Singh',          team: 'LSG', role: 'BOWL', credits: 6.0 },
+  { id: 'LSG_21', name: 'Prince Yadav',         team: 'LSG', role: 'BOWL', credits: 6.0 },
+  { id: 'LSG_22', name: 'Digvesh Rathi',        team: 'LSG', role: 'BOWL', credits: 6.0 },
+  { id: 'LSG_23', name: 'Arjun Tendulkar',      team: 'LSG', role: 'BOWL', credits: 6.0 },
+  { id: 'LSG_24', name: 'Naman Tiwari',         team: 'LSG', role: 'BOWL', credits: 6.0 },
 ];
 
-const CSK_SQUAD = [
-  { id: 'CSK_0',  name: 'Ruturaj Gaikwad',      team: 'CSK', role: 'BAT',  credits: 10.0, isCaptain: true },
-  { id: 'CSK_1',  name: 'MS Dhoni',             team: 'CSK', role: 'WK',   credits: 9.0 },
-  { id: 'CSK_2',  name: 'Sanju Samson',         team: 'CSK', role: 'WK',   credits: 9.5 },
-  { id: 'CSK_3',  name: 'Shivam Dube',          team: 'CSK', role: 'AR',   credits: 8.5 },
-  { id: 'CSK_4',  name: 'Rahul Chahar',         team: 'CSK', role: 'BOWL', credits: 8.0 },
-  { id: 'CSK_5',  name: 'Matt Henry',           team: 'CSK', role: 'BOWL', credits: 8.5 },
-  { id: 'CSK_6',  name: 'Spencer Johnson',      team: 'CSK', role: 'BOWL', credits: 8.5 },
-  { id: 'CSK_7',  name: 'Matthew Short',        team: 'CSK', role: 'AR',   credits: 8.0 },
-  { id: 'CSK_8',  name: 'Jamie Overton',        team: 'CSK', role: 'AR',   credits: 8.0 },
-  { id: 'CSK_9',  name: 'Dewald Brevis',        team: 'CSK', role: 'BAT',  credits: 7.5 },
-  { id: 'CSK_10', name: 'Sarfaraz Khan',        team: 'CSK', role: 'BAT',  credits: 7.5 },
-  { id: 'CSK_11', name: 'Khaleel Ahmed',        team: 'CSK', role: 'BOWL', credits: 7.5 },
-  { id: 'CSK_12', name: 'Akeal Hosein',         team: 'CSK', role: 'BOWL', credits: 7.0 },
-  { id: 'CSK_13', name: 'Noor Ahmad',           team: 'CSK', role: 'BOWL', credits: 7.0 },
-  { id: 'CSK_14', name: 'Anshul Kamboj',        team: 'CSK', role: 'AR',   credits: 7.0 },
-  { id: 'CSK_15', name: 'Ayush Mhatre',         team: 'CSK', role: 'BAT',  credits: 7.0 },
-  { id: 'CSK_16', name: 'Shreyas Gopal',        team: 'CSK', role: 'BOWL', credits: 6.5 },
-  { id: 'CSK_17', name: 'Aman Khan',            team: 'CSK', role: 'AR',   credits: 6.5 },
-  { id: 'CSK_18', name: 'Mukesh Choudhary',     team: 'CSK', role: 'BOWL', credits: 6.5 },
-  { id: 'CSK_19', name: 'Zak Foulkes',          team: 'CSK', role: 'AR',   credits: 6.0 },
-  { id: 'CSK_20', name: 'Ramakrishna Ghosh',    team: 'CSK', role: 'AR',   credits: 6.0 },
-  { id: 'CSK_21', name: 'Gurjapneet Singh',     team: 'CSK', role: 'BOWL', credits: 6.0 },
-  { id: 'CSK_22', name: 'Kartik Sharma',        team: 'CSK', role: 'WK',   credits: 6.0 },
-  { id: 'CSK_23', name: 'Urvil Patel',          team: 'CSK', role: 'WK',   credits: 6.0 },
-  { id: 'CSK_24', name: 'Prashant Veer',        team: 'CSK', role: 'AR',   credits: 6.0 },
+const DC_SQUAD = [
+  { id: 'DC_0',  name: 'Axar Patel',            team: 'DC', role: 'AR',   credits: 9.0, isCaptain: true },
+  { id: 'DC_1',  name: 'KL Rahul',              team: 'DC', role: 'WK',   credits: 10.0 },
+  { id: 'DC_2',  name: 'Mitchell Starc',        team: 'DC', role: 'BOWL', credits: 9.5 },
+  { id: 'DC_3',  name: 'Kuldeep Yadav',         team: 'DC', role: 'BOWL', credits: 9.0 },
+  { id: 'DC_4',  name: 'David Miller',          team: 'DC', role: 'BAT',  credits: 8.5 },
+  { id: 'DC_5',  name: 'Karun Nair',            team: 'DC', role: 'BAT',  credits: 8.5 },
+  { id: 'DC_6',  name: 'Pathum Nissanka',       team: 'DC', role: 'BAT',  credits: 8.5 },
+  { id: 'DC_7',  name: 'Tristan Stubbs',        team: 'DC', role: 'WK',   credits: 8.0 },
+  { id: 'DC_8',  name: 'Lungi Ngidi',           team: 'DC', role: 'BOWL', credits: 8.0 },
+  { id: 'DC_9',  name: 'T Natarajan',           team: 'DC', role: 'BOWL', credits: 8.0 },
+  { id: 'DC_10', name: 'Ashutosh Sharma',       team: 'DC', role: 'AR',   credits: 7.5 },
+  { id: 'DC_11', name: 'Nitish Rana',           team: 'DC', role: 'BAT',  credits: 7.5 },
+  { id: 'DC_12', name: 'Kyle Jamieson',         team: 'DC', role: 'BOWL', credits: 7.5 },
+  { id: 'DC_13', name: 'Abishek Porel',         team: 'DC', role: 'WK',   credits: 7.0 },
+  { id: 'DC_14', name: 'Prithvi Shaw',          team: 'DC', role: 'BAT',  credits: 7.0 },
+  { id: 'DC_15', name: 'Sameer Rizvi',          team: 'DC', role: 'AR',   credits: 7.0 },
+  { id: 'DC_16', name: 'Mukesh Kumar',          team: 'DC', role: 'BOWL', credits: 7.0 },
+  { id: 'DC_17', name: 'Dushmantha Chameera',   team: 'DC', role: 'BOWL', credits: 7.0 },
+  { id: 'DC_18', name: 'Sahil Parakh',          team: 'DC', role: 'BAT',  credits: 6.5 },
+  { id: 'DC_19', name: 'Madhav Tiwari',         team: 'DC', role: 'AR',   credits: 6.5 },
+  { id: 'DC_20', name: 'Ajay Mandal',           team: 'DC', role: 'AR',   credits: 6.0 },
+  { id: 'DC_21', name: 'Auqib Nabi',            team: 'DC', role: 'BOWL', credits: 6.0 },
+  { id: 'DC_22', name: 'Vipraj Nigam',          team: 'DC', role: 'BOWL', credits: 6.0 },
+  { id: 'DC_23', name: 'Tripurana Vijay',       team: 'DC', role: 'BOWL', credits: 6.0 },
 ];
 
-const ALL_PLAYERS = [...RR_SQUAD, ...CSK_SQUAD];
+const ALL_PLAYERS = [...LSG_SQUAD, ...DC_SQUAD];
 
 // Build a lookup map
 const PLAYER_MAP = {};
@@ -714,10 +713,10 @@ function getDefaultMatch() {
   });
   return {
     id: MATCH_ID,
-    num: 3,
-    team1: 'RR',
-    team2: 'CSK',
-    venue: 'Sawai Mansingh Stadium, Jaipur',
+    num: 5,
+    team1: 'LSG',
+    team2: 'DC',
+    venue: 'BRSABV Ekana Cricket Stadium, Lucknow',
     time: MATCH_TIME,
     status: 'upcoming',
     result: '',
@@ -851,8 +850,8 @@ function startApp() {
   // Auto-seed: if Firebase has no data or wrong match, write correct defaults
   db.ref('matches/' + MATCH_ID).once('value').then(snap => {
     const existing = snap.val();
-    if (!existing || existing.team1 !== 'RR' || existing.team2 !== 'CSK') {
-      console.log('[Fantasy XI] Seeding match data for RR vs CSK...');
+    if (!existing || existing.team1 !== 'LSG' || existing.team2 !== 'DC') {
+      console.log('[Fantasy XI] Seeding match data for LSG vs DC...');
       const defaults = getDefaultMatch();
       // Preserve live fields if they exist (status, playerScores, result)
       if (existing) {
@@ -1064,10 +1063,10 @@ function renderPlayersGrid() {
   const isLocked = existingTeam && existingTeam.locked;
 
   let players = ALL_PLAYERS;
-  if (currentFilter === 'RR') {
-    players = players.filter(p => p.team === 'RR');
-  } else if (currentFilter === 'CSK') {
-    players = players.filter(p => p.team === 'CSK');
+  if (currentFilter === 'LSG') {
+    players = players.filter(p => p.team === 'LSG');
+  } else if (currentFilter === 'DC') {
+    players = players.filter(p => p.team === 'DC');
   } else if (currentFilter !== 'all') {
     players = players.filter(p => p.role === currentFilter);
   }
@@ -1205,7 +1204,7 @@ function renderSelectedPanel() {
 
   // Composition summary
   const roles = { WK: 0, BAT: 0, AR: 0, BOWL: 0 };
-  const teams = { RR: 0, CSK: 0 };
+  const teams = { LSG: 0, DC: 0 };
   selectedPlayers.forEach(id => {
     const p = PLAYER_MAP[id];
     roles[p.role] = (roles[p.role] || 0) + 1;
@@ -1217,8 +1216,8 @@ function renderSelectedPanel() {
     <span class="team-comp-item ${roles.BAT >= 1 ? 'ok' : 'warn'}">BAT: ${roles.BAT}</span>
     <span class="team-comp-item ${roles.AR >= 1 ? 'ok' : 'warn'}">AR: ${roles.AR}</span>
     <span class="team-comp-item ${roles.BOWL >= 1 ? 'ok' : 'warn'}">BOWL: ${roles.BOWL}</span>
-    <span class="team-comp-item ${teams.RR <= 7 ? 'ok' : 'warn'}">RR: ${teams.RR}</span>
-    <span class="team-comp-item ${teams.CSK <= 7 ? 'ok' : 'warn'}">CSK: ${teams.CSK}</span>
+    <span class="team-comp-item ${teams.LSG <= 7 ? 'ok' : 'warn'}">LSG: ${teams.LSG}</span>
+    <span class="team-comp-item ${teams.DC <= 7 ? 'ok' : 'warn'}">DC: ${teams.DC}</span>
   `;
 
   // Captain/VC selection
@@ -1336,7 +1335,7 @@ function validateTeam() {
   if (selectedPlayers.length !== 11) errors.push('You must select exactly 11 players.');
 
   const roles = { WK: 0, BAT: 0, AR: 0, BOWL: 0 };
-  const teams = { RR: 0, CSK: 0 };
+  const teams = { LSG: 0, DC: 0 };
   const usedCredits = selectedPlayers.reduce((s, id) => {
     const p = PLAYER_MAP[id];
     roles[p.role] = (roles[p.role] || 0) + 1;
@@ -1348,8 +1347,8 @@ function validateTeam() {
   if (roles.BAT < 1) errors.push('At least 1 Batter required.');
   if (roles.BOWL < 1) errors.push('At least 1 Bowler required.');
   if (roles.AR < 1) errors.push('At least 1 All-rounder required.');
-  if (teams.RR > 7) errors.push('Max 7 players from RR allowed (you have ' + teams.RR + ').');
-  if (teams.CSK > 7) errors.push('Max 7 players from CSK allowed (you have ' + teams.CSK + ').');
+  if (teams.LSG > 7) errors.push('Max 7 players from LSG allowed (you have ' + teams.LSG + ').');
+  if (teams.DC > 7) errors.push('Max 7 players from DC allowed (you have ' + teams.DC + ').');
   if (usedCredits > 100) errors.push('Total credits exceed 100 (' + usedCredits.toFixed(1) + ').');
   if (!captainId) errors.push('You must select a Captain.');
   if (!viceCaptainId) errors.push('You must select a Vice-Captain.');
@@ -1484,7 +1483,7 @@ function renderMyTeam() {
     <div class="my-team-card">
       <div class="my-team-header">
         <div>
-          <h3 style="color:var(--gold)">RR vs CSK</h3>
+          <h3 style="color:var(--gold)">LSG vs DC</h3>
           <span style="color:#888;font-size:0.85em">Locked at: ${new Date(team.lockedAt).toLocaleString('en-IN')}</span>
         </div>
         <div style="text-align:right">
@@ -1687,8 +1686,8 @@ function renderAdminScoring() {
     `;
   };
 
-  area.innerHTML = renderTeam(RR_SQUAD, 'RR - Rajasthan Royals') +
-                   renderTeam(CSK_SQUAD, 'CSK - Chennai Super Kings');
+  area.innerHTML = renderTeam(LSG_SQUAD, 'LSG - Lucknow Super Giants') +
+                   renderTeam(DC_SQUAD, 'DC - Delhi Capitals');
 }
 
 function updateMatchStatus() {
@@ -1756,7 +1755,7 @@ function recalcLeaderboard() {
 }
 
 // ============ ESPN LIVE SCORE FETCH ============
-const ESPN_MATCH_ID = '1527676';
+const ESPN_MATCH_ID = '1527678';
 const ESPN_API_URL = `https://site.api.espn.com/apis/site/v2/sports/cricket/8048/summary?event=${ESPN_MATCH_ID}`;
 let autoPollInterval = null;
 
