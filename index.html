@@ -363,7 +363,7 @@
 
   <!-- TAB 1: MATCH -->
   <div class="page active" id="page-match">
-    <h2 style="margin-bottom:20px">LSG vs DC - Match 5</h2>
+    <h2 style="margin-bottom:20px">KKR vs SRH - Match 6</h2>
     <div id="match-card-area"></div>
   </div>
 
@@ -372,7 +372,7 @@
     <div class="selection-header">
       <div>
         <h2>Pick Your XI</h2>
-        <p style="color:#888;margin-top:4px">Select 11 players from LSG &amp; DC squads</p>
+        <p style="color:#888;margin-top:4px">Select 11 players from KKR &amp; SRH squads</p>
       </div>
       <div class="credits-box">
         <div><div class="label">Players</div><div class="value"><span id="sel-count">0</span>/11</div></div>
@@ -402,8 +402,8 @@
         <div class="filter-btn" data-role="BOWL" onclick="filterPlayers('BOWL')">BOWL</div>
         <div class="filter-btn" data-role="AR" onclick="filterPlayers('AR')">AR</div>
         <div class="filter-btn" data-role="WK" onclick="filterPlayers('WK')">WK</div>
-        <div class="filter-btn" data-role="LSG" onclick="filterPlayers('LSG')">LSG</div>
-        <div class="filter-btn" data-role="DC" onclick="filterPlayers('DC')">DC</div>
+        <div class="filter-btn" data-role="KKR" onclick="filterPlayers('KKR')">KKR</div>
+        <div class="filter-btn" data-role="SRH" onclick="filterPlayers('SRH')">SRH</div>
       </div>
       <div class="players-grid" id="players-grid"></div>
     </div>
@@ -411,13 +411,13 @@
 
   <!-- TAB 3: MY TEAM -->
   <div class="page" id="page-my-team">
-    <h2 style="margin-bottom:20px">My Team - LSG vs DC</h2>
+    <h2 style="margin-bottom:20px">My Team - KKR vs SRH</h2>
     <div id="my-team-area"></div>
   </div>
 
   <!-- TAB 4: LEADERBOARD -->
   <div class="page" id="page-leaderboard">
-    <h2 style="margin-bottom:20px">Match Leaderboard - LSG vs DC</h2>
+    <h2 style="margin-bottom:20px">Match Leaderboard - KKR vs SRH</h2>
     <table class="leaderboard-table">
       <thead><tr><th>#</th><th>Player</th><th>Points</th><th>Team Locked</th></tr></thead>
       <tbody id="lb-body"></tbody>
@@ -539,8 +539,11 @@
     <div class="admin-section">
       <h3>⚡ Auto-Fetch Live Scores from ESPN</h3>
       <p style="color:#888;font-size:0.85em;margin-bottom:12px">
-        Fetches live batting &amp; bowling stats from ESPN and auto-fills all player fields. Click once or enable auto-poll.
+        Paste the ESPN scorecard link below, or leave blank to use the default match. Fetches batting (R, B, 4s, 6s), bowling (O, M, R, W, 0s), catches, stumpings, bowled &amp; lbw dismissals.
       </p>
+      <div style="margin-bottom:12px">
+        <input type="text" id="espn-url-input" placeholder="Paste ESPN scorecard URL (e.g. espncricinfo.com/.../1527678/full-scorecard)" style="width:100%;padding:8px 12px;border-radius:6px;border:1px solid #444;background:var(--secondary);color:var(--text);font-size:0.9em"/>
+      </div>
       <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
         <button class="btn btn-gold" onclick="fetchESPNScores()" id="espn-fetch-btn">🔄 Fetch Live Scores</button>
         <button class="btn btn-green" onclick="toggleAutoPoll()" id="auto-poll-btn">▶ Start Auto-Poll (30s)</button>
@@ -610,13 +613,13 @@ function initFirebase(config) {
 }
 
 // ============ CONSTANTS ============
-const MATCH_ID = 'match_5';
-const MATCH_TIME = '2026-04-01T19:30:00+05:30';  // Match starts 7:30 PM IST
-const LOCK_TIME  = '2026-04-01T19:30:00+05:30';  // Teams lock at match start (7:30 PM IST)
+const MATCH_ID = 'match_6';
+const MATCH_TIME = '2026-04-02T19:30:00+05:30';  // Match starts 7:30 PM IST
+const LOCK_TIME  = '2026-04-02T19:30:00+05:30';  // Teams lock at match start (7:30 PM IST)
 
 const IPL_TEAMS = {
-  LSG: { name: 'Lucknow Super Giants',    short: 'LSG', color: '#a72056' },
-  DC:  { name: 'Delhi Capitals',           short: 'DC',  color: '#17479e' },
+  KKR: { name: 'Kolkata Knight Riders',    short: 'KKR', color: '#3a225d' },
+  SRH: { name: 'Sunrisers Hyderabad',      short: 'SRH', color: '#ff822a' },
 };
 
 const USERS = {
@@ -627,62 +630,63 @@ const USERS = {
   sharat:  { name: 'Sharat',  pass: 'sharat123',  isAdmin: false },
 };
 
-const LSG_SQUAD = [
-  { id: 'LSG_0',  name: 'Rishabh Pant',         team: 'LSG', role: 'WK',   credits: 10.5, isCaptain: true },
-  { id: 'LSG_1',  name: 'Mitchell Marsh',       team: 'LSG', role: 'AR',   credits: 9.5 },
-  { id: 'LSG_2',  name: 'Nicholas Pooran',      team: 'LSG', role: 'WK',   credits: 9.5 },
-  { id: 'LSG_3',  name: 'Aiden Markram',        team: 'LSG', role: 'BAT',  credits: 8.5 },
-  { id: 'LSG_4',  name: 'Wanindu Hasaranga',    team: 'LSG', role: 'AR',   credits: 9.0 },
-  { id: 'LSG_5',  name: 'Mohammed Shami',       team: 'LSG', role: 'BOWL', credits: 9.0 },
-  { id: 'LSG_6',  name: 'Anrich Nortje',        team: 'LSG', role: 'BOWL', credits: 8.5 },
-  { id: 'LSG_7',  name: 'Mayank Yadav',         team: 'LSG', role: 'BOWL', credits: 8.0 },
-  { id: 'LSG_8',  name: 'Avesh Khan',           team: 'LSG', role: 'BOWL', credits: 8.0 },
-  { id: 'LSG_9',  name: 'Ayush Badoni',         team: 'LSG', role: 'BAT',  credits: 8.0 },
-  { id: 'LSG_10', name: 'Shahbaz Ahmed',        team: 'LSG', role: 'AR',   credits: 7.5 },
-  { id: 'LSG_11', name: 'Josh Inglis',          team: 'LSG', role: 'WK',   credits: 7.5 },
-  { id: 'LSG_12', name: 'Matthew Breetzke',     team: 'LSG', role: 'BAT',  credits: 7.0 },
-  { id: 'LSG_13', name: 'Arshin Kulkarni',      team: 'LSG', role: 'AR',   credits: 7.0 },
-  { id: 'LSG_14', name: 'Manimaran Siddharth',  team: 'LSG', role: 'BOWL', credits: 7.0 },
-  { id: 'LSG_15', name: 'Abdul Samad',          team: 'LSG', role: 'BAT',  credits: 7.0 },
-  { id: 'LSG_16', name: 'Mohsin Khan',          team: 'LSG', role: 'BOWL', credits: 7.0 },
-  { id: 'LSG_17', name: 'Himmat Singh',         team: 'LSG', role: 'BAT',  credits: 6.5 },
-  { id: 'LSG_18', name: 'Akshat Raghuwanshi',   team: 'LSG', role: 'BAT',  credits: 6.5 },
-  { id: 'LSG_19', name: 'Mukul Choudhary',      team: 'LSG', role: 'BAT',  credits: 6.0 },
-  { id: 'LSG_20', name: 'Akash Singh',          team: 'LSG', role: 'BOWL', credits: 6.0 },
-  { id: 'LSG_21', name: 'Prince Yadav',         team: 'LSG', role: 'BOWL', credits: 6.0 },
-  { id: 'LSG_22', name: 'Digvesh Rathi',        team: 'LSG', role: 'BOWL', credits: 6.0 },
-  { id: 'LSG_23', name: 'Arjun Tendulkar',      team: 'LSG', role: 'BOWL', credits: 6.0 },
-  { id: 'LSG_24', name: 'Naman Tiwari',         team: 'LSG', role: 'BOWL', credits: 6.0 },
+const KKR_SQUAD = [
+  { id: 'KKR_0',  name: 'Ajinkya Rahane',        team: 'KKR', role: 'BAT',  credits: 9.0, isCaptain: true },
+  { id: 'KKR_1',  name: 'Rinku Singh',           team: 'KKR', role: 'BAT',  credits: 9.0 },
+  { id: 'KKR_2',  name: 'Sunil Narine',          team: 'KKR', role: 'AR',   credits: 9.5 },
+  { id: 'KKR_3',  name: 'Rachin Ravindra',       team: 'KKR', role: 'AR',   credits: 8.5 },
+  { id: 'KKR_4',  name: 'Cameron Green',         team: 'KKR', role: 'AR',   credits: 9.0 },
+  { id: 'KKR_5',  name: 'Varun Chakravarthy',    team: 'KKR', role: 'BOWL', credits: 8.5 },
+  { id: 'KKR_6',  name: 'Matheesha Pathirana',   team: 'KKR', role: 'BOWL', credits: 8.5 },
+  { id: 'KKR_7',  name: 'Finn Allen',            team: 'KKR', role: 'BAT',  credits: 8.0 },
+  { id: 'KKR_8',  name: 'Rovman Powell',         team: 'KKR', role: 'BAT',  credits: 8.0 },
+  { id: 'KKR_9',  name: 'Blessing Muzarabani',   team: 'KKR', role: 'BOWL', credits: 8.0 },
+  { id: 'KKR_10', name: 'Umran Malik',           team: 'KKR', role: 'BOWL', credits: 7.5 },
+  { id: 'KKR_11', name: 'Manish Pandey',         team: 'KKR', role: 'BAT',  credits: 7.5 },
+  { id: 'KKR_12', name: 'Rahul Tripathi',        team: 'KKR', role: 'BAT',  credits: 7.5 },
+  { id: 'KKR_13', name: 'Navdeep Saini',         team: 'KKR', role: 'BOWL', credits: 7.0 },
+  { id: 'KKR_14', name: 'Vaibhav Arora',         team: 'KKR', role: 'BOWL', credits: 7.0 },
+  { id: 'KKR_15', name: 'Kartik Tyagi',          team: 'KKR', role: 'BOWL', credits: 7.0 },
+  { id: 'KKR_16', name: 'Tim Seifert',           team: 'KKR', role: 'WK',   credits: 7.0 },
+  { id: 'KKR_17', name: 'Tejasvi Dahiya',        team: 'KKR', role: 'WK',   credits: 6.5 },
+  { id: 'KKR_18', name: 'Angkrish Raghuvanshi',  team: 'KKR', role: 'BAT',  credits: 6.5 },
+  { id: 'KKR_19', name: 'Ramandeep Singh',       team: 'KKR', role: 'BAT',  credits: 6.5 },
+  { id: 'KKR_20', name: 'Anukul Roy',            team: 'KKR', role: 'AR',   credits: 6.5 },
+  { id: 'KKR_21', name: 'Prashant Solanki',      team: 'KKR', role: 'BOWL', credits: 6.0 },
+  { id: 'KKR_22', name: 'Saurabh Dubey',         team: 'KKR', role: 'BOWL', credits: 6.0 },
+  { id: 'KKR_23', name: 'Daksh Kamra',           team: 'KKR', role: 'AR',   credits: 6.0 },
+  { id: 'KKR_24', name: 'Sarthak Ranjan',        team: 'KKR', role: 'BAT',  credits: 6.0 },
 ];
 
-const DC_SQUAD = [
-  { id: 'DC_0',  name: 'Axar Patel',            team: 'DC', role: 'AR',   credits: 9.0, isCaptain: true },
-  { id: 'DC_1',  name: 'KL Rahul',              team: 'DC', role: 'WK',   credits: 10.0 },
-  { id: 'DC_2',  name: 'Mitchell Starc',        team: 'DC', role: 'BOWL', credits: 9.5 },
-  { id: 'DC_3',  name: 'Kuldeep Yadav',         team: 'DC', role: 'BOWL', credits: 9.0 },
-  { id: 'DC_4',  name: 'David Miller',          team: 'DC', role: 'BAT',  credits: 8.5 },
-  { id: 'DC_5',  name: 'Karun Nair',            team: 'DC', role: 'BAT',  credits: 8.5 },
-  { id: 'DC_6',  name: 'Pathum Nissanka',       team: 'DC', role: 'BAT',  credits: 8.5 },
-  { id: 'DC_7',  name: 'Tristan Stubbs',        team: 'DC', role: 'WK',   credits: 8.0 },
-  { id: 'DC_8',  name: 'Lungi Ngidi',           team: 'DC', role: 'BOWL', credits: 8.0 },
-  { id: 'DC_9',  name: 'T Natarajan',           team: 'DC', role: 'BOWL', credits: 8.0 },
-  { id: 'DC_10', name: 'Ashutosh Sharma',       team: 'DC', role: 'AR',   credits: 7.5 },
-  { id: 'DC_11', name: 'Nitish Rana',           team: 'DC', role: 'BAT',  credits: 7.5 },
-  { id: 'DC_12', name: 'Kyle Jamieson',         team: 'DC', role: 'BOWL', credits: 7.5 },
-  { id: 'DC_13', name: 'Abishek Porel',         team: 'DC', role: 'WK',   credits: 7.0 },
-  { id: 'DC_14', name: 'Prithvi Shaw',          team: 'DC', role: 'BAT',  credits: 7.0 },
-  { id: 'DC_15', name: 'Sameer Rizvi',          team: 'DC', role: 'AR',   credits: 7.0 },
-  { id: 'DC_16', name: 'Mukesh Kumar',          team: 'DC', role: 'BOWL', credits: 7.0 },
-  { id: 'DC_17', name: 'Dushmantha Chameera',   team: 'DC', role: 'BOWL', credits: 7.0 },
-  { id: 'DC_18', name: 'Sahil Parakh',          team: 'DC', role: 'BAT',  credits: 6.5 },
-  { id: 'DC_19', name: 'Madhav Tiwari',         team: 'DC', role: 'AR',   credits: 6.5 },
-  { id: 'DC_20', name: 'Ajay Mandal',           team: 'DC', role: 'AR',   credits: 6.0 },
-  { id: 'DC_21', name: 'Auqib Nabi',            team: 'DC', role: 'BOWL', credits: 6.0 },
-  { id: 'DC_22', name: 'Vipraj Nigam',          team: 'DC', role: 'BOWL', credits: 6.0 },
-  { id: 'DC_23', name: 'Tripurana Vijay',       team: 'DC', role: 'BOWL', credits: 6.0 },
+const SRH_SQUAD = [
+  { id: 'SRH_0',  name: 'Ishan Kishan',          team: 'SRH', role: 'WK',   credits: 9.5, isCaptain: true },
+  { id: 'SRH_1',  name: 'Travis Head',           team: 'SRH', role: 'BAT',  credits: 10.0 },
+  { id: 'SRH_2',  name: 'Pat Cummins',           team: 'SRH', role: 'BOWL', credits: 9.5 },
+  { id: 'SRH_3',  name: 'Heinrich Klaasen',      team: 'SRH', role: 'WK',   credits: 9.5 },
+  { id: 'SRH_4',  name: 'Abhishek Sharma',       team: 'SRH', role: 'AR',   credits: 9.0 },
+  { id: 'SRH_5',  name: 'Liam Livingstone',      team: 'SRH', role: 'AR',   credits: 8.5 },
+  { id: 'SRH_6',  name: 'Nitish Kumar Reddy',    team: 'SRH', role: 'AR',   credits: 8.5 },
+  { id: 'SRH_7',  name: 'Harshal Patel',         team: 'SRH', role: 'AR',   credits: 8.0 },
+  { id: 'SRH_8',  name: 'Brydon Carse',          team: 'SRH', role: 'AR',   credits: 8.0 },
+  { id: 'SRH_9',  name: 'Kamindu Mendis',        team: 'SRH', role: 'AR',   credits: 8.0 },
+  { id: 'SRH_10', name: 'Jaydev Unadkat',        team: 'SRH', role: 'BOWL', credits: 7.5 },
+  { id: 'SRH_11', name: 'Shivam Mavi',           team: 'SRH', role: 'AR',   credits: 7.0 },
+  { id: 'SRH_12', name: 'Harsh Dubey',           team: 'SRH', role: 'AR',   credits: 7.0 },
+  { id: 'SRH_13', name: 'David Payne',           team: 'SRH', role: 'BOWL', credits: 7.0 },
+  { id: 'SRH_14', name: 'Sakib Hussain',         team: 'SRH', role: 'BOWL', credits: 6.5 },
+  { id: 'SRH_15', name: 'Salil Arora',           team: 'SRH', role: 'WK',   credits: 6.5 },
+  { id: 'SRH_16', name: 'Krains Fuletra',        team: 'SRH', role: 'AR',   credits: 6.5 },
+  { id: 'SRH_17', name: 'Amit Kumar',            team: 'SRH', role: 'BOWL', credits: 6.0 },
+  { id: 'SRH_18', name: 'Eshan Malinga',         team: 'SRH', role: 'BOWL', credits: 6.0 },
+  { id: 'SRH_19', name: 'Praful Hinge',          team: 'SRH', role: 'BOWL', credits: 6.0 },
+  { id: 'SRH_20', name: 'Shivang Kumar',         team: 'SRH', role: 'AR',   credits: 6.0 },
+  { id: 'SRH_21', name: 'Ravichandran Smaran',   team: 'SRH', role: 'BAT',  credits: 6.0 },
+  { id: 'SRH_22', name: 'Onkar Tarmale',         team: 'SRH', role: 'BOWL', credits: 6.0 },
+  { id: 'SRH_23', name: 'Aniket Verma',          team: 'SRH', role: 'BAT',  credits: 6.0 },
+  { id: 'SRH_24', name: 'Zeeshan Ansari',        team: 'SRH', role: 'BOWL', credits: 6.0 },
 ];
 
-const ALL_PLAYERS = [...LSG_SQUAD, ...DC_SQUAD];
+const ALL_PLAYERS = [...KKR_SQUAD, ...SRH_SQUAD];
 
 // Build a lookup map
 const PLAYER_MAP = {};
@@ -713,10 +717,10 @@ function getDefaultMatch() {
   });
   return {
     id: MATCH_ID,
-    num: 5,
-    team1: 'LSG',
-    team2: 'DC',
-    venue: 'BRSABV Ekana Cricket Stadium, Lucknow',
+    num: 6,
+    team1: 'KKR',
+    team2: 'SRH',
+    venue: 'Eden Gardens, Kolkata',
     time: MATCH_TIME,
     status: 'upcoming',
     result: '',
@@ -850,8 +854,8 @@ function startApp() {
   // Auto-seed: if Firebase has no data or wrong match, write correct defaults
   db.ref('matches/' + MATCH_ID).once('value').then(snap => {
     const existing = snap.val();
-    if (!existing || existing.team1 !== 'LSG' || existing.team2 !== 'DC') {
-      console.log('[Fantasy XI] Seeding match data for LSG vs DC...');
+    if (!existing || existing.team1 !== 'KKR' || existing.team2 !== 'SRH') {
+      console.log('[Fantasy XI] Seeding match data for KKR vs SRH...');
       const defaults = getDefaultMatch();
       // Preserve live fields if they exist (status, playerScores, result)
       if (existing) {
@@ -1063,10 +1067,10 @@ function renderPlayersGrid() {
   const isLocked = existingTeam && existingTeam.locked;
 
   let players = ALL_PLAYERS;
-  if (currentFilter === 'LSG') {
-    players = players.filter(p => p.team === 'LSG');
-  } else if (currentFilter === 'DC') {
-    players = players.filter(p => p.team === 'DC');
+  if (currentFilter === 'KKR') {
+    players = players.filter(p => p.team === 'KKR');
+  } else if (currentFilter === 'SRH') {
+    players = players.filter(p => p.team === 'SRH');
   } else if (currentFilter !== 'all') {
     players = players.filter(p => p.role === currentFilter);
   }
@@ -1204,7 +1208,7 @@ function renderSelectedPanel() {
 
   // Composition summary
   const roles = { WK: 0, BAT: 0, AR: 0, BOWL: 0 };
-  const teams = { LSG: 0, DC: 0 };
+  const teams = { KKR: 0, SRH: 0 };
   selectedPlayers.forEach(id => {
     const p = PLAYER_MAP[id];
     roles[p.role] = (roles[p.role] || 0) + 1;
@@ -1216,8 +1220,8 @@ function renderSelectedPanel() {
     <span class="team-comp-item ${roles.BAT >= 1 ? 'ok' : 'warn'}">BAT: ${roles.BAT}</span>
     <span class="team-comp-item ${roles.AR >= 1 ? 'ok' : 'warn'}">AR: ${roles.AR}</span>
     <span class="team-comp-item ${roles.BOWL >= 1 ? 'ok' : 'warn'}">BOWL: ${roles.BOWL}</span>
-    <span class="team-comp-item ${teams.LSG <= 7 ? 'ok' : 'warn'}">LSG: ${teams.LSG}</span>
-    <span class="team-comp-item ${teams.DC <= 7 ? 'ok' : 'warn'}">DC: ${teams.DC}</span>
+    <span class="team-comp-item ${teams.KKR <= 7 ? 'ok' : 'warn'}">KKR: ${teams.KKR}</span>
+    <span class="team-comp-item ${teams.SRH <= 7 ? 'ok' : 'warn'}">SRH: ${teams.SRH}</span>
   `;
 
   // Captain/VC selection
@@ -1335,7 +1339,7 @@ function validateTeam() {
   if (selectedPlayers.length !== 11) errors.push('You must select exactly 11 players.');
 
   const roles = { WK: 0, BAT: 0, AR: 0, BOWL: 0 };
-  const teams = { LSG: 0, DC: 0 };
+  const teams = { KKR: 0, SRH: 0 };
   const usedCredits = selectedPlayers.reduce((s, id) => {
     const p = PLAYER_MAP[id];
     roles[p.role] = (roles[p.role] || 0) + 1;
@@ -1347,8 +1351,8 @@ function validateTeam() {
   if (roles.BAT < 1) errors.push('At least 1 Batter required.');
   if (roles.BOWL < 1) errors.push('At least 1 Bowler required.');
   if (roles.AR < 1) errors.push('At least 1 All-rounder required.');
-  if (teams.LSG > 7) errors.push('Max 7 players from LSG allowed (you have ' + teams.LSG + ').');
-  if (teams.DC > 7) errors.push('Max 7 players from DC allowed (you have ' + teams.DC + ').');
+  if (teams.KKR > 7) errors.push('Max 7 players from KKR allowed (you have ' + teams.KKR + ').');
+  if (teams.SRH > 7) errors.push('Max 7 players from SRH allowed (you have ' + teams.SRH + ').');
   if (usedCredits > 100) errors.push('Total credits exceed 100 (' + usedCredits.toFixed(1) + ').');
   if (!captainId) errors.push('You must select a Captain.');
   if (!viceCaptainId) errors.push('You must select a Vice-Captain.');
@@ -1483,7 +1487,7 @@ function renderMyTeam() {
     <div class="my-team-card">
       <div class="my-team-header">
         <div>
-          <h3 style="color:var(--gold)">LSG vs DC</h3>
+          <h3 style="color:var(--gold)">KKR vs SRH</h3>
           <span style="color:#888;font-size:0.85em">Locked at: ${new Date(team.lockedAt).toLocaleString('en-IN')}</span>
         </div>
         <div style="text-align:right">
@@ -1686,8 +1690,8 @@ function renderAdminScoring() {
     `;
   };
 
-  area.innerHTML = renderTeam(LSG_SQUAD, 'LSG - Lucknow Super Giants') +
-                   renderTeam(DC_SQUAD, 'DC - Delhi Capitals');
+  area.innerHTML = renderTeam(KKR_SQUAD, 'KKR - Kolkata Knight Riders') +
+                   renderTeam(SRH_SQUAD, 'SRH - Sunrisers Hyderabad');
 }
 
 function updateMatchStatus() {
@@ -1755,8 +1759,21 @@ function recalcLeaderboard() {
 }
 
 // ============ ESPN LIVE SCORE FETCH ============
-const ESPN_MATCH_ID = '1527678';
-const ESPN_API_URL = `https://site.api.espn.com/apis/site/v2/sports/cricket/8048/summary?event=${ESPN_MATCH_ID}`;
+const DEFAULT_ESPN_MATCH_ID = '1527679';
+
+function getESPNMatchId() {
+  const urlInput = document.getElementById('espn-url-input');
+  if (urlInput && urlInput.value.trim()) {
+    // Extract match ID from URLs like .../lucknow-super-giants-vs-delhi-capitals-5th-match-1527678/...
+    const match = urlInput.value.match(/(\d{7})/);
+    if (match) return match[1];
+  }
+  return DEFAULT_ESPN_MATCH_ID;
+}
+
+function getESPNApiUrl() {
+  return `https://site.api.espn.com/apis/site/v2/sports/cricket/8048/summary?event=${getESPNMatchId()}`;
+}
 let autoPollInterval = null;
 
 // Name mapping: ESPN uses short names, we need to match to our full names
@@ -1839,9 +1856,10 @@ async function fetchESPNScores() {
   try {
     if (fetchBtn) { fetchBtn.disabled = true; fetchBtn.textContent = '⏳ Fetching...'; }
     if (statusEl) statusEl.textContent = 'Fetching from ESPN...';
-    espnLog('Fetching live data from ESPN API...');
+    const apiUrl = getESPNApiUrl();
+    espnLog('Fetching from ESPN (ID: ' + getESPNMatchId() + ')...');
 
-    const res = await fetch(ESPN_API_URL);
+    const res = await fetch(apiUrl);
     if (!res.ok) throw new Error('ESPN API returned ' + res.status);
     const data = await res.json();
 
@@ -1857,21 +1875,17 @@ async function fetchESPNScores() {
     const existingScores = DATA.match?.playerScores || {};
     const scores = {};
 
-    // Initialize all players with FRESH defaults (not existing — ESPN is the source of truth)
-    // Only preserve manually-entered fields that ESPN can't detect (catches, stumpings, runouts, lbwBowled)
+    // Initialize all players with FRESH defaults — ESPN is source of truth for everything now
+    // Catches, stumpings, runouts, lbw/bowled are parsed from ESPN dismissal data
     ALL_PLAYERS.forEach(p => {
-      const ex = existingScores[p.id] || {};
       scores[p.id] = {
         runs: 0, balls: 0, fours: 0, sixes: 0,
         wickets: 0, dots: 0, maidens: 0,
         oversBowled: 0, runsConceded: 0,
         inPlayingXI: false, isImpactSub: false, didBat: false,
-        // Preserve manually-entered fielding stats (ESPN can't reliably detect these)
-        catches: ex.catches || 0,
-        stumpings: ex.stumpings || 0,
-        runoutDirect: ex.runoutDirect || 0,
-        runoutIndirect: ex.runoutIndirect || 0,
-        lbwBowled: ex.lbwBowled || 0,
+        catches: 0, stumpings: 0,
+        runoutDirect: 0, runoutIndirect: 0,
+        lbwBowled: 0,
       };
     });
 
@@ -1952,70 +1966,172 @@ async function fetchESPNScores() {
     }
     if (battingFound > 0) espnLog('Batting from partnerships/FOW: ' + battingFound + ' players');
 
-    // ── Step 3: Parse matchcards playerDetails (detailed scorecard with 4s, 6s, bowling) ──
-    // ESPN puts detailed data in playerDetails[], NOT matchCard[] (which is always empty!)
-    const matchcards = data.matchcards || [];
-    if (matchcards.length > 0) {
-      espnLog('Parsing ' + matchcards.length + ' matchcard sections...');
+    // ── Step 3: Parse detailed stats from rosters linescores ──
+    // ESPN data: rosters[].roster[].linescores[] → period 1 = batting, period 2 = bowling
+    // Also parses: dismissals (catches, stumpings, bowled, lbw), dots from bowling stats
+    let catchesFound = 0, dismissalsFound = 0;
 
-      matchcards.forEach(card => {
-        const details = card.playerDetails || [];
+    rosters.forEach(roster => {
+      (roster.roster || []).forEach(entry => {
+        const athlete = entry.athlete;
+        if (!athlete) return;
+        const displayName = athlete.displayName || athlete.shortName || '';
+        const player = matchPlayerName(displayName, ALL_PLAYERS);
+        if (!player) return;
 
-        if (card.typeID === 11 && details.length > 0) {
-          // Batting scorecard — has runs, ballsFaced, fours, sixes, dismissal
-          espnLog('  Batting card (' + card.teamName + ' inn ' + card.inningsNumber + '): ' + details.length + ' batsmen');
-          details.forEach(entry => {
-            const name = entry.playerName || '';
-            const player = matchPlayerName(name, ALL_PLAYERS);
-            if (player) {
-              const s = scores[player.id];
-              s.runs = parseInt(entry.runs) || 0;
-              s.balls = parseInt(entry.ballsFaced) || 0;
-              s.fours = parseInt(entry.fours) || 0;
-              s.sixes = parseInt(entry.sixes) || 0;
+        const s = scores[player.id];
+        const linescores = entry.linescores || [];
+
+        linescores.forEach(ls => {
+          const stats = ls.statistics?.categories?.[0]?.stats || [];
+
+          // Build a lookup: statName → value
+          const statMap = {};
+          stats.forEach(st => { statMap[st.name] = parseFloat(st.value) || 0; });
+
+          if (ls.period === 1) {
+            // ── Batting stats (R, B, 4s, 6s) ──
+            const runs = statMap['runs'] || 0;
+            const balls = statMap['ballsFaced'] || 0;
+            const fours = statMap['fours'] || 0;
+            const sixes = statMap['sixes'] || 0;
+            if (runs > 0 || balls > 0) {
+              s.runs = runs;
+              s.balls = balls;
+              s.fours = fours;
+              s.sixes = sixes;
               s.didBat = true;
               s.inPlayingXI = true;
-            } else if (name) {
-              unmatchedBat.push(name);
             }
-          });
-        }
 
-        if (card.typeID === 12 && details.length > 0) {
-          // Bowling scorecard — has overs, maidens, conceded, wickets
-          espnLog('  Bowling card (' + card.teamName + ' inn ' + card.inningsNumber + '): ' + details.length + ' bowlers');
-          details.forEach(entry => {
-            const name = entry.playerName || '';
-            const player = matchPlayerName(name, ALL_PLAYERS);
-            if (player) {
-              const s = scores[player.id];
-              // Add bowling figures (accumulate across innings)
-              s.oversBowled = (s.oversBowled || 0) + (parseFloat(entry.overs) || 0);
-              s.maidens = (s.maidens || 0) + (parseInt(entry.maidens) || 0);
-              s.runsConceded = (s.runsConceded || 0) + (parseInt(entry.conceded) || 0);
-              s.wickets = (s.wickets || 0) + (parseInt(entry.wickets) || 0);
-              s.inPlayingXI = true;
+            // ── Parse dismissal for fielding credits ──
+            // outDetails lives inside ls.batting (not ls directly)
+            const outDetails = ls.batting?.outDetails || ls.outDetails;
+            if (outDetails && outDetails.dismissalCard) {
+              const dType = (outDetails.dismissalCard || '').toLowerCase();
+              const shortText = (outDetails.shortText || '').toLowerCase();
+              dismissalsFound++;
 
-              // Estimate dot balls
-              const overs = parseFloat(entry.overs) || 0;
-              const fullOvers = Math.floor(overs);
-              const partialBalls = Math.round((overs - fullOvers) * 10);
-              const totalBalls = fullOvers * 6 + partialBalls;
-              const runs = parseInt(entry.conceded) || 0;
-              if (totalBalls > 0) {
-                const scoringBalls = Math.min(totalBalls, Math.ceil(runs / 1.2));
-                s.dots = (s.dots || 0) + Math.max(0, totalBalls - scoringBalls);
+              // Credit the BOWLER for bowled / lbw
+              if (dType === 'bowled' || dType === 'b') {
+                // "b PlayerName" — bowler gets lbwBowled credit
+                const bowlerAth = outDetails.bowler?.athlete || outDetails.bowler;
+                if (bowlerAth) {
+                  const bowlerName = bowlerAth.displayName || bowlerAth.shortName || '';
+                  const bowlerPlayer = matchPlayerName(bowlerName, ALL_PLAYERS);
+                  if (bowlerPlayer) {
+                    scores[bowlerPlayer.id].lbwBowled = (scores[bowlerPlayer.id].lbwBowled || 0) + 1;
+                    espnLog('  🏏 Bowled: ' + bowlerName + ' bowled ' + displayName);
+                  }
+                }
               }
-              bowlingFound++;
-            } else if (name) {
-              unmatchedBowl.push(name);
+
+              if (dType === 'lbw') {
+                const bowlerAth = outDetails.bowler?.athlete || outDetails.bowler;
+                if (bowlerAth) {
+                  const bowlerName = bowlerAth.displayName || bowlerAth.shortName || '';
+                  const bowlerPlayer = matchPlayerName(bowlerName, ALL_PLAYERS);
+                  if (bowlerPlayer) {
+                    scores[bowlerPlayer.id].lbwBowled = (scores[bowlerPlayer.id].lbwBowled || 0) + 1;
+                    espnLog('  🏏 LBW: ' + bowlerName + ' trapped ' + displayName);
+                  }
+                }
+              }
+
+              // Credit FIELDERS for catches
+              if (dType === 'c' || dType === 'caught') {
+                const fielders = outDetails.fielders || [];
+                fielders.forEach(f => {
+                  const fAth = f.athlete || f;
+                  const fName = fAth.displayName || fAth.shortName || '';
+                  const fPlayer = matchPlayerName(fName, ALL_PLAYERS);
+                  if (fPlayer) {
+                    scores[fPlayer.id].catches = (scores[fPlayer.id].catches || 0) + 1;
+                    catchesFound++;
+                    espnLog('  🧤 Catch: ' + fName + ' caught ' + displayName);
+                  }
+                });
+                // Caught & bowled — also credit bowler for lbwBowled (clean dismissal)
+                if (shortText.includes('c & b') || shortText.includes('c &amp; b')) {
+                  const bowlerAth = outDetails.bowler?.athlete || outDetails.bowler;
+                  if (bowlerAth) {
+                    const bowlerName = bowlerAth.displayName || bowlerAth.shortName || '';
+                    const bowlerPlayer = matchPlayerName(bowlerName, ALL_PLAYERS);
+                    if (bowlerPlayer) {
+                      // Catch already credited above; no extra lbwBowled for c&b
+                    }
+                  }
+                }
+              }
+
+              // Credit for stumpings
+              if (dType === 'st' || dType === 'stumped') {
+                const fielders = outDetails.fielders || [];
+                fielders.forEach(f => {
+                  const fAth = f.athlete || f;
+                  const fName = fAth.displayName || fAth.shortName || '';
+                  const fPlayer = matchPlayerName(fName, ALL_PLAYERS);
+                  if (fPlayer) {
+                    scores[fPlayer.id].stumpings = (scores[fPlayer.id].stumpings || 0) + 1;
+                    espnLog('  🧤 Stumping: ' + fName + ' stumped ' + displayName);
+                  }
+                });
+              }
+
+              // Credit for run outs
+              if (dType === 'run out' || dType === 'runout') {
+                const fielders = outDetails.fielders || [];
+                if (fielders.length === 1) {
+                  const fAth = fielders[0].athlete || fielders[0];
+                  const fName = fAth.displayName || fAth.shortName || '';
+                  const fPlayer = matchPlayerName(fName, ALL_PLAYERS);
+                  if (fPlayer) {
+                    scores[fPlayer.id].runoutDirect = (scores[fPlayer.id].runoutDirect || 0) + 1;
+                    espnLog('  🏃 Run out (direct): ' + fName + ' → ' + displayName);
+                  }
+                } else if (fielders.length >= 2) {
+                  fielders.forEach((f, idx) => {
+                    const fAth = f.athlete || f;
+                    const fName = fAth.displayName || fAth.shortName || '';
+                    const fPlayer = matchPlayerName(fName, ALL_PLAYERS);
+                    if (fPlayer) {
+                      if (idx === 0) {
+                        scores[fPlayer.id].runoutDirect = (scores[fPlayer.id].runoutDirect || 0) + 1;
+                        espnLog('  🏃 Run out (direct): ' + fName + ' → ' + displayName);
+                      } else {
+                        scores[fPlayer.id].runoutIndirect = (scores[fPlayer.id].runoutIndirect || 0) + 1;
+                        espnLog('  🏃 Run out (indirect): ' + fName + ' → ' + displayName);
+                      }
+                    }
+                  });
+                }
+              }
             }
-          });
-        }
+          }
+
+          if (ls.period === 2) {
+            // ── Bowling stats (O, M, R, W, 0s) ──
+            const overs = statMap['overs'] || 0;
+            const maidens = statMap['maidens'] || 0;
+            const conceded = statMap['conceded'] || 0;
+            const wickets = statMap['wickets'] || 0;
+            const dots = statMap['dots'] || 0;
+            if (overs > 0 || wickets > 0) {
+              s.oversBowled = (s.oversBowled || 0) + overs;
+              s.maidens = (s.maidens || 0) + maidens;
+              s.runsConceded = (s.runsConceded || 0) + conceded;
+              s.wickets = (s.wickets || 0) + wickets;
+              s.dots = (s.dots || 0) + dots;
+              s.inPlayingXI = true;
+              bowlingFound++;
+              espnLog('  Bowl: ' + displayName + ' → ' + overs + '-' + maidens + '-' + conceded + '-' + wickets + ' (0s:' + dots + ')');
+            }
+          }
+        });
       });
-    } else {
-      espnLog('No matchcard scorecards yet — using partnership data only.');
-    }
+    });
+    if (bowlingFound > 0) espnLog('Bowling parsed: ' + bowlingFound + ' entries');
+    if (dismissalsFound > 0) espnLog('Dismissals parsed: ' + dismissalsFound + ' (catches: ' + catchesFound + ')');
 
     // ── Step 4: Update match status ──
     if (matchState === 'in' || matchStatus.toLowerCase().includes('progress') || matchStatus.toLowerCase().includes('live')) {
