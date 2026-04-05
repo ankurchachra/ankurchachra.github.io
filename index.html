@@ -607,10 +607,16 @@ function initFirebase(config) {
 
 // ============ CONSTANTS ============
 const IPL_TEAMS = {
-  SRH: { name: 'Sunrisers Hyderabad',          short: 'SRH', color: '#ff822a' },
-  LSG: { name: 'Lucknow Super Giants',         short: 'LSG', color: '#a72056' },
-  RCB: { name: 'Royal Challengers Bengaluru',   short: 'RCB', color: '#ec1c24' },
   CSK: { name: 'Chennai Super Kings',           short: 'CSK', color: '#f9cd05' },
+  DC:  { name: 'Delhi Capitals',                short: 'DC',  color: '#004c93' },
+  RCB: { name: 'Royal Challengers Bengaluru',   short: 'RCB', color: '#ec1c24' },
+  MI:  { name: 'Mumbai Indians',                short: 'MI',  color: '#004ba0' },
+  KKR: { name: 'Kolkata Knight Riders',         short: 'KKR', color: '#3a225d' },
+  PBKS:{ name: 'Punjab Kings',                  short: 'PBKS',color: '#d71920' },
+  LSG: { name: 'Lucknow Super Giants',          short: 'LSG', color: '#a72056' },
+  RR:  { name: 'Rajasthan Royals',              short: 'RR',  color: '#ea1a85' },
+  SRH: { name: 'Sunrisers Hyderabad',           short: 'SRH', color: '#ff822a' },
+  GT:  { name: 'Gujarat Titans',                short: 'GT',  color: '#1c1c2b' },
 };
 
 const USERS = {
@@ -621,134 +627,230 @@ const USERS = {
   sharat:  { name: 'Sharat',  pass: 'sharat123',  isAdmin: false },
 };
 
-// ── SRH vs LSG (Match 10 — 3:30 PM) ──
-// Source of truth: ESPN API squads section for event 1527683
-const SRH_SQUAD = [
-  { id: 'SRH_0',  name: 'Travis Head',            team: 'SRH', role: 'BAT',  credits: 10.0 },
-  { id: 'SRH_1',  name: 'Ishan Kishan',           team: 'SRH', role: 'WK',   credits: 9.5, isCaptain: true },
-  { id: 'SRH_2',  name: 'Heinrich Klaasen',       team: 'SRH', role: 'WK',   credits: 9.5 },
-  { id: 'SRH_3',  name: 'Pat Cummins',            team: 'SRH', role: 'BOWL', credits: 9.5 },
-  { id: 'SRH_4',  name: 'Abhishek Sharma',        team: 'SRH', role: 'AR',   credits: 9.0 },
-  { id: 'SRH_5',  name: 'Nitish Kumar Reddy',     team: 'SRH', role: 'AR',   credits: 8.5 },
-  { id: 'SRH_6',  name: 'Liam Livingstone',       team: 'SRH', role: 'AR',   credits: 8.5 },
-  { id: 'SRH_7',  name: 'Kamindu Mendis',         team: 'SRH', role: 'AR',   credits: 8.5 },
-  { id: 'SRH_8',  name: 'Harshal Patel',          team: 'SRH', role: 'AR',   credits: 8.0 },
-  { id: 'SRH_9',  name: 'Brydon Carse',           team: 'SRH', role: 'AR',   credits: 7.5 },
-  { id: 'SRH_10', name: 'Jaydev Unadkat',         team: 'SRH', role: 'BOWL', credits: 7.0 },
-  { id: 'SRH_11', name: 'Shivam Mavi',            team: 'SRH', role: 'AR',   credits: 7.0 },
-  { id: 'SRH_12', name: 'David Payne',            team: 'SRH', role: 'BOWL', credits: 7.0 },
-  { id: 'SRH_13', name: 'Harsh Dubey',            team: 'SRH', role: 'AR',   credits: 7.0 },
-  { id: 'SRH_14', name: 'Eshan Malinga',          team: 'SRH', role: 'BOWL', credits: 6.5 },
-  { id: 'SRH_15', name: 'Sakib Hussain',          team: 'SRH', role: 'BOWL', credits: 6.5 },
-  { id: 'SRH_16', name: 'Shivang Kumar',          team: 'SRH', role: 'AR',   credits: 6.5 },
-  { id: 'SRH_17', name: 'Onkar Tarmale',          team: 'SRH', role: 'BOWL', credits: 6.0 },
-  { id: 'SRH_18', name: 'Salil Arora',            team: 'SRH', role: 'WK',   credits: 6.0 },
-  { id: 'SRH_19', name: 'Krains Fuletra',         team: 'SRH', role: 'AR',   credits: 6.0 },
-  { id: 'SRH_20', name: 'Praful Hinge',           team: 'SRH', role: 'BOWL', credits: 6.0 },
-  { id: 'SRH_21', name: 'Ravichandran Smaran',    team: 'SRH', role: 'BAT',  credits: 6.0 },
-  { id: 'SRH_22', name: 'Aniket Verma',           team: 'SRH', role: 'BAT',  credits: 6.0 },
-  { id: 'SRH_23', name: 'Amit Kumar',             team: 'SRH', role: 'BOWL', credits: 6.0 },
-  { id: 'SRH_24', name: 'Zeeshan Ansari',         team: 'SRH', role: 'BOWL', credits: 6.0 },
-];
-const LSG_SQUAD = [
-  { id: 'LSG_0',  name: 'Rishabh Pant',           team: 'LSG', role: 'WK',   credits: 10.0, isCaptain: true },
-  { id: 'LSG_1',  name: 'Mitchell Marsh',         team: 'LSG', role: 'AR',   credits: 9.0 },
-  { id: 'LSG_2',  name: 'Mohammed Shami',         team: 'LSG', role: 'BOWL', credits: 9.0 },
-  { id: 'LSG_3',  name: 'Wanindu Hasaranga',      team: 'LSG', role: 'AR',   credits: 9.0 },
-  { id: 'LSG_4',  name: 'Anrich Nortje',          team: 'LSG', role: 'BOWL', credits: 8.5 },
-  { id: 'LSG_5',  name: 'Nicholas Pooran',        team: 'LSG', role: 'WK',   credits: 8.5 },
-  { id: 'LSG_6',  name: 'Aiden Markram',          team: 'LSG', role: 'BAT',  credits: 8.5 },
-  { id: 'LSG_7',  name: 'Mayank Yadav',           team: 'LSG', role: 'BOWL', credits: 8.0 },
-  { id: 'LSG_8',  name: 'Avesh Khan',             team: 'LSG', role: 'BOWL', credits: 8.0 },
-  { id: 'LSG_9',  name: 'Ayush Badoni',           team: 'LSG', role: 'BAT',  credits: 8.0 },
-  { id: 'LSG_10', name: 'Shahbaz Ahmed',          team: 'LSG', role: 'AR',   credits: 7.5 },
-  { id: 'LSG_11', name: 'Matthew Breetzke',       team: 'LSG', role: 'BAT',  credits: 7.5 },
-  { id: 'LSG_12', name: 'Josh Inglis',            team: 'LSG', role: 'WK',   credits: 7.5 },
-  { id: 'LSG_13', name: 'Arshin Kulkarni',        team: 'LSG', role: 'AR',   credits: 7.5 },
-  { id: 'LSG_14', name: 'Manimaran Siddharth',    team: 'LSG', role: 'BOWL', credits: 7.0 },
-  { id: 'LSG_15', name: 'Abdul Samad',            team: 'LSG', role: 'BAT',  credits: 7.0 },
-  { id: 'LSG_16', name: 'Akshat Raghuwanshi',     team: 'LSG', role: 'BAT',  credits: 7.0 },
-  { id: 'LSG_17', name: 'Prince Yadav',           team: 'LSG', role: 'BOWL', credits: 6.5 },
-  { id: 'LSG_18', name: 'Digvesh Rathi',          team: 'LSG', role: 'BOWL', credits: 6.5 },
-  { id: 'LSG_19', name: 'Mohsin Khan',            team: 'LSG', role: 'BOWL', credits: 6.5 },
-  { id: 'LSG_20', name: 'Himmat Singh',           team: 'LSG', role: 'BAT',  credits: 6.5 },
-  { id: 'LSG_21', name: 'Mukul Choudhary',        team: 'LSG', role: 'BAT',  credits: 6.5 },
-  { id: 'LSG_22', name: 'Arjun Tendulkar',        team: 'LSG', role: 'BOWL', credits: 6.0 },
-  { id: 'LSG_23', name: 'Akash Singh',            team: 'LSG', role: 'BOWL', credits: 6.0 },
-  { id: 'LSG_24', name: 'Naman Tiwari',           team: 'LSG', role: 'BOWL', credits: 6.0 },
-];
+// ══════════════════════════════════════════════════════
+// ALL 10 TEAM SQUADS — Source: ESPN API squads sections
+// ══════════════════════════════════════════════════════
+function makeSquad(team, names) {
+  // Auto-assign credits: first few players get higher credits, descending
+  // Captain marked on first player
+  const creditTiers = [10,9.5,9.5,9,9,8.5,8.5,8.5,8,8,7.5,7.5,7.5,7,7,7,6.5,6.5,6.5,6,6,6,6,6,6,6,6,6];
+  return names.map((entry, i) => {
+    const [name, role, extraFlag] = Array.isArray(entry) ? entry : [entry, 'BAT'];
+    return {
+      id: team + '_' + i,
+      name: name,
+      team: team,
+      role: role,
+      credits: creditTiers[i] || 6.0,
+      ...(extraFlag === 'C' ? { isCaptain: true } : {}),
+    };
+  });
+}
 
-// ── RCB vs CSK (Match 11 — 7:30 PM) ──
-// Source of truth: ESPN API squads section for event 1527684
-const RCB_SQUAD = [
-  { id: 'RCB_0',  name: 'Virat Kohli',            team: 'RCB', role: 'BAT',  credits: 10.0 },
-  { id: 'RCB_1',  name: 'Phil Salt',              team: 'RCB', role: 'WK',   credits: 9.5 },
-  { id: 'RCB_2',  name: 'Rajat Patidar',          team: 'RCB', role: 'BAT',  credits: 9.0, isCaptain: true },
-  { id: 'RCB_3',  name: 'Josh Hazlewood',         team: 'RCB', role: 'BOWL', credits: 9.0 },
-  { id: 'RCB_4',  name: 'Venkatesh Iyer',         team: 'RCB', role: 'AR',   credits: 9.0 },
-  { id: 'RCB_5',  name: 'Krunal Pandya',          team: 'RCB', role: 'AR',   credits: 8.5 },
-  { id: 'RCB_6',  name: 'Jacob Bethell',          team: 'RCB', role: 'AR',   credits: 8.5 },
-  { id: 'RCB_7',  name: 'Tim David',              team: 'RCB', role: 'BAT',  credits: 8.0 },
-  { id: 'RCB_8',  name: 'Devdutt Padikkal',       team: 'RCB', role: 'BAT',  credits: 8.0 },
-  { id: 'RCB_9',  name: 'Bhuvneshwar Kumar',      team: 'RCB', role: 'BOWL', credits: 8.0 },
-  { id: 'RCB_10', name: 'Romario Shepherd',       team: 'RCB', role: 'AR',   credits: 7.5 },
-  { id: 'RCB_11', name: 'Nuwan Thushara',         team: 'RCB', role: 'BOWL', credits: 7.0 },
-  { id: 'RCB_12', name: 'Swapnil Singh',          team: 'RCB', role: 'BOWL', credits: 7.0 },
-  { id: 'RCB_13', name: 'Jitesh Sharma',          team: 'RCB', role: 'WK',   credits: 7.0 },
-  { id: 'RCB_14', name: 'Jordan Cox',             team: 'RCB', role: 'WK',   credits: 7.0 },
-  { id: 'RCB_15', name: 'Rasikh Salam',           team: 'RCB', role: 'BOWL', credits: 7.0 },
-  { id: 'RCB_16', name: 'Vicky Ostwal',           team: 'RCB', role: 'BOWL', credits: 6.5 },
-  { id: 'RCB_17', name: 'Kanishk Chouhan',        team: 'RCB', role: 'AR',   credits: 6.5 },
-  { id: 'RCB_18', name: 'Vihaan Malhotra',        team: 'RCB', role: 'AR',   credits: 6.5 },
-  { id: 'RCB_19', name: 'Mangesh Yadav',          team: 'RCB', role: 'AR',   credits: 6.0 },
-  { id: 'RCB_20', name: 'Abhinandan Singh',       team: 'RCB', role: 'BOWL', credits: 6.0 },
-  { id: 'RCB_21', name: 'Satvik Deswal',          team: 'RCB', role: 'BOWL', credits: 6.0 },
-  { id: 'RCB_22', name: 'Jacob Duffy',            team: 'RCB', role: 'BOWL', credits: 6.0 },
-  { id: 'RCB_23', name: 'Suyash Sharma',          team: 'RCB', role: 'BOWL', credits: 6.0 },
-];
-const CSK_SQUAD = [
-  { id: 'CSK_0',  name: 'Ruturaj Gaikwad',        team: 'CSK', role: 'BAT',  credits: 9.5, isCaptain: true },
-  { id: 'CSK_1',  name: 'Sanju Samson',           team: 'CSK', role: 'WK',   credits: 9.0 },
-  { id: 'CSK_2',  name: 'MS Dhoni',               team: 'CSK', role: 'WK',   credits: 9.0 },
-  { id: 'CSK_3',  name: 'Shivam Dube',            team: 'CSK', role: 'AR',   credits: 8.5 },
-  { id: 'CSK_4',  name: 'Matt Henry',             team: 'CSK', role: 'BOWL', credits: 8.5 },
-  { id: 'CSK_5',  name: 'Matthew Short',          team: 'CSK', role: 'AR',   credits: 8.0 },
-  { id: 'CSK_6',  name: 'Khaleel Ahmed',          team: 'CSK', role: 'BOWL', credits: 8.0 },
-  { id: 'CSK_7',  name: 'Rahul Chahar',           team: 'CSK', role: 'BOWL', credits: 8.0 },
-  { id: 'CSK_8',  name: 'Dewald Brevis',          team: 'CSK', role: 'BAT',  credits: 8.0 },
-  { id: 'CSK_9',  name: 'Sarfaraz Khan',          team: 'CSK', role: 'BAT',  credits: 8.0 },
-  { id: 'CSK_10', name: 'Jamie Overton',          team: 'CSK', role: 'AR',   credits: 7.5 },
-  { id: 'CSK_11', name: 'Spencer Johnson',        team: 'CSK', role: 'BOWL', credits: 7.5 },
-  { id: 'CSK_12', name: 'Akeal Hosein',           team: 'CSK', role: 'BOWL', credits: 7.5 },
-  { id: 'CSK_13', name: 'Shreyas Gopal',          team: 'CSK', role: 'BOWL', credits: 7.0 },
-  { id: 'CSK_14', name: 'Ramakrishna Ghosh',      team: 'CSK', role: 'AR',   credits: 7.0 },
-  { id: 'CSK_15', name: 'Ayush Mhatre',           team: 'CSK', role: 'BAT',  credits: 7.0 },
-  { id: 'CSK_16', name: 'Anshul Kamboj',          team: 'CSK', role: 'AR',   credits: 7.0 },
-  { id: 'CSK_17', name: 'Aman Khan',              team: 'CSK', role: 'AR',   credits: 7.0 },
-  { id: 'CSK_18', name: 'Zak Foulkes',            team: 'CSK', role: 'AR',   credits: 6.5 },
-  { id: 'CSK_19', name: 'Noor Ahmad',             team: 'CSK', role: 'BOWL', credits: 6.5 },
-  { id: 'CSK_20', name: 'Gurjapneet Singh',       team: 'CSK', role: 'BOWL', credits: 6.5 },
-  { id: 'CSK_21', name: 'Kartik Sharma',          team: 'CSK', role: 'WK',   credits: 6.0 },
-  { id: 'CSK_22', name: 'Urvil Patel',            team: 'CSK', role: 'WK',   credits: 6.0 },
-  { id: 'CSK_23', name: 'Mukesh Choudhary',       team: 'CSK', role: 'BOWL', credits: 6.0 },
-  { id: 'CSK_24', name: 'Prashant Veer',          team: 'CSK', role: 'AR',   credits: 6.0 },
-];
-
-// ── MATCH CONFIG ──
-const MATCHES = {
-  match_10: {
-    id: 'match_10', num: 10, team1: 'SRH', team2: 'LSG',
-    matchTime: '2026-04-05T15:30:00+05:30', lockTime: '2026-04-05T15:30:00+05:30',
-    venue: 'Rajiv Gandhi International Stadium, Hyderabad', espnMatchId: '1527683',
-    squad1: SRH_SQUAD, squad2: LSG_SQUAD,
-  },
-  match_11: {
-    id: 'match_11', num: 11, team1: 'RCB', team2: 'CSK',
-    matchTime: '2026-04-05T19:30:00+05:30', lockTime: '2026-04-05T19:30:00+05:30',
-    venue: 'M Chinnaswamy Stadium, Bengaluru', espnMatchId: '1527684',
-    squad1: RCB_SQUAD, squad2: CSK_SQUAD,
-  },
+const SQUADS = {
+  CSK: makeSquad('CSK', [
+    ['Ruturaj Gaikwad','BAT','C'],['Sanju Samson','WK'],['MS Dhoni','WK'],['Shivam Dube','AR'],['Matthew Short','AR'],
+    ['Matt Henry','BOWL'],['Khaleel Ahmed','BOWL'],['Rahul Chahar','BOWL'],['Dewald Brevis','BAT'],['Sarfaraz Khan','BAT'],
+    ['Jamie Overton','AR'],['Spencer Johnson','BOWL'],['Akeal Hosein','BOWL'],['Shreyas Gopal','BOWL'],['Ramakrishna Ghosh','AR'],
+    ['Ayush Mhatre','BAT'],['Anshul Kamboj','AR'],['Aman Khan','AR'],['Zak Foulkes','AR'],['Noor Ahmad','BOWL'],
+    ['Gurjapneet Singh','BOWL'],['Kartik Sharma','WK'],['Urvil Patel','WK'],['Mukesh Choudhary','BOWL'],['Prashant Veer','AR'],
+  ]),
+  DC: makeSquad('DC', [
+    ['KL Rahul','WK'],['Axar Patel','AR','C'],['Mitchell Starc','BOWL'],['Kuldeep Yadav','BOWL'],['David Miller','BAT'],
+    ['Karun Nair','BAT'],['Pathum Nissanka','BAT'],['Tristan Stubbs','WK'],['Lungi Ngidi','BOWL'],['T Natarajan','BOWL'],
+    ['Ashutosh Sharma','AR'],['Nitish Rana','BAT'],['Kyle Jamieson','BOWL'],['Abishek Porel','WK'],['Prithvi Shaw','BAT'],
+    ['Sameer Rizvi','AR'],['Mukesh Kumar','BOWL'],['Dushmantha Chameera','BOWL'],['Sahil Parakh','BAT'],['Madhav Tiwari','AR'],
+    ['Ajay Mandal','AR'],['Auqib Nabi','BOWL'],['Vipraj Nigam','BOWL'],['Tripurana Vijay','BOWL'],
+  ]),
+  RCB: makeSquad('RCB', [
+    ['Virat Kohli','BAT'],['Phil Salt','WK'],['Rajat Patidar','BAT','C'],['Josh Hazlewood','BOWL'],['Venkatesh Iyer','AR'],
+    ['Krunal Pandya','AR'],['Jacob Bethell','AR'],['Tim David','BAT'],['Devdutt Padikkal','BAT'],['Bhuvneshwar Kumar','BOWL'],
+    ['Romario Shepherd','AR'],['Nuwan Thushara','BOWL'],['Swapnil Singh','BOWL'],['Jitesh Sharma','WK'],['Jordan Cox','WK'],
+    ['Rasikh Salam','BOWL'],['Vicky Ostwal','BOWL'],['Kanishk Chouhan','AR'],['Vihaan Malhotra','AR'],['Mangesh Yadav','AR'],
+    ['Abhinandan Singh','BOWL'],['Satvik Deswal','BOWL'],['Jacob Duffy','BOWL'],['Suyash Sharma','BOWL'],
+  ]),
+  MI: makeSquad('MI', [
+    ['Jasprit Bumrah','BOWL'],['Hardik Pandya','AR','C'],['Suryakumar Yadav','BAT'],['Rohit Sharma','BAT'],['Trent Boult','BOWL'],
+    ['Tilak Varma','AR'],['Quinton de Kock','WK'],['Will Jacks','AR'],['Deepak Chahar','BOWL'],['Mitchell Santner','AR'],
+    ['Shardul Thakur','AR'],['Sherfane Rutherford','BAT'],['Ryan Rickelton','WK'],['Naman Dhir','AR'],['Corbin Bosch','AR'],
+    ['Robin Minz','WK'],['Raj Bawa','AR'],['AM Ghazanfar','BOWL'],['Danish Malewar','BAT'],['Atharva Ankolekar','AR'],
+    ['Mayank Markande','BOWL'],['Ashwani Kumar','BOWL'],['Mayank Rawat','AR'],['Mohd Izhar','BOWL'],['Raghu Sharma','BOWL'],
+  ]),
+  KKR: makeSquad('KKR', [
+    ['Ajinkya Rahane','BAT'],['Rinku Singh','BAT'],['Varun Chakravarthy','BOWL'],['Sunil Narine','AR'],['Cameron Green','AR'],
+    ['Rachin Ravindra','AR'],['Matheesha Pathirana','BOWL'],['Rovman Powell','BAT'],['Finn Allen','BAT'],['Blessing Muzarabani','BOWL'],
+    ['Rahul Tripathi','BAT'],['Ramandeep Singh','AR'],['Vaibhav Arora','BOWL'],['Angkrish Raghuvanshi','BAT'],['Manish Pandey','BAT'],
+    ['Umran Malik','BOWL'],['Navdeep Saini','BOWL'],['Tim Seifert','WK'],['Anukul Roy','AR'],['Kartik Tyagi','BOWL'],
+    ['Tejasvi Dahiya','WK'],['Saurabh Dubey','AR'],['Prashant Solanki','BOWL'],['Daksh Kamra','WK'],['Sarthak Ranjan','BOWL'],
+  ]),
+  PBKS: makeSquad('PBKS', [
+    ['Shreyas Iyer','BAT','C'],['Marcus Stoinis','AR'],['Arshdeep Singh','BOWL'],['Marco Jansen','AR'],['Yuzvendra Chahal','BOWL'],
+    ['Lockie Ferguson','BOWL'],['Nehal Wadhera','BAT'],['Shashank Singh','AR'],['Priyansh Arya','WK'],['Cooper Connolly','AR'],
+    ['Xavier Bartlett','BOWL'],['Musheer Khan','AR'],['Azmatullah Omarzai','AR'],['Prabhsimran Singh','WK'],['Harnoor Singh','BAT'],
+    ['Harpreet Brar','AR'],['Yash Thakur','BOWL'],['Suryansh Shedge','AR'],['Vijaykumar Vyshak','BOWL'],['Ben Dwarshuis','BOWL'],
+    ['Mitchell Owen','BAT'],['Praveen Dubey','AR'],['Vishnu Vinod','WK'],
+  ]),
+  LSG: makeSquad('LSG', [
+    ['Rishabh Pant','WK','C'],['Mitchell Marsh','AR'],['Mohammed Shami','BOWL'],['Wanindu Hasaranga','AR'],['Anrich Nortje','BOWL'],
+    ['Nicholas Pooran','WK'],['Aiden Markram','BAT'],['Mayank Yadav','BOWL'],['Avesh Khan','BOWL'],['Ayush Badoni','BAT'],
+    ['Shahbaz Ahmed','AR'],['Matthew Breetzke','BAT'],['Josh Inglis','WK'],['Arshin Kulkarni','AR'],['Manimaran Siddharth','BOWL'],
+    ['Abdul Samad','BAT'],['Akshat Raghuwanshi','BAT'],['Prince Yadav','BOWL'],['Digvesh Rathi','BOWL'],['Mohsin Khan','BOWL'],
+    ['Himmat Singh','BAT'],['Mukul Choudhary','BAT'],['Arjun Tendulkar','BOWL'],['Akash Singh','BOWL'],['Naman Tiwari','BOWL'],
+  ]),
+  RR: makeSquad('RR', [
+    ['Yashasvi Jaiswal','BAT'],['Riyan Parag','BAT','C'],['Jofra Archer','BOWL'],['Ravindra Jadeja','AR'],['Shimron Hetmyer','BAT'],
+    ['Dhruv Jurel','WK'],['Ravi Bishnoi','BOWL'],['Donovan Ferreira','AR'],['Sandeep Sharma','BOWL'],['Vaibhav Sooryavanshi','BAT'],
+    ['Nandre Burger','BOWL'],['Tushar Deshpande','BOWL'],['Dasun Shanaka','AR'],['Kwena Maphaka','BOWL'],['Adam Milne','BOWL'],
+    ['Lhuan-dre Pretorius','WK'],['Shubham Dubey','BAT'],['Brijesh Sharma','BOWL'],['Aman Rao','BAT'],['Sushant Mishra','BOWL'],
+    ['Vignesh Puthur','BOWL'],['Ravi Singh','BAT'],['Kuldeep Sen','BOWL'],['Yash Raj Punja','BOWL'],['Yudhvir Singh','BOWL'],
+  ]),
+  SRH: makeSquad('SRH', [
+    ['Travis Head','BAT'],['Ishan Kishan','WK','C'],['Heinrich Klaasen','WK'],['Pat Cummins','BOWL'],['Abhishek Sharma','AR'],
+    ['Nitish Kumar Reddy','AR'],['Liam Livingstone','AR'],['Kamindu Mendis','AR'],['Harshal Patel','AR'],['Brydon Carse','AR'],
+    ['Jaydev Unadkat','BOWL'],['Shivam Mavi','AR'],['David Payne','BOWL'],['Harsh Dubey','AR'],['Eshan Malinga','BOWL'],
+    ['Sakib Hussain','BOWL'],['Shivang Kumar','AR'],['Onkar Tarmale','BOWL'],['Salil Arora','WK'],['Krains Fuletra','AR'],
+    ['Praful Hinge','BOWL'],['Ravichandran Smaran','BAT'],['Aniket Verma','BAT'],['Amit Kumar','BOWL'],['Zeeshan Ansari','BOWL'],
+  ]),
+  GT: makeSquad('GT', [
+    ['Shubman Gill','BAT','C'],['Rashid Khan','AR'],['Kagiso Rabada','BOWL'],['Jos Buttler','WK'],['Sai Sudharsan','BAT'],
+    ['Mohammed Siraj','BOWL'],['Glenn Phillips','AR'],['Jason Holder','AR'],['Prasidh Krishna','BOWL'],['Washington Sundar','AR'],
+    ['Rahul Tewatia','AR'],['M Shahrukh Khan','BAT'],['Sai Kishore','BOWL'],['Manav Suthar','AR'],['Anuj Rawat','WK'],
+    ['Tom Banton','WK'],['Jayant Yadav','BOWL'],['Nishant Sindhu','AR'],['Gurnoor Brar','BOWL'],['Kulwant Khejroliya','BOWL'],
+    ['Arshad Khan','BOWL'],['Ashok Sharma','BOWL'],['Kumar Kushagra','WK'],['Luke Wood','BOWL'],['Ishant Sharma','BOWL'],
+  ]),
 };
+
+// ══════════════════════════════════════════════════════
+// FULL IPL 2026 SCHEDULE — 70 league matches
+// Auto-generates MATCHES config for today's date
+// ══════════════════════════════════════════════════════
+const FULL_SCHEDULE = [
+  // [matchNum, 'YYYY-MM-DD', time, team1, team2, venue, espnMatchId]
+  // ESPN IDs verified: match 1 = 1527674, sequential +1 per match
+  [1,  '2026-03-28','19:30','SRH','RCB','M Chinnaswamy Stadium, Bengaluru','1527674'],
+  [2,  '2026-03-29','19:30','KKR','MI', 'Wankhede Stadium, Mumbai','1527675'],
+  [3,  '2026-03-30','19:30','CSK','RR', 'ACA Cricket Stadium, Guwahati','1527676'],
+  [4,  '2026-03-31','19:30','GT', 'PBKS','Maharaja Yadavindra Singh Stadium, Mullanpur','1527677'],
+  [5,  '2026-04-01','19:30','LSG','DC', 'Ekana Cricket Stadium, Lucknow','1527678'],
+  [6,  '2026-04-02','19:30','SRH','KKR','Eden Gardens, Kolkata','1527679'],
+  [7,  '2026-04-03','19:30','CSK','PBKS','MA Chidambaram Stadium, Chennai','1527680'],
+  [8,  '2026-04-04','15:30','MI', 'DC', 'Arun Jaitley Stadium, Delhi','1527681'],
+  [9,  '2026-04-04','19:30','RR', 'GT', 'Narendra Modi Stadium, Ahmedabad','1527682'],
+  [10, '2026-04-05','15:30','SRH','LSG','Rajiv Gandhi Stadium, Hyderabad','1527683'],
+  [11, '2026-04-05','19:30','RCB','CSK','M Chinnaswamy Stadium, Bengaluru','1527684'],
+  [12, '2026-04-06','19:30','KKR','PBKS','Eden Gardens, Kolkata','1527685'],
+  [13, '2026-04-07','19:30','RR', 'MI', 'ACA Cricket Stadium, Guwahati','1527686'],
+  [14, '2026-04-08','19:30','DC', 'GT', 'Arun Jaitley Stadium, Delhi','1527687'],
+  [15, '2026-04-09','19:30','KKR','LSG','Eden Gardens, Kolkata','1527688'],
+  [16, '2026-04-10','19:30','RR', 'RCB','ACA Cricket Stadium, Guwahati','1527689'],
+  [17, '2026-04-11','15:30','PBKS','SRH','Maharaja Yadavindra Singh Stadium, Mullanpur','1527690'],
+  [18, '2026-04-11','19:30','CSK','DC', 'MA Chidambaram Stadium, Chennai','1527691'],
+  [19, '2026-04-12','15:30','LSG','GT', 'Ekana Cricket Stadium, Lucknow','1527692'],
+  [20, '2026-04-12','19:30','MI', 'RCB','Wankhede Stadium, Mumbai','1527693'],
+  [21, '2026-04-13','19:30','SRH','RR', 'Rajiv Gandhi Stadium, Hyderabad','1527694'],
+  [22, '2026-04-14','19:30','CSK','KKR','MA Chidambaram Stadium, Chennai','1527695'],
+  [23, '2026-04-15','19:30','RCB','LSG','M Chinnaswamy Stadium, Bengaluru','1527696'],
+  [24, '2026-04-16','19:30','MI', 'PBKS','Wankhede Stadium, Mumbai','1527697'],
+  [25, '2026-04-17','19:30','GT', 'KKR','Narendra Modi Stadium, Ahmedabad','1527698'],
+  [26, '2026-04-18','15:30','RCB','DC', 'M Chinnaswamy Stadium, Bengaluru','1527699'],
+  [27, '2026-04-18','19:30','SRH','CSK','Rajiv Gandhi Stadium, Hyderabad','1527700'],
+  [28, '2026-04-19','15:30','KKR','RR', 'Eden Gardens, Kolkata','1527701'],
+  [29, '2026-04-19','19:30','PBKS','LSG','Maharaja Yadavindra Singh Stadium, Mullanpur','1527702'],
+  [30, '2026-04-20','19:30','GT', 'MI', 'Narendra Modi Stadium, Ahmedabad','1527703'],
+  [31, '2026-04-21','19:30','SRH','DC', 'Rajiv Gandhi Stadium, Hyderabad','1527704'],
+  [32, '2026-04-22','19:30','LSG','RR', 'Ekana Cricket Stadium, Lucknow','1527705'],
+  [33, '2026-04-23','19:30','MI', 'CSK','Wankhede Stadium, Mumbai','1527706'],
+  [34, '2026-04-24','19:30','RCB','GT', 'M Chinnaswamy Stadium, Bengaluru','1527707'],
+  [35, '2026-04-25','15:30','DC', 'PBKS','Arun Jaitley Stadium, Delhi','1527708'],
+  [36, '2026-04-25','19:30','RR', 'SRH','Sawai Mansingh Stadium, Jaipur','1527709'],
+  [37, '2026-04-26','15:30','GT', 'CSK','Narendra Modi Stadium, Ahmedabad','1527710'],
+  [38, '2026-04-26','19:30','LSG','KKR','Ekana Cricket Stadium, Lucknow','1527711'],
+  [39, '2026-04-27','19:30','DC', 'RCB','Arun Jaitley Stadium, Delhi','1527712'],
+  [40, '2026-04-28','19:30','PBKS','RR', 'Maharaja Yadavindra Singh Stadium, Mullanpur','1527713'],
+  [41, '2026-04-29','19:30','MI', 'SRH','Wankhede Stadium, Mumbai','1527714'],
+  [42, '2026-04-30','19:30','GT', 'RCB','Narendra Modi Stadium, Ahmedabad','1527715'],
+  [43, '2026-05-01','19:30','RR', 'DC', 'Sawai Mansingh Stadium, Jaipur','1527716'],
+  [44, '2026-05-02','19:30','CSK','MI', 'MA Chidambaram Stadium, Chennai','1527717'],
+  [45, '2026-05-03','15:30','SRH','KKR','Rajiv Gandhi Stadium, Hyderabad','1527718'],
+  [46, '2026-05-03','19:30','GT', 'PBKS','Narendra Modi Stadium, Ahmedabad','1527719'],
+  [47, '2026-05-04','19:30','MI', 'LSG','Wankhede Stadium, Mumbai','1527720'],
+  [48, '2026-05-05','19:30','DC', 'CSK','Arun Jaitley Stadium, Delhi','1527721'],
+  [49, '2026-05-06','19:30','SRH','PBKS','Rajiv Gandhi Stadium, Hyderabad','1527722'],
+  [50, '2026-05-07','19:30','LSG','RCB','Ekana Cricket Stadium, Lucknow','1527723'],
+  [51, '2026-05-08','19:30','DC', 'KKR','Arun Jaitley Stadium, Delhi','1527724'],
+  [52, '2026-05-09','19:30','RR', 'GT', 'Sawai Mansingh Stadium, Jaipur','1527725'],
+  [53, '2026-05-10','15:30','CSK','LSG','MA Chidambaram Stadium, Chennai','1527726'],
+  [54, '2026-05-10','19:30','RCB','MI', 'Nava Raipur Cricket Stadium, Raipur','1527727'],
+  [55, '2026-05-11','19:30','PBKS','DC', 'HPCA Cricket Stadium, Dharamshala','1527728'],
+  [56, '2026-05-12','19:30','GT', 'SRH','Narendra Modi Stadium, Ahmedabad','1527729'],
+  [57, '2026-05-13','19:30','RCB','KKR','Nava Raipur Cricket Stadium, Raipur','1527730'],
+  [58, '2026-05-14','19:30','PBKS','MI', 'HPCA Cricket Stadium, Dharamshala','1527731'],
+  [59, '2026-05-15','19:30','LSG','CSK','Ekana Cricket Stadium, Lucknow','1527732'],
+  [60, '2026-05-16','19:30','KKR','GT', 'Eden Gardens, Kolkata','1527733'],
+  [61, '2026-05-17','15:30','PBKS','RCB','HPCA Cricket Stadium, Dharamshala','1527734'],
+  [62, '2026-05-17','19:30','DC', 'RR', 'Arun Jaitley Stadium, Delhi','1527735'],
+  [63, '2026-05-18','19:30','CSK','SRH','MA Chidambaram Stadium, Chennai','1527736'],
+  [64, '2026-05-19','19:30','RR', 'LSG','Sawai Mansingh Stadium, Jaipur','1527737'],
+  [65, '2026-05-20','19:30','KKR','MI', 'Eden Gardens, Kolkata','1527738'],
+  [66, '2026-05-21','19:30','CSK','GT', 'MA Chidambaram Stadium, Chennai','1527739'],
+  [67, '2026-05-22','19:30','SRH','RCB','Rajiv Gandhi Stadium, Hyderabad','1527740'],
+  [68, '2026-05-23','19:30','LSG','PBKS','Ekana Cricket Stadium, Lucknow','1527741'],
+  [69, '2026-05-24','19:30','MI', 'RR', 'Wankhede Stadium, Mumbai','1527742'],
+  [70, '2026-05-25','19:30','DC', 'KKR','Arun Jaitley Stadium, Delhi','1527743'],
+];
+
+// ── Auto-detect today's matches (resets at midnight IST) ──
+function getTodayIST() {
+  const now = new Date();
+  // Convert to IST (UTC+5:30)
+  const istOffset = 5.5 * 60 * 60 * 1000;
+  const istDate = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + istOffset);
+  const y = istDate.getFullYear();
+  const m = String(istDate.getMonth() + 1).padStart(2, '0');
+  const d = String(istDate.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function getTodaysMatches() {
+  const today = getTodayIST();
+  return FULL_SCHEDULE.filter(m => m[1] === today);
+}
+
+function buildMatchConfig(matchList) {
+  const config = {};
+  matchList.forEach(m => {
+    const [num, date, time, t1, t2, venue, espnId] = m;
+    const mid = 'match_' + num;
+    config[mid] = {
+      id: mid, num: num, team1: t1, team2: t2,
+      matchTime: date + 'T' + time + ':00+05:30',
+      lockTime: date + 'T' + time + ':00+05:30',
+      venue: venue,
+      espnMatchId: espnId,
+      squad1: SQUADS[t1],
+      squad2: SQUADS[t2],
+    };
+  });
+  return config;
+}
+
+// Build MATCHES for today; fallback to next match day if no matches today
+let todaysMatches = getTodaysMatches();
+if (todaysMatches.length === 0) {
+  // Find next upcoming match day
+  const today = getTodayIST();
+  const future = FULL_SCHEDULE.filter(m => m[1] > today);
+  if (future.length > 0) {
+    const nextDate = future[0][1];
+    todaysMatches = FULL_SCHEDULE.filter(m => m[1] === nextDate);
+  } else {
+    // Tournament over, show last day
+    const lastDate = FULL_SCHEDULE[FULL_SCHEDULE.length - 1][1];
+    todaysMatches = FULL_SCHEDULE.filter(m => m[1] === lastDate);
+  }
+}
+
+const MATCHES = buildMatchConfig(todaysMatches);
 
 // Derive per-match data
 Object.values(MATCHES).forEach(m => {
@@ -2125,8 +2227,12 @@ async function fetchESPNScores() {
             const fours = statMap['fours'] || 0;
             const sixes = statMap['sixes'] || 0;
             if (runs > 0 || balls > 0) {
-              s.runs = (s.runs || 0) + runs;
-              s.balls = (s.balls || 0) + balls;
+              // Only set runs/balls if NOT already populated from partnerships/FOW (Step 2)
+              // to avoid double-counting
+              if (!batAggregated[player.id]) {
+                s.runs = (s.runs || 0) + runs;
+                s.balls = (s.balls || 0) + balls;
+              }
               s.fours = (s.fours || 0) + fours;
               s.sixes = (s.sixes || 0) + sixes;
               s.didBat = true;
@@ -2249,20 +2355,65 @@ async function fetchESPNScores() {
     if (bowlingFound > 0) espnLog('Bowling parsed: ' + bowlingFound + ' entries');
     if (dismissalsFound > 0) espnLog('Dismissals parsed: ' + dismissalsFound + ' (catches: ' + catchesFound + ')');
 
-    // ── Step 4: Update match status ──
+    // ── Step 4: Detect Impact Player Subs ──
+    let impactSubsFound = 0;
+    const matchNotes = data.notes || [];
+    matchNotes.forEach(note => {
+      const text = note.text || '';
+      // Match notes like: "Chennai Super Kings Impact Player Sub: Kartik Sharma in for Khaleel Ahmed (...)"
+      const impactMatch = text.match(/Impact Player Sub:\s*(.+?)\s+in for\s+/i);
+      if (impactMatch) {
+        const subInName = impactMatch[1].trim();
+        const subPlayer = matchPlayerName(subInName, M().allPlayers);
+        if (subPlayer && scores[subPlayer.id]) {
+          scores[subPlayer.id].isImpactSub = true;
+          scores[subPlayer.id].inPlayingXI = true;
+          impactSubsFound++;
+          espnLog('  ⚡ Impact Sub: ' + subPlayer.name + ' (from: "' + subInName + '")');
+        } else {
+          espnLog('  ⚠️ Impact Sub unmatched: ' + subInName);
+        }
+      }
+    });
+    if (impactSubsFound > 0) espnLog('Impact Subs detected: ' + impactSubsFound);
+
+    // ── Step 5: Update match status & result text ──
     if (espnMatchState === 'in' || matchStatus.toLowerCase().includes('progress') || matchStatus.toLowerCase().includes('live')) {
       db.ref('matches/' + activeMatchId + '/status').set('live');
     } else if (espnMatchState === 'post' || matchStatus.toLowerCase().includes('complete') || matchStatus.toLowerCase().includes('result')) {
       db.ref('matches/' + activeMatchId + '/status').set('completed');
+
+      // Auto-generate result text from winner/loser scores
+      const winner = competitors.find(c => c.winner === true || c.winner === 'true');
+      const loser = competitors.find(c => c.winner === false || c.winner === 'false');
+      if (winner && loser) {
+        const wFull = winner.team?.displayName || winner.team?.abbreviation || '';
+        const wScore = parseInt(winner.score) || 0;
+        const lScore = parseInt(loser.score) || 0;
+        const loserScoreStr = loser.score || '';
+        let resultText = '';
+        if (loserScoreStr.includes('target')) {
+          // Winner batted first, loser was chasing
+          resultText = wFull + ' won by ' + (wScore - lScore) + ' runs';
+        } else {
+          // Winner chased successfully
+          const wicketsLost = parseInt((winner.score || '').split('/')[1]) || 0;
+          resultText = wFull + ' won by ' + (10 - wicketsLost) + ' wickets';
+        }
+        if (resultText) {
+          db.ref('matches/' + activeMatchId + '/result').set(resultText);
+          espnLog('📋 Result: ' + resultText);
+        }
+      }
     }
 
-    // ── Step 5: Save to Firebase & recalculate ──
+    // ── Step 6: Save to Firebase & recalculate ──
     await db.ref('matches/' + activeMatchId + '/playerScores').set(scores);
     await recalcLeaderboard();
     renderAdminScoring();
 
     const xiCount = Object.values(scores).filter(s => s.inPlayingXI).length;
-    const summary = `✅ Playing XI: ${xiCount}, Batting: ${battingFound}, Bowling: ${bowlingFound}`;
+    const summary = `✅ Playing XI: ${xiCount}, Batting: ${battingFound}, Bowling: ${bowlingFound}, Impact Subs: ${impactSubsFound}`;
     espnLog(summary);
     if (unmatchedBat.length) espnLog('⚠️ Unmatched batters: ' + unmatchedBat.join(', '));
     if (unmatchedBowl.length) espnLog('⚠️ Unmatched bowlers: ' + unmatchedBowl.join(', '));
@@ -2393,6 +2544,20 @@ function initAutoLivePolling() {
     MATCH_IDS.forEach(mid => checkAndAutoStartPoll(mid));
   }, 60000);
 }
+
+// ============ MIDNIGHT AUTO-RESET ============
+// At midnight IST, reload the page so MATCHES rebuilds for the new day
+let lastCheckedDate = getTodayIST();
+function checkMidnightReset() {
+  const nowDate = getTodayIST();
+  if (nowDate !== lastCheckedDate) {
+    lastCheckedDate = nowDate;
+    console.log('[Fantasy XI] New day detected (' + nowDate + ') — reloading for new matches...');
+    window.location.reload();
+  }
+}
+// Check every 30 seconds for date change
+setInterval(checkMidnightReset, 30000);
 
 // ============ TOAST ============
 function showToast(msg, type) {
