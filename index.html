@@ -297,6 +297,12 @@
       width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #2a3a4a;
       background: var(--secondary); color: var(--light); font-size: 0.9em; margin-bottom: 12px;
     }
+    .fb-rank-1 td { background: rgba(233,69,96,0.08) !important; }
+    .fb-match-log { background: var(--card); border-radius: 8px; padding: 12px 16px; margin-top: 8px; border: 1px solid #2a3a4a; font-size: 0.85em; }
+    .fb-match-log .fb-entry { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #1a2a3a; }
+    .fb-match-log .fb-entry:last-child { border-bottom: none; }
+    .fb-match-label { color: #aaa; }
+    .fb-match-pts { color: var(--green); font-weight: 600; }
     @media (max-width: 600px) {
       .tabs { padding: 0 8px; }
       .tab { padding: 12px 12px; font-size: 0.8em; }
@@ -359,6 +365,7 @@
     <div class="tab" data-tab="my-team" onclick="switchTab('my-team')">My Team</div>
     <div class="tab" data-tab="leaderboard" onclick="switchTab('leaderboard')">Leaderboard</div>
     <div class="tab" data-tab="scoring" onclick="switchTab('scoring')">Scoring</div>
+    <div class="tab" data-tab="final-boss" onclick="switchTab('final-boss')" style="color:var(--accent);font-weight:700">FINAL BOSS</div>
     <div class="tab" data-tab="admin" onclick="switchTab('admin')" id="admin-tab" style="display:none">Admin</div>
   </div>
 
@@ -512,7 +519,19 @@
     </div>
   </div>
 
-  <!-- TAB 6: ADMIN -->
+  <!-- TAB 6: FINAL BOSS (Cumulative Leaderboard) -->
+  <div class="page" id="page-final-boss">
+    <h2 style="margin-bottom:4px;color:var(--accent)">FINAL BOSS</h2>
+    <p style="color:var(--gold);font-size:0.95em;margin-bottom:4px">Cumulative Season Leaderboard</p>
+    <p id="final-boss-updated" style="color:#888;font-size:0.85em;margin-bottom:20px"></p>
+    <table class="leaderboard-table">
+      <thead><tr><th>#</th><th>Player</th><th>Total Points</th></tr></thead>
+      <tbody id="fb-body"></tbody>
+    </table>
+    <div id="final-boss-history" style="margin-top:20px"></div>
+  </div>
+
+  <!-- TAB 7: ADMIN -->
   <div class="page" id="page-admin">
     <h2 style="margin-bottom:20px">Admin Panel</h2>
 
@@ -555,6 +574,17 @@
       <div style="margin-top:16px;display:flex;gap:12px">
         <button class="btn btn-green" onclick="saveAllScores()">💾 Save All Scores</button>
         <button class="btn btn-gold" onclick="recalcLeaderboard()">📊 Recalculate Leaderboard</button>
+      </div>
+    </div>
+
+    <div class="admin-section">
+      <h3>FINAL BOSS — Cumulative Leaderboard</h3>
+      <p style="color:#888;font-size:0.85em;margin-bottom:12px">
+        Adds current match points to the season-long cumulative leaderboard. Happens automatically when a match completes, but you can also trigger it manually.
+      </p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <button class="btn btn-gold" onclick="addMatchToFinalBoss().then(()=>showToast('Match added to FINAL BOSS!','success')).catch(e=>showToast(e.message,'error'))">🏆 Add This Match to FINAL BOSS</button>
+        <button class="btn btn-accent" onclick="if(confirm('Reset the entire FINAL BOSS cumulative leaderboard?')){db.ref('final_boss').set({users:{},matchesAdded:{},lastMatch:null,matchLog:[]});showToast('FINAL BOSS reset!','success')}">Reset FINAL BOSS</button>
       </div>
     </div>
 
@@ -877,6 +907,9 @@ let currentFilter = 'all';
 let countdownInterval = null;
 let expandedLbUser = null;
 
+// Cumulative "FINAL BOSS" leaderboard data
+let FINAL_BOSS = { users: {}, matchesAdded: {}, lastMatch: null, matchLog: [] };
+
 // Live data from Firebase — per match
 let DATA = {};
 MATCH_IDS.forEach(mid => {
@@ -940,6 +973,7 @@ function switchMatch(matchId) {
   renderTeamSelection();
   renderMyTeam();
   renderLeaderboard();
+  renderFinalBoss();
   renderAdminScoring();
   startCountdown();
 }
@@ -1124,6 +1158,16 @@ function startApp() {
     }
   });
 
+  // FINAL BOSS cumulative leaderboard listener
+  db.ref('final_boss').on('value', snap => {
+    const val = snap.val() || {};
+    FINAL_BOSS.users = val.users || {};
+    FINAL_BOSS.matchesAdded = val.matchesAdded || {};
+    FINAL_BOSS.lastMatch = val.lastMatch || null;
+    FINAL_BOSS.matchLog = val.matchLog || [];
+    if (currentUser) renderFinalBoss();
+  });
+
   if (currentUser) {
     showAppUI();
   } else {
@@ -1169,6 +1213,7 @@ function showAppUI() {
   renderTeamSelection();
   renderMyTeam();
   renderLeaderboard();
+  renderFinalBoss();
   renderAdminScoring();
   startCountdown();
 }
@@ -1950,6 +1995,107 @@ function saveAllScores() {
   });
 }
 
+// ============ FINAL BOSS - CUMULATIVE LEADERBOARD ============
+function renderFinalBoss() {
+  const body = document.getElementById('fb-body');
+  const updatedEl = document.getElementById('final-boss-updated');
+  const historyEl = document.getElementById('final-boss-history');
+  if (!body) return;
+
+  const users = FINAL_BOSS.users || {};
+  const lastMatch = FINAL_BOSS.lastMatch;
+  const matchLog = FINAL_BOSS.matchLog || [];
+
+  // Sort users by total points descending
+  const sorted = Object.keys(USERS).map(uid => ({
+    uid, name: USERS[uid].name,
+    total: Math.round(((users[uid] && users[uid].total) || 0) * 10) / 10,
+  })).sort((a, b) => b.total - a.total);
+
+  body.innerHTML = sorted.map((u, i) => {
+    const rank = i + 1;
+    const rankClass = rank <= 3 ? ' class="rank-' + rank + '"' : '';
+    const rowClass = rank === 1 ? ' class="fb-rank-1"' : '';
+    const isYou = u.uid === currentUser ? ' (You)' : '';
+    const medal = rank === 1 ? '🥇 ' : rank === 2 ? '🥈 ' : rank === 3 ? '🥉 ' : '';
+    return '<tr' + rowClass + '><td' + rankClass + '>' + medal + rank + '</td><td>' + u.name + isYou + '</td><td class="points-cell">' + u.total + '</td></tr>';
+  }).join('');
+
+  // Updated till text
+  if (lastMatch) {
+    updatedEl.textContent = 'Points updated till Match ' + lastMatch.num + ': ' + lastMatch.team1 + ' vs ' + lastMatch.team2;
+  } else {
+    updatedEl.textContent = 'No matches added yet — points will update as matches complete.';
+  }
+
+  // Match-by-match log
+  if (matchLog.length > 0) {
+    let logHtml = '<h3 style="color:var(--gold);margin-bottom:8px;font-size:0.95em">Match-by-Match Breakdown</h3><div class="fb-match-log">';
+    // Show most recent first
+    [...matchLog].reverse().forEach(entry => {
+      logHtml += '<div class="fb-entry"><span class="fb-match-label">Match ' + entry.num + ': ' + entry.team1 + ' vs ' + entry.team2 + '</span>';
+      // Show each user's points for this match
+      const pts = entry.points || {};
+      const ptsList = Object.keys(USERS).map(uid => USERS[uid].name + ': ' + (Math.round((pts[uid] || 0) * 10) / 10)).join(' | ');
+      logHtml += '<span class="fb-match-pts">' + ptsList + '</span></div>';
+    });
+    logHtml += '</div>';
+    historyEl.innerHTML = logHtml;
+  } else {
+    historyEl.innerHTML = '';
+  }
+}
+
+async function addMatchToFinalBoss(matchId) {
+  // Add a completed match's leaderboard points to cumulative FINAL BOSS
+  const mid = matchId || activeMatchId;
+  const mConfig = MATCHES[mid];
+  if (!mConfig) return;
+
+  // Check if already added
+  if (FINAL_BOSS.matchesAdded && FINAL_BOSS.matchesAdded[mid]) {
+    console.log('[FINAL BOSS] Match ' + mid + ' already added, skipping.');
+    return;
+  }
+
+  // Get the match leaderboard
+  const lbSnap = await db.ref('leaderboard/' + mid).once('value');
+  const matchLb = lbSnap.val() || {};
+
+  // Build updated cumulative totals
+  const currentUsers = FINAL_BOSS.users || {};
+  const updatedUsers = {};
+  const matchPoints = {};
+  Object.keys(USERS).forEach(uid => {
+    const existing = (currentUsers[uid] && currentUsers[uid].total) || 0;
+    const matchPts = (matchLb[uid] && matchLb[uid].total) || 0;
+    updatedUsers[uid] = { total: Math.round((existing + matchPts) * 10) / 10 };
+    matchPoints[uid] = matchPts;
+  });
+
+  // Build match log entry
+  const logEntry = {
+    mid: mid,
+    num: mConfig.num,
+    team1: mConfig.team1,
+    team2: mConfig.team2,
+    points: matchPoints,
+    addedAt: new Date().toISOString(),
+  };
+  const matchLog = FINAL_BOSS.matchLog || [];
+  matchLog.push(logEntry);
+
+  // Save to Firebase atomically
+  await db.ref('final_boss').set({
+    users: updatedUsers,
+    matchesAdded: { ...FINAL_BOSS.matchesAdded, [mid]: true },
+    lastMatch: { num: mConfig.num, team1: mConfig.team1, team2: mConfig.team2 },
+    matchLog: matchLog,
+  });
+
+  console.log('[FINAL BOSS] Added Match ' + mConfig.num + ' (' + mConfig.team1 + ' vs ' + mConfig.team2 + ') to cumulative leaderboard.');
+}
+
 function recalcLeaderboard() {
   // Leaderboard is recalculated on render from live data
   // Just trigger a re-render and save
@@ -2411,6 +2557,11 @@ async function fetchESPNScores() {
     await db.ref('matches/' + activeMatchId + '/playerScores').set(scores);
     await recalcLeaderboard();
     renderAdminScoring();
+
+    // ── Step 7: Add to FINAL BOSS if match completed ──
+    if (espnMatchState === 'post' || matchStatus.toLowerCase().includes('complete') || matchStatus.toLowerCase().includes('result')) {
+      await addMatchToFinalBoss(activeMatchId);
+    }
 
     const xiCount = Object.values(scores).filter(s => s.inPlayingXI).length;
     const summary = `✅ Playing XI: ${xiCount}, Batting: ${battingFound}, Bowling: ${bowlingFound}, Impact Subs: ${impactSubsFound}`;
