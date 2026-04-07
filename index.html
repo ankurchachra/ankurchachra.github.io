@@ -586,6 +586,11 @@
         <button class="btn btn-gold" onclick="addMatchToFinalBoss().then(()=>showToast('Match added to FINAL BOSS!','success')).catch(e=>showToast(e.message,'error'))">🏆 Add This Match to FINAL BOSS</button>
         <button class="btn btn-accent" onclick="if(confirm('Reset the entire FINAL BOSS cumulative leaderboard?')){db.ref('final_boss').set({users:{},matchesAdded:{},lastMatch:null,matchLog:[]});showToast('FINAL BOSS reset!','success')}">Reset FINAL BOSS</button>
       </div>
+      <div style="margin-top:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+        <label style="color:#aaa;font-size:0.85em">Backfill past match:</label>
+        <input type="number" id="backfill-match-num" placeholder="Match #" min="1" max="70" style="width:80px;padding:6px 10px;border-radius:6px;border:1px solid #2a3a4a;background:var(--secondary);color:var(--light);font-size:0.9em;text-align:center"/>
+        <button class="btn btn-green btn-sm" onclick="const n=document.getElementById('backfill-match-num').value;if(n)backfillMatchToFinalBoss(parseInt(n))">🔄 Backfill Match</button>
+      </div>
     </div>
 
     <div class="admin-section">
@@ -835,6 +840,9 @@ function getTodayIST() {
   // Convert to IST (UTC+5:30)
   const istOffset = 5.5 * 60 * 60 * 1000;
   const istDate = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + istOffset);
+  // Shift by -2 hours so the "fantasy day" rolls over at 2 AM IST instead of midnight
+  // This prevents rain-delayed matches from vanishing at midnight
+  istDate.setHours(istDate.getHours() - 2);
   const y = istDate.getFullYear();
   const m = String(istDate.getMonth() + 1).padStart(2, '0');
   const d = String(istDate.getDate()).padStart(2, '0');
@@ -2094,6 +2102,63 @@ async function addMatchToFinalBoss(matchId) {
   });
 
   console.log('[FINAL BOSS] Added Match ' + mConfig.num + ' (' + mConfig.team1 + ' vs ' + mConfig.team2 + ') to cumulative leaderboard.');
+}
+
+async function backfillMatchToFinalBoss(matchNum) {
+  // Backfill ANY past match by number — reads directly from Firebase, not from in-memory MATCHES
+  const mid = 'match_' + matchNum;
+
+  // Check if already added
+  if (FINAL_BOSS.matchesAdded && FINAL_BOSS.matchesAdded[mid]) {
+    showToast('Match ' + matchNum + ' already in FINAL BOSS!', 'error');
+    return;
+  }
+
+  // Read match info from Firebase
+  const matchSnap = await db.ref('matches/' + mid).once('value');
+  const matchData = matchSnap.val();
+  if (!matchData) {
+    showToast('Match ' + matchNum + ' not found in Firebase!', 'error');
+    return;
+  }
+
+  // Read leaderboard from Firebase
+  const lbSnap = await db.ref('leaderboard/' + mid).once('value');
+  const matchLb = lbSnap.val() || {};
+
+  // Build updated cumulative totals
+  const currentUsers = FINAL_BOSS.users || {};
+  const updatedUsers = {};
+  const matchPoints = {};
+  Object.keys(USERS).forEach(uid => {
+    const existing = (currentUsers[uid] && currentUsers[uid].total) || 0;
+    const matchPts = (matchLb[uid] && matchLb[uid].total) || 0;
+    updatedUsers[uid] = { total: Math.round((existing + matchPts) * 10) / 10 };
+    matchPoints[uid] = matchPts;
+  });
+
+  const team1 = matchData.team1 || '??';
+  const team2 = matchData.team2 || '??';
+  const num = matchData.num || matchNum;
+
+  // Build match log entry
+  const logEntry = {
+    mid: mid, num: num, team1: team1, team2: team2,
+    points: matchPoints,
+    addedAt: new Date().toISOString(),
+  };
+  const matchLog = FINAL_BOSS.matchLog || [];
+  matchLog.push(logEntry);
+
+  // Save to Firebase
+  await db.ref('final_boss').set({
+    users: updatedUsers,
+    matchesAdded: { ...FINAL_BOSS.matchesAdded, [mid]: true },
+    lastMatch: { num: num, team1: team1, team2: team2 },
+    matchLog: matchLog,
+  });
+
+  showToast('Match ' + num + ' (' + team1 + ' vs ' + team2 + ') added to FINAL BOSS!', 'success');
 }
 
 function recalcLeaderboard() {
