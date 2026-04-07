@@ -587,9 +587,10 @@
         <button class="btn btn-accent" onclick="if(confirm('Reset the entire FINAL BOSS cumulative leaderboard?')){db.ref('final_boss').set({users:{},matchesAdded:{},lastMatch:null,matchLog:[]});showToast('FINAL BOSS reset!','success')}">Reset FINAL BOSS</button>
       </div>
       <div style="margin-top:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-        <label style="color:#aaa;font-size:0.85em">Backfill past match:</label>
+        <label style="color:#aaa;font-size:0.85em">Past match #:</label>
         <input type="number" id="backfill-match-num" placeholder="Match #" min="1" max="70" style="width:80px;padding:6px 10px;border-radius:6px;border:1px solid #2a3a4a;background:var(--secondary);color:var(--light);font-size:0.9em;text-align:center"/>
-        <button class="btn btn-green btn-sm" onclick="const n=document.getElementById('backfill-match-num').value;if(n)backfillMatchToFinalBoss(parseInt(n))">🔄 Backfill Match</button>
+        <button class="btn btn-gold btn-sm" onclick="const n=document.getElementById('backfill-match-num').value;if(n)refetchPastMatch(parseInt(n))">📡 Re-fetch from ESPN</button>
+        <button class="btn btn-green btn-sm" onclick="const n=document.getElementById('backfill-match-num').value;if(n)backfillMatchToFinalBoss(parseInt(n))">🏆 Add to FINAL BOSS</button>
       </div>
     </div>
 
@@ -2159,6 +2160,102 @@ async function backfillMatchToFinalBoss(matchNum) {
   });
 
   showToast('Match ' + num + ' (' + team1 + ' vs ' + team2 + ') added to FINAL BOSS!', 'success');
+}
+
+// Re-fetch a past match from ESPN and overwrite Firebase data
+async function refetchPastMatch(matchNum) {
+  // Find the match in FULL_SCHEDULE
+  const scheduleEntry = FULL_SCHEDULE.find(m => m[0] === matchNum);
+  if (!scheduleEntry) {
+    showToast('Match ' + matchNum + ' not found in schedule!', 'error');
+    return;
+  }
+
+  const mid = 'match_' + matchNum;
+  const [num, date, time, t1, t2, venue, espnId] = scheduleEntry;
+
+  espnLog('🔄 Re-fetching Match ' + matchNum + ' (' + t1 + ' vs ' + t2 + ') from ESPN...');
+
+  // Save current state
+  const savedActiveMatchId = activeMatchId;
+  const hadMatch = mid in MATCHES;
+  const savedMatchConfig = hadMatch ? MATCHES[mid] : null;
+  const hadData = mid in DATA;
+  const savedData = hadData ? DATA[mid] : null;
+
+  try {
+    // Build temporary match config
+    MATCHES[mid] = {
+      id: mid, num: num, team1: t1, team2: t2,
+      matchTime: date + 'T' + time + ':00+05:30',
+      lockTime: date + 'T' + time + ':00+05:30',
+      venue: venue,
+      espnMatchId: espnId,
+      squad1: SQUADS[t1],
+      squad2: SQUADS[t2],
+    };
+    MATCHES[mid].allPlayers = [...MATCHES[mid].squad1, ...MATCHES[mid].squad2];
+    MATCHES[mid].playerMap = {};
+    MATCHES[mid].allPlayers.forEach(p => { MATCHES[mid].playerMap[p.id] = p; });
+
+    // Set up DATA entry — load existing teams from Firebase so leaderboard calc works
+    DATA[mid] = { match: null, teams: {}, leaderboard: {} };
+
+    // Load existing match data from Firebase
+    const matchSnap = await db.ref('matches/' + mid).once('value');
+    if (matchSnap.exists()) {
+      DATA[mid].match = matchSnap.val();
+    } else {
+      // Seed default match data
+      const players = {};
+      MATCHES[mid].allPlayers.forEach(p => {
+        players[p.id] = { id: p.id, name: p.name, team: p.team, role: p.role, credits: p.credits };
+      });
+      DATA[mid].match = {
+        id: mid, num: num, team1: t1, team2: t2,
+        venue: venue, time: MATCHES[mid].matchTime,
+        status: 'upcoming', result: '', players: players, playerScores: {},
+      };
+      await db.ref('matches/' + mid).set(DATA[mid].match);
+    }
+
+    // Load teams for this match from Firebase
+    const teamsSnap = await db.ref('teams').once('value');
+    if (teamsSnap.exists()) {
+      const allTeams = teamsSnap.val();
+      Object.keys(allTeams).forEach(key => {
+        if (key.endsWith('_' + mid)) {
+          DATA[mid].teams[key] = allTeams[key];
+        }
+      });
+    }
+
+    // Switch active match
+    activeMatchId = mid;
+
+    // Call fetchESPNScores — it uses activeMatchId, M(), DATA[activeMatchId], getESPNMatchId()
+    await fetchESPNScores();
+
+    espnLog('✅ Match ' + matchNum + ' re-fetched and saved to Firebase!');
+    showToast('Match ' + matchNum + ' (' + t1 + ' vs ' + t2 + ') re-fetched from ESPN!', 'success');
+
+  } catch (err) {
+    espnLog('❌ Re-fetch error: ' + err.message);
+    showToast('Error re-fetching match ' + matchNum + ': ' + err.message, 'error');
+  } finally {
+    // Restore original state
+    activeMatchId = savedActiveMatchId;
+    if (!hadMatch) {
+      delete MATCHES[mid];
+    } else {
+      MATCHES[mid] = savedMatchConfig;
+    }
+    if (!hadData) {
+      delete DATA[mid];
+    } else {
+      DATA[mid] = savedData;
+    }
+  }
 }
 
 function recalcLeaderboard() {
