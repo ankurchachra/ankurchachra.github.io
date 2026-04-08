@@ -2717,6 +2717,13 @@ async function fetchESPNScores() {
     }
 
     // ── Step 6: Save to Firebase & recalculate ──
+    // Guard: Don't overwrite Firebase if ESPN returned no useful data (API stuck at "pre")
+    const xiCount = Object.values(scores).filter(s => s.inPlayingXI).length;
+    if (xiCount === 0 && espnMatchState === 'pre') {
+      espnLog('⚠️ ESPN API returned no data (state: pre). Skipping save to protect manual entries.');
+      if (statusEl) { statusEl.textContent = '⚠️ ESPN API stuck at "pre" — manual scores preserved. (Last: ' + new Date().toLocaleTimeString('en-IN') + ')'; statusEl.style.color = 'orange'; }
+      return;
+    }
     await db.ref('matches/' + activeMatchId + '/playerScores').set(scores);
     await recalcLeaderboard();
     renderAdminScoring();
@@ -2726,7 +2733,6 @@ async function fetchESPNScores() {
       await addMatchToFinalBoss(activeMatchId);
     }
 
-    const xiCount = Object.values(scores).filter(s => s.inPlayingXI).length;
     const summary = `✅ Playing XI: ${xiCount}, Batting: ${battingFound}, Bowling: ${bowlingFound}, Impact Subs: ${impactSubsFound}`;
     espnLog(summary);
     if (unmatchedBat.length) espnLog('⚠️ Unmatched batters: ' + unmatchedBat.join(', '));
@@ -2891,3 +2897,4 @@ window.onload = function() {
 </footer>
 </body>
 </html>
+
