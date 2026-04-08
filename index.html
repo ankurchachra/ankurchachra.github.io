@@ -2296,8 +2296,9 @@ function recalcLeaderboard() {
 function getESPNMatchId() {
   const urlInput = document.getElementById('espn-url-input');
   if (urlInput && urlInput.value.trim()) {
-    const match = urlInput.value.match(/(\d{7})/);
-    if (match) return match[1];
+    // Grab the LAST 7-digit number in the URL (match ID, not series ID)
+    const allMatches = urlInput.value.match(/\d{7}/g);
+    if (allMatches && allMatches.length > 0) return allMatches[allMatches.length - 1];
   }
   return M().espnMatchId;
 }
@@ -2400,7 +2401,7 @@ async function fetchESPNScores() {
     const competition = data.header?.competitions?.[0];
     const matchStatus = competition?.status?.type?.description || 'Unknown';
     const espnMatchState = competition?.status?.type?.state || '';
-    espnLog('Match status: ' + matchStatus + ' (state: ' + matchState + ')');
+    espnLog('Match status: ' + matchStatus + ' (state: ' + espnMatchState + ')');
 
     // Build a scores object — MERGE with existing Firebase data so we don't lose manual edits
     const existingScores = DATA[activeMatchId].match?.playerScores || {};
