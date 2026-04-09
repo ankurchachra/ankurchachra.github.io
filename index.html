@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fantasy Cricket League - IPL 2026</title>
+  <title>Jugaadu Dream11 - IPL 2026</title>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -1845,7 +1845,14 @@ function renderLeaderboard() {
           </tr>
         `;
       } else if (entry.team && entry.team.locked && entry.team.players) {
-        const playerRows = entry.team.players.map(pid => {
+        // Sort players by team name, then player name
+        const sortedPids = [...entry.team.players].sort((a, b) => {
+          const pa = M().playerMap[a], pb = M().playerMap[b];
+          if (!pa || !pb) return 0;
+          if (pa.team !== pb.team) return pa.team.localeCompare(pb.team);
+          return pa.name.localeCompare(pb.name);
+        });
+        const playerRows = sortedPids.map(pid => {
           const p = M().playerMap[pid];
           if (!p) return '';
           const stats = playerScores[pid] || {};
@@ -2897,4 +2904,3 @@ window.onload = function() {
 </footer>
 </body>
 </html>
-
