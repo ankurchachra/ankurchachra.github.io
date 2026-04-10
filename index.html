@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Jugaadu Dream11 - IPL 2026</title>
+  <title>Fantasy Cricket League - IPL 2026</title>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -1265,8 +1265,14 @@ function startCountdown() {
 }
 
 function isLockExpired(matchId) {
-  const m = MATCHES[matchId || activeMatchId];
-  return new Date() >= new Date(m.lockTime);
+  const mid = matchId || activeMatchId;
+  const m = MATCHES[mid];
+  const pastLockTime = new Date() >= new Date(m.lockTime);
+  // Also require match to be live/completed in Firebase (handles rain delays automatically)
+  const matchData = DATA[mid] && DATA[mid].match;
+  const matchStatus = (matchData && matchData.status) || 'upcoming';
+  const matchStarted = matchStatus === 'live' || matchStatus === 'completed';
+  return pastLockTime && matchStarted;
 }
 
 // ============ MATCH CARD (Tab 1) ============
