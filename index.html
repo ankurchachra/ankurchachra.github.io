@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fantasy Cricket League - IPL 2026</title>
+  <title>Jugaadu Dream11 - IPL 2026</title>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -1245,8 +1245,13 @@ function startCountdown() {
     const cdEl = document.getElementById('lock-countdown');
     const cdMatchEl = document.getElementById('match-countdown');
     if (diff <= 0) {
-      if (cdEl) cdEl.innerHTML = '<span class="countdown">Team selection is LOCKED!</span>';
-      if (cdMatchEl) cdMatchEl.innerHTML = '<span class="countdown">Lineups locked!</span>';
+      if (isLockExpired()) {
+        if (cdEl) cdEl.innerHTML = '<span class="countdown">Team selection is LOCKED!</span>';
+        if (cdMatchEl) cdMatchEl.innerHTML = '<span class="countdown">Lineups locked!</span>';
+      } else {
+        if (cdEl) cdEl.innerHTML = '<span class="countdown" style="color:var(--gold)">Waiting for match to start...</span>';
+        if (cdMatchEl) cdMatchEl.innerHTML = '<span class="countdown" style="color:var(--gold)">Waiting for match to start...</span>';
+      }
       return;
     }
     const d = Math.floor(diff / 86400000);
