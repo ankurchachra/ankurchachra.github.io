@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Jugaadu Dream11</title>
+  <title>Jugaadu Dream11 Aliter</title>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -591,6 +591,7 @@
         <input type="number" id="backfill-match-num" placeholder="Match #" min="1" max="70" style="width:80px;padding:6px 10px;border-radius:6px;border:1px solid #2a3a4a;background:var(--secondary);color:var(--light);font-size:0.9em;text-align:center"/>
         <button class="btn btn-gold btn-sm" onclick="const n=document.getElementById('backfill-match-num').value;if(n)refetchPastMatch(parseInt(n))">📡 Re-fetch from ESPN</button>
         <button class="btn btn-green btn-sm" onclick="const n=document.getElementById('backfill-match-num').value;if(n)backfillMatchToFinalBoss(parseInt(n))">🏆 Add to FINAL BOSS</button>
+        <button class="btn btn-accent btn-sm" onclick="const n=document.getElementById('backfill-match-num').value;if(n)removeMatchFromFinalBoss(parseInt(n))">🗑 Remove from FINAL BOSS</button>
       </div>
     </div>
 
@@ -2125,6 +2126,51 @@ async function addMatchToFinalBoss(matchId) {
   console.log('[FINAL BOSS] Added Match ' + mConfig.num + ' (' + mConfig.team1 + ' vs ' + mConfig.team2 + ') to cumulative leaderboard.');
 }
 
+async function removeMatchFromFinalBoss(matchNum) {
+  const mid = 'match_' + matchNum;
+
+  if (!FINAL_BOSS.matchesAdded || !FINAL_BOSS.matchesAdded[mid]) {
+    showToast('Match ' + matchNum + ' is not in FINAL BOSS.', 'error');
+    return;
+  }
+
+  // Find the match log entry to get the points that were added
+  const matchLog = FINAL_BOSS.matchLog || [];
+  const logEntry = matchLog.find(e => e.mid === mid);
+  if (!logEntry) {
+    showToast('Match ' + matchNum + ' log entry not found!', 'error');
+    return;
+  }
+
+  // Subtract points from cumulative totals
+  const currentUsers = FINAL_BOSS.users || {};
+  const updatedUsers = {};
+  Object.keys(USERS).forEach(uid => {
+    const existing = (currentUsers[uid] && currentUsers[uid].total) || 0;
+    const matchPts = (logEntry.points && logEntry.points[uid]) || 0;
+    updatedUsers[uid] = { total: Math.round((existing - matchPts) * 10) / 10 };
+  });
+
+  // Remove from matchLog
+  const updatedLog = matchLog.filter(e => e.mid !== mid);
+
+  // Remove from matchesAdded
+  const updatedMatchesAdded = { ...FINAL_BOSS.matchesAdded };
+  delete updatedMatchesAdded[mid];
+
+  // Find last match from remaining log
+  const lastEntry = updatedLog.length > 0 ? updatedLog[updatedLog.length - 1] : null;
+
+  await db.ref('final_boss').set({
+    users: updatedUsers,
+    matchesAdded: updatedMatchesAdded,
+    lastMatch: lastEntry ? { num: lastEntry.num, team1: lastEntry.team1, team2: lastEntry.team2 } : null,
+    matchLog: updatedLog,
+  });
+
+  showToast('Match ' + matchNum + ' removed from FINAL BOSS!', 'success');
+}
+
 async function backfillMatchToFinalBoss(matchNum) {
   // Backfill ANY past match by number — reads directly from Firebase, not from in-memory MATCHES
   const mid = 'match_' + matchNum;
@@ -2749,7 +2795,8 @@ async function fetchESPNScores() {
     renderAdminScoring();
 
     // ── Step 7: Add to FINAL BOSS if match completed ──
-    if (espnMatchState === 'post' || matchStatus.toLowerCase().includes('complete') || matchStatus.toLowerCase().includes('result')) {
+    // Only trigger when ESPN definitively says the match is over (state: "post")
+    if (espnMatchState === 'post') {
       await addMatchToFinalBoss(activeMatchId);
     }
 
