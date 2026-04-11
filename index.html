@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Jugaadu Dream11 - IPL 2026</title>
+  <title>Jugaadu Dream11</title>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -419,7 +419,7 @@
   <div class="page" id="page-leaderboard">
     <h2 id="heading-leaderboard" style="margin-bottom:20px"></h2>
     <table class="leaderboard-table">
-      <thead><tr><th>#</th><th>Player</th><th>Points</th><th>Team Locked</th></tr></thead>
+      <thead><tr><th>#</th><th>Player</th><th>Points</th><th>Team Locked</th><th>Locked At</th></tr></thead>
       <tbody id="lb-body"></tbody>
     </table>
   </div>
@@ -1825,7 +1825,8 @@ function renderLeaderboard() {
     }
 
     totalPoints = Math.round(totalPoints * 10) / 10;
-    return { uid, name: USERS[uid].name, points: totalPoints, isLocked, team };
+    const lockedAt = (team && team.lockedAt) ? new Date(team.lockedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) : '';
+    return { uid, name: USERS[uid].name, points: totalPoints, isLocked, lockedAt, team };
   });
 
   // Sort by points desc
@@ -1848,7 +1849,7 @@ function renderLeaderboard() {
       if (!isCurrentUser && !isLockExpired()) {
         expandedHtml = `
           <tr class="expanded-team-row">
-            <td colspan="4">
+            <td colspan="5">
               <div class="expanded-team-detail" style="text-align:center;padding:20px;font-size:1.1em;color:var(--gold)">
                 Focus on your own team please :P
               </div>
@@ -1885,7 +1886,7 @@ function renderLeaderboard() {
 
         expandedHtml = `
           <tr class="expanded-team-row">
-            <td colspan="4">
+            <td colspan="5">
               <div class="expanded-team-detail">
                 <table>
                   <thead><tr><th>Player</th><th>Team</th><th>Role</th><th style="text-align:right">Base</th><th style="text-align:right">Multi</th><th style="text-align:right">Points</th></tr></thead>
@@ -1904,6 +1905,7 @@ function renderLeaderboard() {
         <td style="font-weight:${isCurrentUser ? '700' : '400'}">${entry.name}${isCurrentUser ? ' (You)' : ''} ${isExpanded ? '\u25B2' : '\u25BC'}</td>
         <td class="points-cell">${entry.points}</td>
         <td>${entry.isLocked ? '<span style="color:var(--green)">Yes</span>' : '<span style="color:#888">No</span>'}</td>
+        <td style="font-size:0.8em;color:#aaa">${entry.lockedAt || '—'}</td>
       </tr>
       ${expandedHtml}
     `;
