@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fantasy Cricket League - IPL 2026</title>
+  <title>Jugaadu Dream11</title>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -2580,11 +2580,17 @@ async function fetchESPNScores() {
 
         const s = scores[player.id];
 
-        // Flatten nested linescores — ESPN nests as entry.linescores[].linescores[]
+        // Handle ESPN's nested linescores — some matches nest as entry.linescores[].linescores[]
+        // Only process the deepest level to avoid double-counting
         const allLs = [];
         (entry.linescores || []).forEach(ls => {
-          allLs.push(ls);
-          (ls.linescores || []).forEach(nested => allLs.push(nested));
+          if (ls.linescores && ls.linescores.length > 0) {
+            // Has nested linescores — use those (they have the actual stats)
+            ls.linescores.forEach(nested => allLs.push(nested));
+          } else {
+            // No nesting — use top-level directly
+            allLs.push(ls);
+          }
         });
 
         allLs.forEach(ls => {
@@ -2651,34 +2657,8 @@ async function fetchESPNScores() {
                 }
               }
 
-              // Credit FIELDERS for catches
-              if (dType === 'c' || dType === 'caught') {
-                const fielders = outDetails.fielders || [];
-                fielders.forEach(f => {
-                  const fAth = f.athlete || f;
-                  const fName = fAth.displayName || fAth.shortName || '';
-                  const fPlayer = matchPlayerName(fName, M().allPlayers);
-                  if (fPlayer) {
-                    scores[fPlayer.id].catches = (scores[fPlayer.id].catches || 0) + 1;
-                    catchesFound++;
-                    espnLog('  🧤 Catch: ' + fName + ' caught ' + displayName);
-                  }
-                });
-              }
-
-              // Credit for stumpings
-              if (dType === 'st' || dType === 'stumped') {
-                const fielders = outDetails.fielders || [];
-                fielders.forEach(f => {
-                  const fAth = f.athlete || f;
-                  const fName = fAth.displayName || fAth.shortName || '';
-                  const fPlayer = matchPlayerName(fName, M().allPlayers);
-                  if (fPlayer) {
-                    scores[fPlayer.id].stumpings = (scores[fPlayer.id].stumpings || 0) + 1;
-                    espnLog('  🧤 Stumping: ' + fName + ' stumped ' + displayName);
-                  }
-                });
-              }
+              // Catches & stumpings are handled by direct fielding stats below (more reliable)
+              // Only use outDetails for run outs and lbw/bowled (no direct stat equivalent)
 
               // Credit for run outs
               if (dType === 'run out' || dType === 'runout') {
