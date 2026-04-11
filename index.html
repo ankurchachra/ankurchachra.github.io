@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Jugaadu Dream11 Aliter</title>
+  <title>Fantasy Cricket League - IPL 2026</title>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -2154,9 +2154,8 @@ async function removeMatchFromFinalBoss(matchNum) {
   // Remove from matchLog
   const updatedLog = matchLog.filter(e => e.mid !== mid);
 
-  // Remove from matchesAdded
-  const updatedMatchesAdded = { ...FINAL_BOSS.matchesAdded };
-  delete updatedMatchesAdded[mid];
+  // Keep matchesAdded flag as 'removed' — blocks auto re-add but allows manual re-add
+  const updatedMatchesAdded = { ...FINAL_BOSS.matchesAdded, [mid]: 'removed' };
 
   // Find last match from remaining log
   const lastEntry = updatedLog.length > 0 ? updatedLog[updatedLog.length - 1] : null;
@@ -2168,15 +2167,15 @@ async function removeMatchFromFinalBoss(matchNum) {
     matchLog: updatedLog,
   });
 
-  showToast('Match ' + matchNum + ' removed from FINAL BOSS!', 'success');
+  showToast('Match ' + matchNum + ' removed from FINAL BOSS! Use "Add to FINAL BOSS" to re-add with correct scores.', 'success');
 }
 
 async function backfillMatchToFinalBoss(matchNum) {
   // Backfill ANY past match by number — reads directly from Firebase, not from in-memory MATCHES
   const mid = 'match_' + matchNum;
 
-  // Check if already added
-  if (FINAL_BOSS.matchesAdded && FINAL_BOSS.matchesAdded[mid]) {
+  // Check if already added (allow re-add if previously removed)
+  if (FINAL_BOSS.matchesAdded && FINAL_BOSS.matchesAdded[mid] === true) {
     showToast('Match ' + matchNum + ' already in FINAL BOSS!', 'error');
     return;
   }
@@ -2580,9 +2579,15 @@ async function fetchESPNScores() {
         if (!player) return;
 
         const s = scores[player.id];
-        const linescores = entry.linescores || [];
 
-        linescores.forEach(ls => {
+        // Flatten nested linescores — ESPN nests as entry.linescores[].linescores[]
+        const allLs = [];
+        (entry.linescores || []).forEach(ls => {
+          allLs.push(ls);
+          (ls.linescores || []).forEach(nested => allLs.push(nested));
+        });
+
+        allLs.forEach(ls => {
           const stats = ls.statistics?.categories?.[0]?.stats || [];
 
           // Build a lookup: statName → value
@@ -2723,6 +2728,23 @@ async function fetchESPNScores() {
               bowlingFound++;
               espnLog('  Bowl: ' + displayName + ' → ' + overs + '-' + maidens + '-' + conceded + '-' + wickets + ' (0s:' + dots + ')');
             }
+          }
+
+          // ── Fielding stats (catches, stumpings from fielder's own stats) ──
+          const hasFieldingStats = 'caught' in statMap || 'fielded' in statMap;
+          if (hasFieldingStats) {
+            const catches = statMap['caught'] || 0;
+            const stumpings = statMap['stumped'] || 0;
+            if (catches > 0) {
+              s.catches = (s.catches || 0) + catches;
+              catchesFound += catches;
+              espnLog('  🧤 Fielding stat: ' + displayName + ' — ' + catches + ' catch(es)');
+            }
+            if (stumpings > 0) {
+              s.stumpings = (s.stumpings || 0) + stumpings;
+              espnLog('  🧤 Fielding stat: ' + displayName + ' — ' + stumpings + ' stumping(s)');
+            }
+            if (catches > 0 || stumpings > 0) s.inPlayingXI = true;
           }
         });
       });
