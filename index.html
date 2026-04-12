@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Jugaadu Dream11</title>
+  <title>IPL 2026 - Jugaadu Dream11</title>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -327,8 +327,8 @@
 <!-- LOGIN PAGE -->
 <div id="login-page" style="display:none">
   <div class="login-box">
-    <h2>Fantasy Cricket</h2>
-    <p>IPL 2026 - Private League<span class="sync-badge">Live Sync</span></p>
+    <h2>Jugaadu Dream11</h2>
+    <p>IPL 2026<span class="sync-badge">Live Sync</span></p>
     <div class="form-group">
       <label>Select Player</label>
       <select id="login-user">
@@ -2242,7 +2242,6 @@ async function refetchPastMatch(matchNum) {
   espnLog('🔄 Re-fetching Match ' + matchNum + ' (' + t1 + ' vs ' + t2 + ') from ESPN...');
 
   // Save current state
-  const savedActiveMatchId = activeMatchId;
   const hadMatch = mid in MATCHES;
   const savedMatchConfig = hadMatch ? MATCHES[mid] : null;
   const hadData = mid in DATA;
@@ -2295,11 +2294,8 @@ async function refetchPastMatch(matchNum) {
       });
     }
 
-    // Switch active match
-    activeMatchId = mid;
-
-    // Call fetchESPNScores — it uses activeMatchId, M(), DATA[activeMatchId], getESPNMatchId()
-    await fetchESPNScores();
+    // Call fetchESPNScores with explicit matchId — no need to swap global activeMatchId
+    await fetchESPNScores(mid, { forceRefetch: true });
 
     espnLog('✅ Match ' + matchNum + ' re-fetched and saved to Firebase!');
     showToast('Match ' + matchNum + ' (' + t1 + ' vs ' + t2 + ') re-fetched from ESPN!', 'success');
@@ -2309,7 +2305,6 @@ async function refetchPastMatch(matchNum) {
     showToast('Error re-fetching match ' + matchNum + ': ' + err.message, 'error');
   } finally {
     // Restore original state
-    activeMatchId = savedActiveMatchId;
     if (!hadMatch) {
       delete MATCHES[mid];
     } else {
@@ -2323,22 +2318,24 @@ async function refetchPastMatch(matchNum) {
   }
 }
 
-function recalcLeaderboard() {
+function recalcLeaderboard(matchId) {
   // Leaderboard is recalculated on render from live data
   // Just trigger a re-render and save
-  const match = DATA[activeMatchId].match;
+  const mid = matchId || activeMatchId;
+  const mConfig = MATCHES[mid];
+  const match = DATA[mid].match;
   if (!match) return;
   const playerScores = match.playerScores || {};
   const lbUpdate = {};
 
   Object.keys(USERS).forEach(uid => {
-    const teamKey = uid + '_' + activeMatchId;
-    const team = DATA[activeMatchId].teams[teamKey];
+    const teamKey = uid + '_' + mid;
+    const team = DATA[mid].teams[teamKey];
     let totalPoints = 0;
 
     if (team && team.locked && team.players) {
       team.players.forEach(pid => {
-        const p = M().playerMap[pid];
+        const p = mConfig.playerMap[pid];
         if (!p) return;
         const stats = playerScores[pid] || {};
         const basePoints = calcFantasyPoints(stats, p.role);
@@ -2352,24 +2349,25 @@ function recalcLeaderboard() {
     lbUpdate[uid] = { total: Math.round(totalPoints * 10) / 10 };
   });
 
-  db.ref('leaderboard/' + activeMatchId).set(lbUpdate).then(() => {
+  db.ref('leaderboard/' + mid).set(lbUpdate).then(() => {
     showToast('Leaderboard recalculated!', 'success');
   });
 }
 
 // ============ ESPN LIVE SCORE FETCH ============
-function getESPNMatchId() {
+function getESPNMatchId(matchId) {
   const urlInput = document.getElementById('espn-url-input');
   if (urlInput && urlInput.value.trim()) {
     // Grab the LAST 7-digit number in the URL (match ID, not series ID)
     const allMatches = urlInput.value.match(/\d{7}/g);
     if (allMatches && allMatches.length > 0) return allMatches[allMatches.length - 1];
   }
-  return M().espnMatchId;
+  const mid = matchId || activeMatchId;
+  return MATCHES[mid].espnMatchId;
 }
 
-function getESPNApiUrl() {
-  return `https://site.api.espn.com/apis/site/v2/sports/cricket/8048/summary?event=${getESPNMatchId()}`;
+function getESPNApiUrl(matchId) {
+  return `https://site.api.espn.com/apis/site/v2/sports/cricket/8048/summary?event=${getESPNMatchId(matchId)}`;
 }
 // autoPollInterval replaced by matchPollIntervals (per-match)
 
@@ -2446,15 +2444,25 @@ function espnLog(msg) {
   }
 }
 
-async function fetchESPNScores() {
+async function fetchESPNScores(matchId, { forceRefetch = false } = {}) {
+  const mid = matchId || activeMatchId;
+  const mConfig = MATCHES[mid];
   const statusEl = document.getElementById('espn-status');
   const fetchBtn = document.getElementById('espn-fetch-btn');
+
+  // Guard: Skip fetch entirely for completed matches (unless force-refetching)
+  const existingStatus = DATA[mid]?.match?.status;
+  if (existingStatus === 'completed' && !forceRefetch) {
+    espnLog('⏭ Match already completed (' + mConfig.team1 + ' vs ' + mConfig.team2 + '). Skipping fetch.');
+    if (statusEl) { statusEl.textContent = '✅ Match completed — no further updates.'; statusEl.style.color = 'var(--green)'; }
+    return;
+  }
 
   try {
     if (fetchBtn) { fetchBtn.disabled = true; fetchBtn.textContent = '⏳ Fetching...'; }
     if (statusEl) statusEl.textContent = 'Fetching from ESPN...';
-    const apiUrl = getESPNApiUrl();
-    espnLog('Fetching from ESPN (ID: ' + getESPNMatchId() + ')...');
+    const apiUrl = getESPNApiUrl(mid);
+    espnLog('Fetching from ESPN (ID: ' + getESPNMatchId(mid) + ') for ' + mConfig.team1 + ' vs ' + mConfig.team2 + '...');
 
     const res = await fetch(apiUrl);
     if (!res.ok) throw new Error('ESPN API returned ' + res.status);
@@ -2469,12 +2477,12 @@ async function fetchESPNScores() {
     espnLog('Match status: ' + matchStatus + ' (state: ' + espnMatchState + ')');
 
     // Build a scores object — MERGE with existing Firebase data so we don't lose manual edits
-    const existingScores = DATA[activeMatchId].match?.playerScores || {};
+    const existingScores = DATA[mid].match?.playerScores || {};
     const scores = {};
 
     // Initialize all players with FRESH defaults — ESPN is source of truth for everything now
     // Catches, stumpings, runouts, lbw/bowled are parsed from ESPN dismissal data
-    M().allPlayers.forEach(p => {
+    mConfig.allPlayers.forEach(p => {
       scores[p.id] = {
         runs: 0, balls: 0, fours: 0, sixes: 0,
         wickets: 0, dots: 0, maidens: 0,
@@ -2496,7 +2504,7 @@ async function fetchESPNScores() {
         const athlete = entry.athlete;
         if (!athlete) return;
         const displayName = athlete.displayName || athlete.shortName || '';
-        const player = matchPlayerName(displayName, M().allPlayers);
+        const player = matchPlayerName(displayName, mConfig.allPlayers);
         if (player && scores[player.id]) {
           scores[player.id].inPlayingXI = true;
           playingXIFound++;
@@ -2521,7 +2529,7 @@ async function fetchESPNScores() {
           (p.batsmen || []).forEach(b => {
             const ath = b.athlete || {};
             const displayName = ath.displayName || ath.shortName || '';
-            const player = matchPlayerName(displayName, M().allPlayers);
+            const player = matchPlayerName(displayName, mConfig.allPlayers);
             if (player && scores[player.id]) {
               // Aggregate runs/balls across partnerships for this batsman
               if (!batAggregated[player.id]) batAggregated[player.id] = { runs: 0, balls: 0 };
@@ -2539,7 +2547,7 @@ async function fetchESPNScores() {
           const ath = f.athlete || {};
           const displayName = ath.displayName || ath.shortName || '';
           if (!displayName) return;
-          const player = matchPlayerName(displayName, M().allPlayers);
+          const player = matchPlayerName(displayName, mConfig.allPlayers);
           if (player && scores[player.id]) {
             scores[player.id].didBat = true;
             scores[player.id].inPlayingXI = true;
@@ -2575,7 +2583,7 @@ async function fetchESPNScores() {
         const athlete = entry.athlete;
         if (!athlete) return;
         const displayName = athlete.displayName || athlete.shortName || '';
-        const player = matchPlayerName(displayName, M().allPlayers);
+        const player = matchPlayerName(displayName, mConfig.allPlayers);
         if (!player) return;
 
         const s = scores[player.id];
@@ -2637,7 +2645,7 @@ async function fetchESPNScores() {
                 const bowlerAth = outDetails.bowler?.athlete || outDetails.bowler;
                 if (bowlerAth) {
                   const bowlerName = bowlerAth.displayName || bowlerAth.shortName || '';
-                  const bowlerPlayer = matchPlayerName(bowlerName, M().allPlayers);
+                  const bowlerPlayer = matchPlayerName(bowlerName, mConfig.allPlayers);
                   if (bowlerPlayer) {
                     scores[bowlerPlayer.id].lbwBowled = (scores[bowlerPlayer.id].lbwBowled || 0) + 1;
                     espnLog('  🏏 Bowled: ' + bowlerName + ' bowled ' + displayName);
@@ -2649,7 +2657,7 @@ async function fetchESPNScores() {
                 const bowlerAth = outDetails.bowler?.athlete || outDetails.bowler;
                 if (bowlerAth) {
                   const bowlerName = bowlerAth.displayName || bowlerAth.shortName || '';
-                  const bowlerPlayer = matchPlayerName(bowlerName, M().allPlayers);
+                  const bowlerPlayer = matchPlayerName(bowlerName, mConfig.allPlayers);
                   if (bowlerPlayer) {
                     scores[bowlerPlayer.id].lbwBowled = (scores[bowlerPlayer.id].lbwBowled || 0) + 1;
                     espnLog('  🏏 LBW: ' + bowlerName + ' trapped ' + displayName);
@@ -2666,7 +2674,7 @@ async function fetchESPNScores() {
                 if (fielders.length === 1) {
                   const fAth = fielders[0].athlete || fielders[0];
                   const fName = fAth.displayName || fAth.shortName || '';
-                  const fPlayer = matchPlayerName(fName, M().allPlayers);
+                  const fPlayer = matchPlayerName(fName, mConfig.allPlayers);
                   if (fPlayer) {
                     scores[fPlayer.id].runoutDirect = (scores[fPlayer.id].runoutDirect || 0) + 1;
                     espnLog('  🏃 Run out (direct): ' + fName + ' → ' + displayName);
@@ -2675,7 +2683,7 @@ async function fetchESPNScores() {
                   fielders.forEach((f, idx) => {
                     const fAth = f.athlete || f;
                     const fName = fAth.displayName || fAth.shortName || '';
-                    const fPlayer = matchPlayerName(fName, M().allPlayers);
+                    const fPlayer = matchPlayerName(fName, mConfig.allPlayers);
                     if (fPlayer) {
                       if (idx === 0) {
                         scores[fPlayer.id].runoutDirect = (scores[fPlayer.id].runoutDirect || 0) + 1;
@@ -2741,7 +2749,7 @@ async function fetchESPNScores() {
       const impactMatch = text.match(/Impact Player Sub:\s*(.+?)\s+in for\s+/i);
       if (impactMatch) {
         const subInName = impactMatch[1].trim();
-        const subPlayer = matchPlayerName(subInName, M().allPlayers);
+        const subPlayer = matchPlayerName(subInName, mConfig.allPlayers);
         if (subPlayer && scores[subPlayer.id]) {
           scores[subPlayer.id].isImpactSub = true;
           scores[subPlayer.id].inPlayingXI = true;
@@ -2756,9 +2764,9 @@ async function fetchESPNScores() {
 
     // ── Step 5: Update match status & result text ──
     if (espnMatchState === 'in' || matchStatus.toLowerCase().includes('progress') || matchStatus.toLowerCase().includes('live')) {
-      db.ref('matches/' + activeMatchId + '/status').set('live');
+      db.ref('matches/' + mid + '/status').set('live');
     } else if (espnMatchState === 'post' || matchStatus.toLowerCase().includes('complete') || matchStatus.toLowerCase().includes('result')) {
-      db.ref('matches/' + activeMatchId + '/status').set('completed');
+      db.ref('matches/' + mid + '/status').set('completed');
 
       // Auto-generate result text from winner/loser scores
       const winner = competitors.find(c => c.winner === true || c.winner === 'true');
@@ -2778,7 +2786,7 @@ async function fetchESPNScores() {
           resultText = wFull + ' won by ' + (10 - wicketsLost) + ' wickets';
         }
         if (resultText) {
-          db.ref('matches/' + activeMatchId + '/result').set(resultText);
+          db.ref('matches/' + mid + '/result').set(resultText);
           espnLog('📋 Result: ' + resultText);
         }
       }
@@ -2792,14 +2800,14 @@ async function fetchESPNScores() {
       if (statusEl) { statusEl.textContent = '⚠️ ESPN API stuck at "pre" — manual scores preserved. (Last: ' + new Date().toLocaleTimeString('en-IN') + ')'; statusEl.style.color = 'orange'; }
       return;
     }
-    await db.ref('matches/' + activeMatchId + '/playerScores').set(scores);
-    await recalcLeaderboard();
-    renderAdminScoring();
+    await db.ref('matches/' + mid + '/playerScores').set(scores);
+    await recalcLeaderboard(mid);
+    if (mid === activeMatchId) renderAdminScoring();
 
     // ── Step 7: Add to FINAL BOSS if match completed ──
     // Only trigger when ESPN definitively says the match is over (state: "post")
     if (espnMatchState === 'post') {
-      await addMatchToFinalBoss(activeMatchId);
+      await addMatchToFinalBoss(mid);
     }
 
     const summary = `✅ Playing XI: ${xiCount}, Batting: ${battingFound}, Bowling: ${bowlingFound}, Impact Subs: ${impactSubsFound}`;
@@ -2830,8 +2838,8 @@ function toggleAutoPoll() {
     }
     espnLog('Auto-poll stopped for ' + M().team1 + ' vs ' + M().team2 + '.');
   } else {
-    tryFetchWithLock();
-    matchPollIntervals[mid] = setInterval(tryFetchWithLock, POLL_INTERVAL_MS);
+    tryFetchWithLock(mid);
+    matchPollIntervals[mid] = setInterval(() => tryFetchWithLock(mid), POLL_INTERVAL_MS);
     if (btn) {
       btn.textContent = '⏸ Stop Auto-Poll';
       btn.classList.remove('btn-green');
@@ -2849,9 +2857,10 @@ let autoLiveCheckInterval = null;
 const POLL_INTERVAL_MS = 30000; // 30 seconds
 const POLL_LOCK_TTL_MS = 45000; // Lock expires after 45s (in case a client disconnects)
 
-async function tryFetchWithLock() {
+async function tryFetchWithLock(matchId) {
+  const mid = matchId || activeMatchId;
   // Check if another client recently fetched
-  const lockSnap = await db.ref('poll_lock/' + activeMatchId).once('value');
+  const lockSnap = await db.ref('poll_lock/' + mid).once('value');
   const lockData = lockSnap.val();
   const now = Date.now();
 
@@ -2862,9 +2871,9 @@ async function tryFetchWithLock() {
   }
 
   // Claim the lock
-  await db.ref('poll_lock/' + activeMatchId).set({ user: currentUser, timestamp: now });
+  await db.ref('poll_lock/' + mid).set({ user: currentUser, timestamp: now });
   // Fetch and update
-  await fetchESPNScores();
+  await fetchESPNScores(mid);
 }
 
 // Per-match poll intervals
@@ -2883,16 +2892,10 @@ function checkAndAutoStartPoll(matchId) {
       console.log('[Fantasy XI] Match ' + mConfig.team1 + ' vs ' + mConfig.team2 + ' is live — auto-starting polling...');
       const jitter = Math.floor(Math.random() * 10000);
       setTimeout(() => {
-        // Save/restore activeMatchId so fetch targets the right match
-        const savedActive = activeMatchId;
-        activeMatchId = mid;
-        tryFetchWithLock();
-        activeMatchId = savedActive;
+        // Pass mid directly — no more global activeMatchId swapping (race-condition safe)
+        tryFetchWithLock(mid);
         matchPollIntervals[mid] = setInterval(() => {
-          const savedActive2 = activeMatchId;
-          activeMatchId = mid;
-          tryFetchWithLock();
-          activeMatchId = savedActive2;
+          tryFetchWithLock(mid);
         }, POLL_INTERVAL_MS);
       }, jitter);
       // Update admin button if this is the active match
@@ -2907,11 +2910,6 @@ function checkAndAutoStartPoll(matchId) {
     }
   } else if (matchStatus === 'completed') {
     if (matchPollIntervals[mid]) {
-      // One final fetch
-      const savedActive = activeMatchId;
-      activeMatchId = mid;
-      fetchESPNScores();
-      activeMatchId = savedActive;
       clearInterval(matchPollIntervals[mid]);
       delete matchPollIntervals[mid];
       if (mid === activeMatchId) {
