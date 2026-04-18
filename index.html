@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Jugaadu Dream11 (IPL '26)</title>
+  <title>Jugaadu Dream11 - IPL 2026</title>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -327,7 +327,7 @@
 <!-- LOGIN PAGE -->
 <div id="login-page" style="display:none">
   <div class="login-box">
-    <h2>Jugaadu Dream11</h2>
+    <h2>Fantasy Cricket</h2>
     <p>IPL 2026 - Private League<span class="sync-badge">Live Sync</span></p>
     <div class="form-group">
       <label>Select Player</label>
@@ -2634,7 +2634,7 @@ async function fetchESPNScores(matchId, { forceRefetch = false } = {}) {
             }
 
             // ── Parse dismissal for fielding credits ──
-            const outDetails = ls.batting?.outDetails || ls.outDetails;
+            const outDetails = ls.batting?.outDetails || ls.outDetails || ls.statistics?.batting?.outDetails;
             if (outDetails && outDetails.dismissalCard) {
               const dType = (outDetails.dismissalCard || '').toLowerCase();
               const shortText = (outDetails.shortText || '').toLowerCase();
