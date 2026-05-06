@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Jugaadu Dream11 - IPL 2026</title>
+  <title>Fantasy Cricket League - IPL 2026</title>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -528,6 +528,7 @@
       <thead><tr><th>#</th><th>Player</th><th>Total Points</th></tr></thead>
       <tbody id="fb-body"></tbody>
     </table>
+    <div id="fb-wins-chart" style="margin:24px 0 8px"></div>
     <div id="final-boss-history" style="margin-top:20px"></div>
   </div>
 
@@ -2056,6 +2057,51 @@ function renderFinalBoss() {
     updatedEl.textContent = 'Points updated till Match ' + lastMatch.num + ': ' + lastMatch.team1 + ' vs ' + lastMatch.team2;
   } else {
     updatedEl.textContent = 'No matches added yet — points will update as matches complete.';
+  }
+
+  // ── Wins chart ──────────────────────────────────────────────────────────────
+  const winsChart = document.getElementById('fb-wins-chart');
+  if (winsChart) {
+    const winsMap = {};
+    Object.keys(USERS).forEach(uid => winsMap[uid] = 0);
+    matchLog.forEach(entry => {
+      const pts = entry.points || {};
+      let maxPts = -1, winner = null;
+      Object.keys(USERS).forEach(uid => {
+        const p = typeof pts[uid] === 'number' ? pts[uid] : 0;
+        if (p > maxPts) { maxPts = p; winner = uid; }
+      });
+      if (winner && maxPts > 0) winsMap[winner]++;
+    });
+
+    const totalMatches = matchLog.length;
+    const maxWins = Math.max(...Object.values(winsMap), 1);
+    const barColors = { ankur: '#f5a623', utkarsh: '#e94560', nilesh: '#27ae60', pranit: '#3498db', sharat: '#9b59b6' };
+
+    const winsSorted = Object.keys(USERS)
+      .map(uid => ({ uid, name: USERS[uid].name, wins: winsMap[uid] }))
+      .sort((a, b) => b.wins - a.wins);
+
+    let chartHtml = '<h3 style="color:var(--gold);margin-bottom:14px;font-size:0.95em">🏆 Match Wins (' + totalMatches + ' matches)</h3>';
+    chartHtml += '<div style="display:flex;flex-direction:column;gap:10px">';
+    winsSorted.forEach(u => {
+      const pct = Math.round(u.wins / maxWins * 100);
+      const winPct = totalMatches > 0 ? Math.round(u.wins / totalMatches * 100) : 0;
+      const color = barColors[u.uid] || 'var(--gold)';
+      const isYou = u.uid === currentUser ? ' (You)' : '';
+      const label = u.wins > 0 ? u.wins + (u.wins === 1 ? ' win' : ' wins') : '0';
+      chartHtml += '<div style="display:flex;align-items:center;gap:10px">'
+        + '<div style="width:72px;text-align:right;font-size:0.82em;color:var(--light);flex-shrink:0">' + u.name + isYou + '</div>'
+        + '<div style="flex:1;background:#1a2535;border-radius:4px;overflow:hidden;height:30px">'
+        +   '<div style="width:' + pct + '%;background:' + color + ';height:100%;display:flex;align-items:center;padding-left:10px;transition:width 0.6s ease;min-width:' + (u.wins > 0 ? '42px' : '0') + '">'
+        +     '<span style="font-weight:700;font-size:0.88em;color:#111;white-space:nowrap">' + (u.wins > 0 ? label : '') + '</span>'
+        +   '</div>'
+        + '</div>'
+        + '<div style="width:36px;font-size:0.8em;color:#888;text-align:right;flex-shrink:0">' + winPct + '%</div>'
+        + '</div>';
+    });
+    chartHtml += '</div>';
+    winsChart.innerHTML = chartHtml;
   }
 
   // Match-by-match log
