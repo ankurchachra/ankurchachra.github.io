@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Jugaadu Dream11</title>
+  <title>Desi Dream11</title>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -1275,11 +1275,25 @@ function isLockExpired(matchId) {
   const mid = matchId || activeMatchId;
   const m = MATCHES[mid];
   const pastLockTime = new Date() >= new Date(m.lockTime);
-  // Also require match to be live/completed in Firebase (handles rain delays automatically)
+  if (!pastLockTime) return false;
+
   const matchData = DATA[mid] && DATA[mid].match;
   const matchStatus = (matchData && matchData.status) || 'upcoming';
-  const matchStarted = matchStatus === 'live' || matchStatus === 'completed';
-  return pastLockTime && matchStarted;
+
+  // Completed matches are always locked
+  if (matchStatus === 'completed') return true;
+
+  // For live matches: only lock once actual ball data exists
+  // (status can become 'live' prematurely due to ESPN API quirks or rain delays)
+  if (matchStatus === 'live') {
+    const playerScores = (matchData && matchData.playerScores) || {};
+    const firstBallBowled = Object.values(playerScores).some(s =>
+      (s.balls > 0) || (s.oversBowled > 0)
+    );
+    return firstBallBowled;
+  }
+
+  return false;
 }
 
 // ============ MATCH CARD (Tab 1) ============
