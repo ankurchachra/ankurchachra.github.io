@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fantasy Cricket League - IPL 2026</title>
+  <title>Jugaadu Dream11</title>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -1251,8 +1251,8 @@ function startCountdown() {
         if (cdEl) cdEl.innerHTML = '<span class="countdown">Team selection is LOCKED!</span>';
         if (cdMatchEl) cdMatchEl.innerHTML = '<span class="countdown">Lineups locked!</span>';
       } else {
-        if (cdEl) cdEl.innerHTML = '<span class="countdown" style="color:var(--gold)">Waiting for match to start...</span>';
-        if (cdMatchEl) cdMatchEl.innerHTML = '<span class="countdown" style="color:var(--gold)">Waiting for match to start...</span>';
+        if (cdEl) cdEl.innerHTML = '<span class="countdown" style="color:var(--gold)">⏳ Match not started yet — you can still edit your team!</span>';
+        if (cdMatchEl) cdMatchEl.innerHTML = '<span class="countdown" style="color:var(--gold)">⏳ Waiting for first ball — teams still editable</span>';
       }
       return;
     }
@@ -1319,18 +1319,22 @@ function renderMatchCard() {
       <div style="text-align:center;margin-top:16px">
         <div id="match-countdown"></div>
         <div style="margin-top:8px;color:#aaa;font-size:0.85em">
-          ${teamLocked
-            ? '<span style="color:var(--green)">Your team is locked! Go to "My Team" to view.</span>'
-            : (isLockExpired()
-              ? '<span style="color:var(--accent)">Team lock deadline has passed.</span>'
-              : '<span>Go to "Pick Team" tab to select your XI.</span>')
+          ${teamLocked && isLockExpired()
+            ? '<span style="color:var(--green)">✅ Team locked — final!</span>'
+            : teamLocked
+            ? '<span style="color:var(--gold)">🔒 Team locked. Match not started yet — you can still edit.</span>'
+            : isLockExpired()
+            ? '<span style="color:var(--accent)">⛔ Team lock deadline has passed.</span>'
+            : new Date() >= new Date(M().lockTime)
+            ? '<span style="color:var(--gold)">⏳ Match delayed — team edits still open until first ball!</span>'
+            : '<span>Go to "Pick Team" tab to select your XI.</span>'
           }
         </div>
       </div>
       <div style="text-align:center;margin-top:12px">
         ${teamLocked
           ? '<button class="btn btn-green btn-sm" onclick="switchTab(\'my-team\')">View My Team</button>'
-          : '<button class="btn btn-gold btn-sm" onclick="switchTab(\'pick-team\')">Pick Team</button>'
+          : '<button class="btn btn-gold btn-sm" onclick="switchTab(\'pick-team\')">' + (new Date() >= new Date(M().lockTime) ? '✏️ Edit Team' : 'Pick Team') + '</button>'
         }
       </div>
     </div>
@@ -1538,33 +1542,35 @@ function renderSelectedPanel() {
   const unlockBtn = document.getElementById('unlock-btn');
   const clearBtn = document.getElementById('clear-btn');
 
+  const pastScheduledTime = new Date() >= new Date(M().lockTime);
   if (isLocked && !isLockExpired()) {
-    // Locked but can still edit before deadline
+    // Locked but can still edit — match not started yet (incl. rain delay)
     lockBtn.style.display = 'none';
     clearBtn.style.display = 'none';
     unlockBtn.style.display = '';
+    unlockBtn.textContent = pastScheduledTime ? '✏️ Unlock Team (match not started)' : '✏️ Unlock Team';
   } else if (isLocked && isLockExpired()) {
-    // Locked and deadline passed — final
+    // Locked and first ball bowled — final
     lockBtn.style.display = '';
     lockBtn.disabled = true;
     lockBtn.textContent = '✅ Team Locked (Final)';
     clearBtn.style.display = 'none';
     unlockBtn.style.display = 'none';
   } else if (isLockExpired()) {
-    // Not locked and deadline passed
+    // Not locked and first ball already bowled
     lockBtn.style.display = '';
     lockBtn.disabled = true;
-    lockBtn.textContent = '⏰ Deadline Passed';
+    lockBtn.textContent = '⏰ Match started — deadline passed';
     clearBtn.style.display = 'none';
     unlockBtn.style.display = 'none';
   } else {
-    // Not locked, before deadline — normal pick mode
+    // Not locked, match not started — pick/edit mode (includes rain delays after scheduled time)
     lockBtn.style.display = '';
     clearBtn.style.display = '';
     unlockBtn.style.display = 'none';
     if (MS().selectedPlayers.length === 11 && MS().captainId && MS().viceCaptainId) {
       lockBtn.disabled = false;
-      lockBtn.textContent = '🔒 Lock Team';
+      lockBtn.textContent = pastScheduledTime ? '🔒 Lock Team (match not started yet)' : '🔒 Lock Team';
     } else {
       lockBtn.disabled = true;
       let hint = '';
@@ -1703,7 +1709,7 @@ function unlockTeam() {
     showToast('Deadline passed — cannot unlock!', 'error');
     return;
   }
-  if (!confirm('Unlock your team for editing? Your current picks will stay — just make changes and re-lock before 7:30 PM.')) return;
+  if (!confirm('Unlock your team for editing? Your current picks will stay — re-lock before the first ball is bowled.')) return;
 
   const teamKey = currentUser + '_' + activeMatchId;
   const existingTeam = DATA[activeMatchId].teams[teamKey];
