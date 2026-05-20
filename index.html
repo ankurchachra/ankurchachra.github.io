@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Club Mahindra | Sales CRM</title>
+<title>Club Mahindra | Lead Tracker v1/title>
 <!-- Firebase Compat SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -281,17 +281,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <div class="login-logo">
     <svg width="72" height="72" viewBox="0 0 72 72"><rect width="72" height="72" rx="18" fill="#C8102E"/><text x="36" y="48" text-anchor="middle" fill="#fff" font-size="28" font-weight="800" font-family="Arial">CM</text></svg>
     <h1>Club Mahindra</h1>
-    <p>Sales CRM</p>
+    <p>Lead Tracker v1</p>
   </div>
   <div class="login-card">
     <h2>Welcome back</h2>
     <p class="sub">Sign in to your account</p>
     <div class="field"><label>Select User</label>
     <select id="login-u" onchange="(function(v){const pw={ankur:'ankur1234',ashima:'ashima1234',brij:'brij1234',ravi:'ravi1234',meera:'meera1234',pooja:'pooja1234'};document.getElementById('login-p').value=pw[v]||'';if(v)document.getElementById('login-p').focus();})(this.value)">
-      <option value="">— choose a user —</option>
+      <option value="">— Identify yourself —</option>
       <option value="ankur">Ankur Chachra · Admin</option>
-      <option value="ashima">Ashima Singh · Sales Manager</option>
-      <option value="brij">Brij Mohan · National Sales Head</option>
+      <option value="ashima">Ashima Sehgal · Sales Manager</option>
+      <option value="brij">Brij Chachra · National Sales Head</option>
     </select></div>
     <div class="field"><label>Password</label><input type="password" id="login-p" autocomplete="current-password" placeholder="Password"></div>
     <button class="btn" id="login-btn" onclick="doLogin()">Sign In</button>
@@ -683,8 +683,8 @@ const DEF_S = {
 
 const DEF_U = [
   {id:1,name:'Ankur Chachra',username:'ankur',password:'ankur1234',role:'admin'},
-  {id:2,name:'Ashima Singh',username:'ashima',password:'ashima1234',role:'sales_manager'},
-  {id:3,name:'Brij Mohan',username:'brij',password:'brij1234',role:'national_sales_head'},
+  {id:2,name:'Ashima Sehgal',username:'ashima',password:'ashima1234',role:'sales_manager'},
+  {id:3,name:'Brij Chachra',username:'brij',password:'brij1234',role:'national_sales_head'},
   {id:4,name:'Ravi Sharma',username:'ravi',password:'ravi1234',role:'sales_manager'},
   {id:5,name:'Meera Nair',username:'meera',password:'meera1234',role:'sales_manager'},
   {id:6,name:'Pooja Arora',username:'pooja',password:'pooja1234',role:'sales_manager'}
@@ -741,7 +741,7 @@ function makeSampleLeads(now){
   // Helper: build a complete lead object
   function L(o){
     const nr=o.nr||1,nn=o.nn||2;
-    const nameMap={'ashima':'Ashima Singh','ravi':'Ravi Sharma','meera':'Meera Nair','pooja':'Pooja Arora'};
+    const nameMap={'ashima':'Ashima Sehgal','ravi':'Ravi Sharma','meera':'Meera Nair','pooja':'Pooja Arora'};
     return{
       leadName:o.ln,leadDate:o.ld,channel:o.ch,sourceName:o.src,
       assignedTo:nameMap[o.cb]||o.cb,guestName:o.gn,contactNumber:o.cn,
@@ -858,9 +858,8 @@ async function saveSettings(){await fsSet('settings','config',APP.settings)}
 async function loadUsers(){
   const docs=await fsQuery('users',c=>c);
   if(!docs.length){for(const u of DEF_U)await fsSet('users',u.username,u);APP.users=[...DEF_U];return;}
-  // Sync passwords from DEF_U so a code update immediately takes effect
-  for(const u of DEF_U){const ex=docs.find(d=>d.username===u.username);if(ex&&ex.password!==u.password){await fsSet('users',u.username,{...ex,password:u.password});ex.password=u.password;}}
-  APP.users=docs;
+  // Merge Firestore records with DEF_U: DEF_U is authoritative for name/password/role
+  APP.users=docs.map(d=>{const def=DEF_U.find(u=>u.username===d.username);return def?{...d,...def}:d;});
 }
 
 async function loadLeads(){
@@ -882,11 +881,14 @@ async function doLogin(){
   const u=document.getElementById('login-u').value.trim().toLowerCase();
   const p=document.getElementById('login-p').value;
   document.getElementById('login-error').style.display='none';
+  // Authenticate instantly against DEF_U — no Firestore needed for login check
+  const defUser=DEF_U.find(x=>x.username===u&&x.password===p);
+  if(!defUser){document.getElementById('login-error').style.display='block';return}
   setLoading(true,'Signing in…');
   try{
     await loadUsers();
-    const user=APP.users.find(x=>x.username.toLowerCase()===u&&x.password===p);
-    if(!user){setLoading(false);document.getElementById('login-error').style.display='block';return}
+    // Use merged Firestore+DEF_U record if available, else fall back to DEF_U
+    const user=APP.users.find(x=>x.username===u)||defUser;
     APP.user=user;
     sessionStorage.setItem('mh_u',JSON.stringify({username:user.username,id:user.id}));
     if(user.role==='admin'){await loadSettings();await loadUsers();await loadTargets();setLoading(false);showScreen('admin');initAdmin()}
