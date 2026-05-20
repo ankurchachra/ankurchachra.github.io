@@ -895,7 +895,7 @@ function doLogout(){
   document.getElementById('login-p').value='';
 }
 
-function showScreen(n){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-'+n).classList.add('active')}
+function showScreen(n){document.querySelectorAll('.screen').forEach(s=>{s.classList.remove('active');s.style.display='none';});const el=document.getElementById('screen-'+n);el.classList.add('active');el.style.display=(n==='login'||n==='setup')?'flex':'block';}
 function setLoading(on,msg='Loading…'){const o=document.getElementById('loading-overlay');o.classList.toggle('on',on);if(msg)document.getElementById('loading-msg').textContent=msg}
 
 // ===== MANAGER =====
