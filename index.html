@@ -881,20 +881,27 @@ async function doLogin(){
   const u=document.getElementById('login-u').value.trim().toLowerCase();
   const p=document.getElementById('login-p').value;
   document.getElementById('login-error').style.display='none';
-  // Authenticate instantly against DEF_U — no Firestore needed for login check
+  // Authenticate instantly against DEF_U — no Firestore needed for credential check
   const defUser=DEF_U.find(x=>x.username===u&&x.password===p);
   if(!defUser){document.getElementById('login-error').style.display='block';return}
   setLoading(true,'Signing in…');
+  // Load users — fall back to DEF_U if Firestore isn't reachable yet
+  try{await loadUsers();}catch(e){APP.users=[...DEF_U];}
+  const user=APP.users.find(x=>x.username===u)||defUser;
+  APP.user=user;
+  sessionStorage.setItem('mh_u',JSON.stringify({username:user.username,id:user.id}));
   try{
-    await loadUsers();
-    // Use merged Firestore+DEF_U record if available, else fall back to DEF_U
-    const user=APP.users.find(x=>x.username===u)||defUser;
-    APP.user=user;
-    sessionStorage.setItem('mh_u',JSON.stringify({username:user.username,id:user.id}));
-    if(user.role==='admin'){await loadSettings();await loadUsers();await loadTargets();setLoading(false);showScreen('admin');initAdmin()}
-    else if(user.role==='national_sales_head'){await loadSettings();await loadLeads();await loadUsers();await loadTargets();setLoading(false);showScreen('nsh');initNSH()}
+    if(user.role==='admin'){await loadSettings();await loadTargets();setLoading(false);showScreen('admin');initAdmin()}
+    else if(user.role==='national_sales_head'){await loadSettings();await loadLeads();await loadTargets();setLoading(false);showScreen('nsh');initNSH()}
     else{await loadSettings();await loadLeads();setLoading(false);showScreen('manager');initManager()}
-  }catch(e){setLoading(false);showToast('Connection error: '+e.message,'error')}
+  }catch(e){
+    setLoading(false);
+    // Even if data load fails, still enter the app — show empty state
+    if(user.role==='admin'){showScreen('admin');initAdmin();}
+    else if(user.role==='national_sales_head'){showScreen('nsh');initNSH();}
+    else{showScreen('manager');initManager();}
+    showToast('Data sync issue — check your connection','error');
+  }
 }
 
 function doLogout(){
@@ -2265,7 +2272,8 @@ function showToast(msg,type=''){const t=document.getElementById('toast');t.textC
   try{
     firebase.initializeApp(FIREBASE_CONFIG);
     db=firebase.firestore();
-    db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+    // Note: offline persistence removed — it causes "client is offline" errors
+    // before the WebSocket connects when there is no local cache yet
 
     // Try to restore a previous session
     const saved=sessionStorage.getItem('mh_u');
