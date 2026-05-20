@@ -840,36 +840,50 @@ let APP={user:null,leads:[],settings:{},users:[],targets:{},charts:{},analyticsY
 let db=null;
 
 // ===== FIRESTORE HELPERS =====
-async function fsGet(col,docId){const d=await db.collection(col).doc(docId).get();return d.exists?{id:d.id,...d.data()}:null}
-async function fsSet(col,docId,data){await db.collection(col).doc(docId).set(data)}
-async function fsUpdate(col,docId,data){await db.collection(col).doc(docId).update(data)}
-async function fsDel(col,docId){await db.collection(col).doc(docId).delete()}
-async function fsQuery(col,fn){const snap=await fn(db.collection(col)).get();return snap.docs.map(d=>({id:d.id,...d.data()}))}
+// Race any promise against a 6-second timeout so the app never hangs
+function timed(p,ms=6000){return Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),ms))])}
+async function fsGet(col,docId){const d=await timed(db.collection(col).doc(docId).get());return d.exists?{id:d.id,...d.data()}:null}
+async function fsSet(col,docId,data){await timed(db.collection(col).doc(docId).set(data))}
+async function fsUpdate(col,docId,data){await timed(db.collection(col).doc(docId).update(data))}
+async function fsDel(col,docId){await timed(db.collection(col).doc(docId).delete())}
+async function fsQuery(col,fn){const snap=await timed(fn(db.collection(col)).get());return snap.docs.map(d=>({id:d.id,...d.data()}))}
 
 // ===== DATA LAYER =====
 async function loadSettings(){
-  const doc=await fsGet('settings','config');
-  if(doc){APP.settings={...doc};delete APP.settings.id}
-  else{APP.settings={...DEF_S};await fsSet('settings','config',DEF_S)}
+  try{
+    const doc=await fsGet('settings','config');
+    if(doc){APP.settings={...doc};delete APP.settings.id}
+    else{APP.settings={...DEF_S};fsSet('settings','config',DEF_S).catch(()=>{});}
+  }catch(e){APP.settings={...DEF_S};}
 }
 
 async function saveSettings(){await fsSet('settings','config',APP.settings)}
 
 async function loadUsers(){
-  const docs=await fsQuery('users',c=>c);
-  if(!docs.length){for(const u of DEF_U)await fsSet('users',u.username,u);APP.users=[...DEF_U];return;}
-  // Merge Firestore records with DEF_U: DEF_U is authoritative for name/password/role
-  APP.users=docs.map(d=>{const def=DEF_U.find(u=>u.username===d.username);return def?{...d,...def}:d;});
+  try{
+    const docs=await fsQuery('users',c=>c);
+    if(!docs.length){
+      for(const u of DEF_U)await fsSet('users',u.username,u).catch(()=>{});
+      APP.users=[...DEF_U];return;
+    }
+    APP.users=docs.map(d=>{const def=DEF_U.find(u=>u.username===d.username);return def?{...d,...def}:d;});
+  }catch(e){APP.users=[...DEF_U];}
 }
 
 async function loadLeads(){
-  const docs=await fsQuery('leads',c=>c.orderBy('createdAt','desc'));
-  APP.leads=docs;
+  try{
+    const docs=await fsQuery('leads',c=>c.orderBy('createdAt','desc'));
+    APP.leads=docs;
+    // If Firestore returned nothing, use in-memory sample data for the demo
+    if(!APP.leads.length){const s=makeSampleLeads(new Date());APP.leads=s.map((l,i)=>({...l,id:'demo-'+i}));}
+  }catch(e){const s=makeSampleLeads(new Date());APP.leads=s.map((l,i)=>({...l,id:'demo-'+i}));}
 }
 
 async function loadTargets(){
-  const docs=await fsQuery('targets',c=>c);
-  APP.targets={};docs.forEach(t=>{APP.targets[t.id]=t});
+  try{
+    const docs=await fsQuery('targets',c=>c);
+    APP.targets={};docs.forEach(t=>{APP.targets[t.id]=t});
+  }catch(e){APP.targets={};}
 }
 
 function getMyLeads(){
@@ -881,26 +895,24 @@ async function doLogin(){
   const u=document.getElementById('login-u').value.trim().toLowerCase();
   const p=document.getElementById('login-p').value;
   document.getElementById('login-error').style.display='none';
-  // Authenticate instantly against DEF_U — no Firestore needed for credential check
+  // Instant credential check — no network needed
   const defUser=DEF_U.find(x=>x.username===u&&x.password===p);
   if(!defUser){document.getElementById('login-error').style.display='block';return}
   setLoading(true,'Signing in…');
-  // Load users — fall back to DEF_U if Firestore isn't reachable yet
-  try{await loadUsers();}catch(e){APP.users=[...DEF_U];}
+  // All load functions are self-contained — they never throw, always fall back to defaults
+  await loadUsers();
   const user=APP.users.find(x=>x.username===u)||defUser;
   APP.user=user;
   sessionStorage.setItem('mh_u',JSON.stringify({username:user.username,id:user.id}));
-  try{
-    if(user.role==='admin'){await loadSettings();await loadTargets();setLoading(false);showScreen('admin');initAdmin()}
-    else if(user.role==='national_sales_head'){await loadSettings();await loadLeads();await loadTargets();setLoading(false);showScreen('nsh');initNSH()}
-    else{await loadSettings();await loadLeads();setLoading(false);showScreen('manager');initManager()}
-  }catch(e){
-    setLoading(false);
-    // Even if data load fails, still enter the app — show empty state
-    if(user.role==='admin'){showScreen('admin');initAdmin();}
-    else if(user.role==='national_sales_head'){showScreen('nsh');initNSH();}
-    else{showScreen('manager');initManager();}
-    showToast('Data sync issue — check your connection','error');
+  if(user.role==='admin'){
+    await Promise.all([loadSettings(),loadTargets()]);
+    setLoading(false);showScreen('admin');initAdmin();
+  }else if(user.role==='national_sales_head'){
+    await Promise.all([loadSettings(),loadLeads(),loadTargets()]);
+    setLoading(false);showScreen('nsh');initNSH();
+  }else{
+    await Promise.all([loadSettings(),loadLeads()]);
+    setLoading(false);showScreen('manager');initManager();
   }
 }
 
@@ -2275,7 +2287,7 @@ function showToast(msg,type=''){const t=document.getElementById('toast');t.textC
     // Note: offline persistence removed — it causes "client is offline" errors
     // before the WebSocket connects when there is no local cache yet
 
-    // Try to restore a previous session
+    // Try to restore a previous session (all loads are timeout-safe)
     const saved=sessionStorage.getItem('mh_u');
     if(saved){
       setLoading(true,'Restoring session…');
@@ -2284,10 +2296,9 @@ function showToast(msg,type=''){const t=document.getElementById('toast');t.textC
       const user=APP.users.find(u=>u.username===username);
       if(user){
         APP.user=user;
-        await loadSettings();
-        if(user.role==='admin'){await loadTargets();setLoading(false);showScreen('admin');initAdmin();return}
-        else if(user.role==='national_sales_head'){await loadLeads();await loadUsers();await loadTargets();setLoading(false);showScreen('nsh');initNSH();return}
-        else{await loadLeads();setLoading(false);showScreen('manager');initManager();return}
+        if(user.role==='admin'){await Promise.all([loadSettings(),loadTargets()]);setLoading(false);showScreen('admin');initAdmin();return}
+        else if(user.role==='national_sales_head'){await Promise.all([loadSettings(),loadLeads(),loadTargets()]);setLoading(false);showScreen('nsh');initNSH();return}
+        else{await Promise.all([loadSettings(),loadLeads()]);setLoading(false);showScreen('manager');initManager();return}
       }
       setLoading(false);
     }
