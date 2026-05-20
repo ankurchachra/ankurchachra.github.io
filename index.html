@@ -286,7 +286,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <div class="login-card">
     <h2>Welcome back</h2>
     <p class="sub">Sign in to your account</p>
-    <div class="field"><label>Username</label><input type="text" id="login-u" autocomplete="username" placeholder="Username"></div>
+    <div class="field"><label>Select User</label>
+    <select id="login-u" onchange="(function(v){const pw={ankur:'ankur1234',ashima:'ashima1234',brij:'brij1234',ravi:'ravi1234',meera:'meera1234',pooja:'pooja1234'};document.getElementById('login-p').value=pw[v]||'';if(v)document.getElementById('login-p').focus();})(this.value)">
+      <option value="">— choose a user —</option>
+      <option value="ankur">Ankur Chachra · Admin</option>
+      <option value="ashima">Ashima Singh · Sales Manager</option>
+      <option value="brij">Brij Mohan · National Sales Head</option>
+    </select></div>
     <div class="field"><label>Password</label><input type="password" id="login-p" autocomplete="current-password" placeholder="Password"></div>
     <button class="btn" id="login-btn" onclick="doLogin()">Sign In</button>
     <p id="login-error">Invalid username or password</p>
@@ -676,12 +682,12 @@ const DEF_S = {
 };
 
 const DEF_U = [
-  {id:1,name:'Ankur Chachra',username:'ankur',password:'ankur123',role:'admin'},
-  {id:2,name:'Ashima Singh',username:'ashima',password:'ashima123',role:'sales_manager'},
-  {id:3,name:'Brij Mohan',username:'brij',password:'brij123',role:'national_sales_head'},
-  {id:4,name:'Ravi Sharma',username:'ravi',password:'ravi123',role:'sales_manager'},
-  {id:5,name:'Meera Nair',username:'meera',password:'meera123',role:'sales_manager'},
-  {id:6,name:'Pooja Arora',username:'pooja',password:'pooja123',role:'sales_manager'}
+  {id:1,name:'Ankur Chachra',username:'ankur',password:'ankur1234',role:'admin'},
+  {id:2,name:'Ashima Singh',username:'ashima',password:'ashima1234',role:'sales_manager'},
+  {id:3,name:'Brij Mohan',username:'brij',password:'brij1234',role:'national_sales_head'},
+  {id:4,name:'Ravi Sharma',username:'ravi',password:'ravi1234',role:'sales_manager'},
+  {id:5,name:'Meera Nair',username:'meera',password:'meera1234',role:'sales_manager'},
+  {id:6,name:'Pooja Arora',username:'pooja',password:'pooja1234',role:'sales_manager'}
 ];
 
 // Resort → Zone & State master data (all 39 Club Mahindra resorts)
@@ -851,8 +857,10 @@ async function saveSettings(){await fsSet('settings','config',APP.settings)}
 
 async function loadUsers(){
   const docs=await fsQuery('users',c=>c);
-  if(!docs.length){for(const u of DEF_U)await fsSet('users',u.username,u);APP.users=[...DEF_U]}
-  else APP.users=docs;
+  if(!docs.length){for(const u of DEF_U)await fsSet('users',u.username,u);APP.users=[...DEF_U];return;}
+  // Sync passwords from DEF_U so a code update immediately takes effect
+  for(const u of DEF_U){const ex=docs.find(d=>d.username===u.username);if(ex&&ex.password!==u.password){await fsSet('users',u.username,{...ex,password:u.password});ex.password=u.password;}}
+  APP.users=docs;
 }
 
 async function loadLeads(){
@@ -2246,19 +2254,21 @@ function showToast(msg,type=''){const t=document.getElementById('toast');t.textC
 
 // ===== BOOT =====
 (async function(){
-  // Check if Firebase config is filled in
   const configured=!Object.values(FIREBASE_CONFIG).some(v=>v.startsWith('YOUR_'));
   if(!configured){showScreen('setup');return}
 
-  setLoading(true,'Connecting…');
+  // Show login immediately — no waiting spinner
+  showScreen('login');
+
   try{
     firebase.initializeApp(FIREBASE_CONFIG);
     db=firebase.firestore();
     db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
 
-    // Try to restore session
+    // Try to restore a previous session
     const saved=sessionStorage.getItem('mh_u');
     if(saved){
+      setLoading(true,'Restoring session…');
       const {username}=JSON.parse(saved);
       await loadUsers();
       const user=APP.users.find(u=>u.username===username);
@@ -2269,17 +2279,18 @@ function showToast(msg,type=''){const t=document.getElementById('toast');t.textC
         else if(user.role==='national_sales_head'){await loadLeads();await loadUsers();await loadTargets();setLoading(false);showScreen('nsh');initNSH();return}
         else{await loadLeads();setLoading(false);showScreen('manager');initManager();return}
       }
+      setLoading(false);
     }
-    // First launch: seed sample data if no leads exist yet
-    const snap=await db.collection('leads').limit(1).get();
-    if(snap.empty){
-      const now=new Date();const samples=makeSampleLeads(now);
-      const batch=db.batch();
-      samples.forEach(l=>{const ref=db.collection('leads').doc();const ts=new Date().toISOString();batch.set(ref,{...l,id:ref.id,createdAt:ts,updatedAt:ts})});
-      await batch.commit();
-    }
-    setLoading(false);showScreen('login');
-  }catch(e){setLoading(false);showToast('Firebase error: '+e.message,'error');showScreen('login')}
+    // First launch: seed sample data in background (don't block the login screen)
+    db.collection('leads').limit(1).get().then(snap=>{
+      if(snap.empty){
+        const now=new Date();const samples=makeSampleLeads(now);
+        const batch=db.batch();
+        samples.forEach(l=>{const ref=db.collection('leads').doc();const ts=new Date().toISOString();batch.set(ref,{...l,id:ref.id,createdAt:ts,updatedAt:ts})});
+        batch.commit().catch(()=>{});
+      }
+    });
+  }catch(e){setLoading(false);showToast('Firebase error: '+e.message,'error');}
 })();
 </script>
 </body>
