@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Club Mahindra | Sales CRM</title>
+<!-- Inline SVG favicon — Club Mahindra "CM" mark on red, no external file needed -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23C8102E'/%3E%3Ctext x='32' y='44' text-anchor='middle' fill='%23fff' font-size='26' font-weight='800' font-family='Arial,sans-serif'%3ECM%3C/text%3E%3C/svg%3E">
 <!-- Firebase Compat SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -15,7 +17,7 @@
 :root{
   --red:#C8102E;--rd:#a00d25;--rl:#fef0f2;
   --bg:#F2F2F7;--card:#fff;--text:#1c1c1e;--sub:#636366;--border:#e5e5ea;
-  --green:#34c759;--orange:#ff9500;--blue:#007aff;
+  --green:#34c759;--orange:#ff9500;--blue:#007aff;--slate:#78909c;
   --r:12px;--sh:0 1px 3px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.08);
 }
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;-webkit-font-smoothing:antialiased}
@@ -225,6 +227,40 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
 /* ---- QUICK UPDATE ---- */
 .qu-btn{background:var(--blue);border:none;color:#fff;padding:5px 10px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.snooze-btn{background:#5856d6;border:none;color:#fff;padding:5px 10px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.snooze-btn:active{opacity:.8}
+/* Version + reset footer */
+.app-footer{padding:18px 16px 26px;text-align:center;font-size:11px;color:var(--sub);border-top:1px solid var(--border);margin-top:24px}
+.app-footer .ver{font-weight:600;letter-spacing:.4px}
+.app-footer .reset-link{background:none;border:none;color:var(--sub);font-size:11px;cursor:pointer;text-decoration:underline;margin-left:10px}
+.app-footer .reset-link:hover{color:var(--red)}
+/* Bulk action bar (admin All Leads) */
+.bulk-bar{display:none;background:#1c1c1e;color:#fff;padding:11px 14px;border-radius:10px;margin-bottom:10px;align-items:center;gap:10px;position:sticky;top:108px;z-index:50;box-shadow:0 4px 14px rgba(0,0,0,.2)}
+.bulk-bar.show{display:flex}
+.bulk-bar .bulk-count{font-weight:700;font-size:13px;flex:1}
+.bulk-bar .bulk-act{background:var(--orange);color:#fff;border:none;padding:7px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer}
+.bulk-bar .bulk-clear{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.3);padding:6px 12px;border-radius:7px;font-size:12px;cursor:pointer}
+.lead-check{margin-right:10px;width:18px;height:18px;cursor:pointer;accent-color:var(--red)}
+/* Global search */
+.global-search{display:none;align-items:center;background:rgba(255,255,255,.15);border-radius:8px;padding:6px 10px;flex:1;max-width:340px;margin:0 16px}
+.global-search input{background:transparent;border:none;color:#fff;flex:1;outline:none;font-size:13px;padding:2px 4px}
+.global-search input::placeholder{color:rgba(255,255,255,.6)}
+.global-search-results{position:fixed;top:64px;left:0;right:0;background:#fff;max-height:60vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.18);z-index:200;display:none;border-radius:0 0 14px 14px}
+.global-search-results.open{display:block}
+.gs-item{padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer}
+.gs-item:hover{background:#f7f7f9}
+.gs-item .gs-name{font-weight:700;font-size:14px}
+.gs-item .gs-meta{font-size:12px;color:var(--sub);margin-top:2px}
+.kbd-hint{display:inline-block;background:rgba(255,255,255,.15);color:rgba(255,255,255,.85);font-size:10px;font-weight:600;padding:1px 5px;border-radius:4px;border:1px solid rgba(255,255,255,.18);margin-left:4px}
+/* Notes thread */
+.notes-thread{background:#fafafa;border-radius:10px;padding:10px;max-height:200px;overflow-y:auto;margin-top:6px}
+.notes-thread-item{padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.notes-thread-item:last-child{border-bottom:none}
+.notes-thread-item .nt-who{font-weight:700;font-size:11px;color:var(--sub)}
+.notes-thread-item .nt-text{margin-top:3px;color:var(--text);line-height:1.4}
+.note-add-row{display:flex;gap:8px;margin-top:8px}
+.note-add-row textarea{flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;resize:vertical;min-height:38px;font-family:inherit;outline:none}
+.note-add-row button{background:var(--blue);color:#fff;border:none;padding:0 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0}
 .ca-btn{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;text-decoration:none;font-size:13px;flex-shrink:0;transition:transform .15s}
 .ca-btn:active{transform:scale(.92)}
 .ca-call{background:#34c759;color:#fff}
@@ -548,12 +584,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <div class="pg-hdr"><div class="pg-title">My Analytics</div><div class="pg-sub">Track your sales performance</div></div>
     <div style="padding:0 16px 80px" id="analytics-body"></div>
   </div>
+  <div class="app-footer"><span class="ver">Club Mahindra Sales CRM · v1.0</span></div>
 </div>
 
 <!-- National Sales Head -->
 <div id="screen-nsh" class="screen">
   <div class="app-header">
     <div class="hdr-user"><strong id="nsh-name">NSH</strong><span>Nat. Sales Head</span></div>
+    <div class="global-search" id="gs-nsh"><span>🔍</span><input type="text" placeholder="Search any lead, manager, resort…" oninput="doGlobalSearch(this.value,'nsh')" onfocus="document.getElementById('gs-results').classList.add('open')"><span class="kbd-hint">/</span></div>
     <div class="hdr-logo">CLUB<br>MAHINDRA</div>
     <button class="logout-btn" onclick="doLogout()">Sign out</button>
   </div>
@@ -622,12 +660,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <div class="modal-body" id="nsh-mgr-modal-body"></div>
     </div>
   </div>
+  <div class="app-footer"><span class="ver">Club Mahindra Sales CRM · v1.0</span></div>
 </div>
 
 <!-- Admin -->
 <div id="screen-admin" class="screen">
   <div class="app-header">
     <div class="hdr-user"><strong id="adm-name">Admin</strong><span>Administrator</span></div>
+    <div class="global-search" id="gs-admin"><span>🔍</span><input type="text" placeholder="Search any lead, manager, resort…" oninput="doGlobalSearch(this.value,'admin')" onfocus="document.getElementById('gs-results').classList.add('open')"><span class="kbd-hint">/</span></div>
     <div class="hdr-logo">CLUB<br>MAHINDRA</div>
     <button class="logout-btn" onclick="doLogout()">Sign out</button>
   </div>
@@ -718,6 +758,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <select id="adm-filter-mgr" onchange="renderAllLeadsAdmin()" style="flex:1;padding:9px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:#fff;outline:none;-webkit-appearance:none;appearance:none"></select>
         <select id="adm-filter-st" onchange="renderAllLeadsAdmin()" style="flex:1;padding:9px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:#fff;outline:none;-webkit-appearance:none;appearance:none"></select>
       </div>
+      <div class="bulk-bar" id="bulk-bar">
+        <span class="bulk-count" id="bulk-count">0 selected</span>
+        <button class="bulk-act" onclick="openBulkReassign()">⇄ Reassign selected</button>
+        <button class="bulk-clear" onclick="_clearBulk()">Clear</button>
+      </div>
       <div id="adm-leads-list"></div>
     </div>
   </div>
@@ -757,6 +802,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <div class="modal-body" id="adm-modal-body"></div>
     </div>
   </div>
+  <div class="app-footer">
+    <span class="ver">Club Mahindra Sales CRM · v1.0</span>
+    <button class="reset-link" onclick="resetDemoData()" title="Wipe and re-seed the demo data">Reset demo data</button>
+  </div>
 </div>
 
 <!-- Edit Lead Modal -->
@@ -776,6 +825,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- Global search results dropdown (floats below the header) -->
+<div class="global-search-results" id="gs-results"></div>
 
 <!-- ================================================================
      FIREBASE CONFIG
@@ -1090,6 +1142,21 @@ function refreshAdminUI(){
 function _historyEntry(action,changes){
   return{at:new Date().toISOString(),by:APP.user?APP.user.username:'unknown',byName:APP.user?APP.user.name:'',action,changes:changes||{}};
 }
+// Fire-and-forget audit log for admin/privileged actions (reassigns, target changes, deletions, resets).
+// Writes to a separate `audit_log` collection so admins have a global history independent of any lead doc.
+function _auditLog(action,payload){
+  if(!db||!APP.user)return;
+  try{
+    db.collection('audit_log').add({
+      action,
+      by:APP.user.username,
+      byName:APP.user.name,
+      role:APP.user.role,
+      at:new Date().toISOString(),
+      payload:payload||{}
+    }).catch(()=>{});
+  }catch(e){/* never block the UI on audit write */}
+}
 function _diffForHistory(before,after){
   const fields=['primaryStatus','secondaryStatus','nextFollowUp','lastFollowUp','nextAction','leadValue','convertedValue','remarks','assignedTo'];
   const out={};
@@ -1371,7 +1438,11 @@ function renderLeadList(){
     return mq&&(!fs||l.primaryStatus===fs)&&(!fa||l.nextAction===fa);
   });
   const cont=document.getElementById('lead-list');
-  if(!fil.length){cont.innerHTML='<div class="empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><p>No leads found</p></div>';return}
+  if(!fil.length){
+    const hasFilters=q||fs||fa;
+    cont.innerHTML=`<div class="empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><p>${hasFilters?'No leads match your filters. Try clearing them or changing the status.':'You haven\'t logged any leads yet. Tap <strong>New Lead</strong> to capture your first one.'}</p></div>`;
+    return;
+  }
   cont.innerHTML=fil.map(l=>`
     <div class="lead-card" onclick="openEditModal('${esc(l.id)}')">
       <div class="lead-info">
@@ -1487,13 +1558,53 @@ function buildEditForm(l,s){
     <button class="btn danger" onclick="deleteLead('${esc(l.id)}')" style="flex:0;padding:14px 18px">Delete</button>
   </div>
   <p style="text-align:center;font-size:11px;color:var(--sub);margin-top:10px">Last updated: ${new Date(l.updatedAt||l.createdAt).toLocaleString('en-IN')}</p>
+  ${buildNotesSection(l)}
   ${buildHistorySection(l)}`;
+}
+
+// Append-only notes thread (separate from the single 'remarks' field which gets overwritten on each save).
+// Useful when multiple team members touch a lead — you see every interaction in order.
+function buildNotesSection(l){
+  const notes=l.notes||[];
+  return`<details style="margin-top:14px;background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px" open>
+    <summary style="cursor:pointer;font-weight:700;font-size:13px;outline:none">📝 Notes ${notes.length?`<span style="background:#5856d6;color:#fff;border-radius:10px;padding:1px 8px;font-size:11px;font-weight:700;margin-left:6px">${notes.length}</span>`:'<span style="color:var(--sub);font-weight:500;font-size:11px;margin-left:6px">(none yet)</span>'}</summary>
+    ${notes.length?`<div class="notes-thread" style="margin-top:10px">${notes.slice().reverse().map(n=>`<div class="notes-thread-item"><div class="nt-who">${esc(n.byName||n.by||'Unknown')} · ${new Date(n.at).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</div><div class="nt-text">${esc(n.text)}</div></div>`).join('')}</div>`:''}
+    <div class="note-add-row">
+      <textarea id="new-note-text" placeholder="Add a note (visible to everyone with access)…"></textarea>
+      <button onclick="addNote('${esc(l.id)}')">Add</button>
+    </div>
+  </details>`;
+}
+
+async function addNote(leadId){
+  const ta=document.getElementById('new-note-text');
+  const text=(ta?.value||'').trim();
+  if(!text){showToast('Type a note first','error');return}
+  const lead=APP.leads.find(l=>l.id===leadId);if(!lead)return;
+  const note={at:new Date().toISOString(),by:APP.user.username,byName:APP.user.name,text};
+  const histEntry=_historyEntry('Note added',{});
+  const notes=[...(lead.notes||[]),note];
+  const history=[...(lead.history||[]),histEntry];
+  try{
+    await fsUpdate('leads',leadId,{notes,history,updatedAt:new Date().toISOString()});
+    const idx=APP.leads.findIndex(l=>l.id===leadId);
+    if(idx>=0){APP.leads[idx].notes=notes;APP.leads[idx].history=history;}
+    // Re-render the edit form to show the new note
+    openEditModal(leadId);
+    showToast('Note added','success');
+  }catch(e){showToast('Could not save note: '+e.message,'error')}
 }
 
 // Collapsible activity timeline rendered at the bottom of the edit modal.
 // Newest-first. Each entry shows who, when, what changed.
 function buildHistorySection(l){
-  const h=(l.history||[]).slice().reverse();
+  // Hide noisy "Updated" entries with zero changes — they happen when a save fires with no diffs.
+  // Always keep entries that have an action AND either changes or a non-Updated label (created/reassigned/etc.).
+  const h=(l.history||[]).filter(e=>{
+    const hasChanges=Object.keys(e.changes||{}).length>0;
+    const action=(e.action||'').toLowerCase();
+    return hasChanges||action.includes('created')||action.includes('reassigned')||action.includes('note');
+  }).slice().reverse();
   const count=h.length;
   return`<details style="margin-top:14px;background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px">
     <summary style="cursor:pointer;font-weight:700;font-size:13px;outline:none">📜 Activity Timeline ${count?`<span style="background:var(--blue);color:#fff;border-radius:10px;padding:1px 8px;font-size:11px;font-weight:700;margin-left:6px">${count}</span>`:'<span style="color:var(--sub);font-weight:500;font-size:11px;margin-left:6px">(no activity yet)</span>'}</summary>
@@ -1546,11 +1657,13 @@ async function saveEditLead(){
   const btn=document.getElementById('save-edit-btn');
   btn.disabled=true;btn.textContent='Saving…';
   const upd={leadName:v('leadName'),channel:v('channel'),sourceName:v('sourceName'),guestName:v('guestName'),contactNumber:v('contactNumber'),email:v('email'),resortName:v('resortName'),interest:v('interest'),primaryStatus:v('primaryStatus'),secondaryStatus:v('secondaryStatus'),checkIn:v('checkIn'),checkOut:v('checkOut'),noRooms:+v('noRooms')||0,noNights:+v('noNights')||0,roomNights:+v('roomNights')||0,mealPlan:v('mealPlan'),leadValue:+v('leadValue')||0,converted:v('converted'),bookingCV:v('bookingCV'),convertedValue:+v('convertedValue')||0,remarks:v('remarks'),lastFollowUp:v('lastFollowUp'),nextFollowUp:v('nextFollowUp'),nextAction:v('nextAction'),adults:+v('adults')||0,children:+v('children')||0,guestCategory:v('guestCategory'),updatedAt:new Date().toISOString()};
-  // Build history entry for audit trail
+  // Build history entry for audit trail — only if something actually changed
   const before=APP.leads.find(l=>l.id===id)||{};
   const changes=_diffForHistory(before,upd);
-  const entry=_historyEntry('Edit lead',changes);
-  upd.history=[...(before.history||[]),entry];
+  if(Object.keys(changes).length){
+    const entry=_historyEntry('Edit lead',changes);
+    upd.history=[...(before.history||[]),entry];
+  }
   try{
     await fsUpdate('leads',id,upd);
     const idx=APP.leads.findIndex(l=>l.id===id);
@@ -1561,9 +1674,11 @@ async function saveEditLead(){
 
 async function deleteLead(id){
   if(!confirm('Delete this lead? This cannot be undone.'))return;
+  const lead=APP.leads.find(l=>l.id===id);
   try{
     await fsDel('leads',id);
     APP.leads=APP.leads.filter(l=>l.id!==id);
+    if(lead)_auditLog('lead_deleted',{leadId:id,guestName:lead.guestName,createdBy:lead.createdBy,leadValue:lead.leadValue});
     closeModal();renderLeadList();showToast('Lead deleted');
   }catch(e){showToast('Delete failed: '+e.message,'error')}
 }
@@ -1716,9 +1831,13 @@ function renderAnalytics(){
   const lost=mtdLeads.filter(l=>l.primaryStatus==='Lost');
   const lostBy={};lost.forEach(l=>{const k=l.secondaryStatus||'Unknown';lostBy[k]=(lostBy[k]||0)+1});
 
-  // Sources
+  // Sources with conversion-rate enrichment
   const srcBy={};mtdLeads.forEach(l=>{const k=l.sourceName||'Other';srcBy[k]=(srcBy[k]||0)+1});
   const topSrc=Object.entries(srcBy).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  // Win-rate per source (which channels actually convert?)
+  const srcRich={};
+  mtdLeads.forEach(l=>{const k=l.sourceName||'Other';if(!srcRich[k])srcRich[k]={leads:0,won:0,rev:0};srcRich[k].leads++;if(l.primaryStatus==='Won'){srcRich[k].won++;srcRich[k].rev+=(l.convertedValue||0);}});
+  const topSrcRich=Object.entries(srcRich).sort((a,b)=>b[1].leads-a[1].leads).slice(0,8);
 
   // Top resorts
   const resBy={};mtdLeads.forEach(l=>{const k=(l.resortName||'Other').split('(')[0].trim();resBy[k]=(resBy[k]||0)+1});
@@ -1784,13 +1903,28 @@ function renderAnalytics(){
     <!-- Lead Sources -->
     ${topSrc.length?`<div class="chart-wrap"><h3>Leads by Source — ${mNames[month]} ${year}</h3><canvas id="ch-src"></canvas></div>`:''}
 
+    <!-- Conversion by Source — answers "which channels actually close?" -->
+    ${topSrcRich.length?`<div class="chart-wrap">
+      <h3>Conversion by Source — ${mNames[month]} ${year}</h3>
+      ${topSrcRich.map(([s,d])=>{
+        const rate=d.leads>0?(d.won/d.leads*100):0;
+        const col=rate>=50?'#34c759':rate>=25?'#ff9500':'#78909c';
+        return `<div class="f-row">
+          <div class="f-lbl">${esc(s)}</div>
+          <div class="f-bar-wrap"><div class="f-bar" style="width:${Math.min(rate,100)}%;background:${col}"><span>${d.won}/${d.leads}</span></div></div>
+          <div class="f-pct" style="color:${col};font-weight:700">${rate.toFixed(0)}%</div>
+        </div>`;
+      }).join('')}
+      <div style="font-size:11px;color:var(--sub);margin-top:6px;font-style:italic">Bar shows win-rate. Numbers show won / total.</div>
+    </div>`:''}
+
     <!-- Drop-off -->
     <div class="chart-wrap">
       <h3>Drop-off Reasons — Lost Leads</h3>
       ${lost.length?Object.entries(lostBy).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`
         <div class="f-row">
           <div class="f-lbl">${esc(k)}</div>
-          <div class="f-bar-wrap"><div class="f-bar" style="width:${v/lost.length*100}%;background:#ff3b30"><span>${v}</span></div></div>
+          <div class="f-bar-wrap"><div class="f-bar" style="width:${v/lost.length*100}%;background:#78909c"><span>${v}</span></div></div>
           <div class="f-pct">${(v/lost.length*100).toFixed(0)}%</div>
         </div>`).join(''):'<p style="font-size:13px;color:var(--sub)">No lost leads this period.</p>'}
     </div>
@@ -1821,7 +1955,7 @@ function renderAnalytics(){
 
     // Win/Loss/Active doughnut
     const wlc=document.getElementById('ch-winloss');
-    if(wlc&&mtdLeads.length)APP.charts.winloss=new Chart(wlc,{type:'doughnut',data:{labels:['Won','Lost','Active'],datasets:[{data:[wonCount,lostCount,activeCount],backgroundColor:['#34c759','#ff3b30','#007aff'],borderWidth:0}]},options:{responsive:true,cutout:'62%',plugins:{legend:{position:'bottom',labels:{font:{size:12},padding:16}}}}});
+    if(wlc&&mtdLeads.length)APP.charts.winloss=new Chart(wlc,{type:'doughnut',data:{labels:['Won','Lost','Active'],datasets:[{data:[wonCount,lostCount,activeCount],backgroundColor:['#34c759','#78909c','#007aff'],borderWidth:0}]},options:{responsive:true,cutout:'62%',plugins:{legend:{position:'bottom',labels:{font:{size:12},padding:16}}}}});
 
     // 6-month lead trend
     const tc=document.getElementById('ch-trend');
@@ -2086,6 +2220,7 @@ async function saveTargetAdmin(){
   try{
     const tgt={id:key,username,year:yr,month:mo,...data,updatedBy:APP.user.username,updatedAt:new Date().toISOString()};
     await fsSet('targets',key,tgt);APP.targets[key]=tgt;
+    _auditLog('target_set',{forUser:username,year:yr,month:mo,...data});
     renderExistingTargets(username);showToast('Target saved!','success');
   }catch(e){showToast('Failed: '+e.message,'error')}
 }
@@ -2137,6 +2272,15 @@ function setNSHZone(zone,btn){
 }
 function setNSHState(val){NSH.state=val;NSH.resort='';updateNSHResortDropdown();renderNSH();}
 function setNSHResort(val){NSH.resort=val;renderNSH();}
+
+// Drill into a zone from the "Performance by Zone" row — sets the zone filter, updates the chip UI, and scrolls back to top
+function nshDrillToZone(zone){
+  NSH.zone=zone;NSH.state='';NSH.resort='';
+  document.querySelectorAll('.nchip[data-zone]').forEach(c=>c.classList.toggle('active',c.dataset.zone===zone));
+  updateNSHStateDropdown();updateNSHResortDropdown();renderNSH();
+  document.getElementById('nsh-body').scrollIntoView({behavior:'smooth',block:'start'});
+  showToast(`Filtered to ${zone} zone`,'success');
+}
 
 function updateNSHStateDropdown(){
   const sel=document.getElementById('nsh-state-sel');if(!sel)return;
@@ -2243,7 +2387,7 @@ function openMgrDrilldown(username){
     ${tgtSection}
     <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--sub);margin-bottom:8px">Recent Activity</div>
     ${recent.length?recent.map(l=>{
-      const statusCol=l.primaryStatus==='Won'?'#34c759':l.primaryStatus==='Lost'?'#C8102E':'#007aff';
+      const statusCol=l.primaryStatus==='Won'?'#34c759':l.primaryStatus==='Lost'?'#78909c':'#007aff';
       return`<div style="padding:9px 0;border-bottom:1px solid var(--border)">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
           <div style="font-size:13px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(l.guestName)}</div>
@@ -2342,10 +2486,14 @@ function renderNSH(){
   cL.forEach(l=>{const meta=RESORT_META[l.resortName]||{};const k=meta.state||'Unknown';if(!stMap[k])stMap[k]={state:k,count:0};stMap[k].count++;});
   const topSt=Object.values(stMap).sort((a,b)=>b.count-a.count).slice(0,8);
 
-  // Source breakdown
+  // Source breakdown + conversion enrichment
   const srcMap={};
   cL.forEach(l=>{const k=l.sourceName||'Other';srcMap[k]=(srcMap[k]||0)+1;});
   const topSrc=Object.entries(srcMap).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  // Conversion-by-source (win rate per channel)
+  const srcRichNSH={};
+  cL.forEach(l=>{const k=l.sourceName||'Other';if(!srcRichNSH[k])srcRichNSH[k]={leads:0,won:0,rev:0};srcRichNSH[k].leads++;if(l.primaryStatus==='Won'){srcRichNSH[k].won++;srcRichNSH[k].rev+=(l.convertedValue||0);}});
+  const topSrcRichNSH=Object.entries(srcRichNSH).sort((a,b)=>b[1].leads-a[1].leads).slice(0,8);
 
   // 6-month trend (all NSH-filtered leads, regardless of period selector)
   const MN6=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -2412,13 +2560,14 @@ function renderNSH(){
 
     <!-- Zone breakdown -->
     ${zoneData.length>1?`
-    <div class="nsh-sec-title">Performance by Zone</div>
+    <div class="nsh-sec-title">Performance by Zone <span style="font-size:10px;color:var(--sub);font-weight:500;text-transform:none;letter-spacing:0;margin-left:6px">tap a row to drill in</span></div>
     <div class="card" style="padding:12px 16px">
       ${zoneData.map(z=>`
-        <div class="f-row">
+        <div class="f-row" style="cursor:pointer;transition:background .15s" onmouseover="this.style.background='#f7f7f9'" onmouseout="this.style.background=''" onclick="nshDrillToZone('${esc(z.zone)}')">
           <div class="f-lbl" style="width:64px">${esc(z.zone)}</div>
           <div class="f-bar-wrap"><div class="f-bar" style="width:${cTotal?(z.count/cTotal*100):0}%;background:var(--red)"><span>${z.count}</span></div></div>
           <div style="font-size:11px;color:var(--sub);width:64px;text-align:right;flex-shrink:0">₹${shortNum(z.rev)}</div>
+          <div style="color:var(--sub);font-size:14px;margin-left:4px">›</div>
         </div>`).join('')}
     </div>`:''}
 
@@ -2497,6 +2646,22 @@ function renderNSH(){
           <div class="f-bar-wrap"><div class="f-bar" style="width:${cTotal?(c/cTotal*100):0}%;background:var(--green)"><span>${c}</span></div></div>
           <div class="f-pct">${cTotal?(c/cTotal*100).toFixed(0)+'%':'—'}</div>
         </div>`).join('')}
+    </div>`:''}
+
+    <!-- Conversion by Source — leadership-grade insight: which channels actually close? -->
+    ${topSrcRichNSH.length?`
+    <div class="nsh-sec-title">Conversion by Source</div>
+    <div class="card" style="padding:12px 16px">
+      ${topSrcRichNSH.map(([s,d])=>{
+        const rate=d.leads>0?(d.won/d.leads*100):0;
+        const col=rate>=50?'#34c759':rate>=25?'#ff9500':'#78909c';
+        return `<div class="f-row">
+          <div class="f-lbl">${esc(s)}</div>
+          <div class="f-bar-wrap"><div class="f-bar" style="width:${Math.min(rate,100)}%;background:${col}"><span>${d.won}/${d.leads}</span></div></div>
+          <div class="f-pct" style="color:${col};font-weight:700">${rate.toFixed(0)}%</div>
+        </div>`;
+      }).join('')}
+      <div style="font-size:11px;color:var(--sub);margin-top:6px;font-style:italic">Bar shows win-rate. Numbers show won / total. Green ≥50% · amber ≥25% · slate &lt;25%.</div>
     </div>`:''}
 
     <!-- 6-Month Trend Chart -->
@@ -2588,7 +2753,10 @@ function renderTodayTab(){
     return`<div class="today-card" style="--tc:${tc}" onclick="openEditModal('${esc(l.id)}')">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
         <div style="font-size:14px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(l.guestName)}${prio}</div>
-        <button class="qu-btn" style="margin-left:8px;flex-shrink:0" onclick="event.stopPropagation();openQuickUpdate('${esc(l.id)}')">⚡ Update</button>
+        <div style="display:flex;gap:4px;flex-shrink:0;margin-left:8px">
+          <button class="snooze-btn" onclick="event.stopPropagation();snoozeLead('${esc(l.id)}',1)" title="Snooze to tomorrow">💤 +1d</button>
+          <button class="qu-btn" onclick="event.stopPropagation();openQuickUpdate('${esc(l.id)}')">⚡ Update</button>
+        </div>
       </div>
       <div style="font-size:12px;color:var(--sub)">${esc(l.resortName||'—')} · ${esc(l.primaryStatus||'—')}</div>
       <div style="font-size:12px;color:var(--sub);margin-top:1px">${esc(l.contactNumber)} · ${esc(l.sourceName||'—')}</div>
@@ -2629,6 +2797,109 @@ function renderTodayTab(){
 
 // ===== QUICK UPDATE =====
 let _quickUpdateId=null;
+// Admin-only: wipe leads + targets and re-seed with fresh sample data.
+// Safe hedge if leadership clicks delete during the demo — one click restores the demo.
+async function resetDemoData(){
+  if(!APP.user||APP.user.role!=='admin'){showToast('Admins only','error');return;}
+  if(!confirm('Reset demo data?\n\nThis will DELETE every lead and target, then re-seed the original demo data.\n\nThis is intended for the demo — not for production use.'))return;
+  setLoading(true,'Resetting demo data…');
+  try{
+    // Delete all leads (in batches; Firestore allows ~500 writes per batch)
+    const leadsSnap=await db.collection('leads').get();
+    const tgtSnap=await db.collection('targets').get();
+    const batch1=db.batch();
+    leadsSnap.docs.forEach(d=>batch1.delete(d.ref));
+    tgtSnap.docs.forEach(d=>batch1.delete(d.ref));
+    await batch1.commit();
+    // Re-seed leads with correct attribution per manager
+    const samples=makeSampleLeads(new Date());
+    const seedBatch=db.batch();
+    samples.forEach(l=>{
+      const ref=db.collection('leads').doc();
+      const ts=new Date().toISOString();
+      const mgr=DEF_U.find(d=>d.username===l.createdBy);
+      const seedHist={at:ts,by:l.createdBy||'system',byName:mgr?mgr.name:(l.createdBy||'System'),action:'Lead created',changes:{}};
+      seedBatch.set(ref,{...l,id:ref.id,originalCreatedBy:l.createdBy,createdAt:ts,updatedAt:ts,history:[seedHist]});
+    });
+    await seedBatch.commit();
+    // Re-seed targets
+    const tgts=makeSampleTargets(new Date());
+    const tgtBatch=db.batch();
+    Object.values(tgts).forEach(t=>tgtBatch.set(db.collection('targets').doc(t.id),t));
+    await tgtBatch.commit();
+    _auditLog('demo_reset',{leadsRemoved:leadsSnap.size,targetsRemoved:tgtSnap.size,leadsSeeded:samples.length});
+    setLoading(false);
+    showToast('Demo data reset — leads, targets, and history are fresh','success');
+  }catch(e){
+    setLoading(false);
+    showToast('Reset failed: '+e.message,'error');
+  }
+}
+
+// Global search across leads, managers, and resorts. Visible only for admin + NSH (where it's wired in the HTML).
+// Returns up to 8 ranked matches in a floating dropdown.
+function doGlobalSearch(query,context){
+  const results=document.getElementById('gs-results');if(!results)return;
+  const q=(query||'').trim().toLowerCase();
+  if(!q){results.innerHTML='';results.classList.remove('open');return;}
+  const matches=[];
+  // Match leads
+  for(const l of (APP.leads||[])){
+    const hay=`${l.guestName||''} ${l.contactNumber||''} ${l.resortName||''} ${l.leadName||''} ${l.assignedTo||''}`.toLowerCase();
+    if(hay.includes(q)){
+      matches.push({type:'Lead',label:l.guestName,meta:`${l.resortName||'—'} · ${l.primaryStatus||'—'} · ${l.assignedTo||l.createdBy||'—'}`,onclick:`openEditModal('${esc(l.id)}');document.getElementById('gs-results').classList.remove('open')`});
+    }
+    if(matches.length>=12)break;
+  }
+  // Match managers (admin + NSH context)
+  for(const u of (APP.users||[])){
+    if((u.name||'').toLowerCase().includes(q)||(u.username||'').toLowerCase().includes(q)){
+      if(u.role==='sales_manager'){
+        matches.push({type:'Manager',label:u.name,meta:`${u.username} · sales manager`,onclick:context==='nsh'?`openMgrDrilldown('${esc(u.username)}');document.getElementById('gs-results').classList.remove('open')`:`document.getElementById('gs-results').classList.remove('open')`});
+      }
+    }
+  }
+  // Match resorts
+  for(const r of (APP.settings.resorts||[])){
+    if(r.toLowerCase().includes(q)){
+      const meta=RESORT_META[r]||{};
+      matches.push({type:'Resort',label:r,meta:`${meta.zone||'—'} · ${meta.state||'—'}`,onclick:`document.getElementById('gs-results').classList.remove('open')`});
+    }
+  }
+  if(!matches.length){results.innerHTML='<div class="gs-item" style="cursor:default"><div class="gs-meta">No matches.</div></div>';}
+  else{
+    results.innerHTML=matches.slice(0,8).map(m=>`<div class="gs-item" onclick="${m.onclick}"><div class="gs-name"><span style="font-size:10px;background:var(--bg);color:var(--sub);padding:2px 6px;border-radius:6px;margin-right:6px;font-weight:700">${m.type}</span>${esc(m.label)}</div><div class="gs-meta">${esc(m.meta)}</div></div>`).join('');
+  }
+  results.classList.add('open');
+}
+// Close global search on outside click
+document.addEventListener('click',function(e){
+  const results=document.getElementById('gs-results');
+  if(!results)return;
+  if(!e.target.closest('.global-search')&&!e.target.closest('.global-search-results')){
+    results.classList.remove('open');
+  }
+});
+
+// Snooze a lead's next follow-up by N days. Updates Firestore + appends a history entry.
+async function snoozeLead(id,days){
+  const lead=APP.leads.find(l=>l.id===id);
+  if(!lead){showToast('Lead not found','error');return}
+  const baseDate=lead.nextFollowUp?new Date(lead.nextFollowUp+'T00:00:00'):new Date();
+  const newDate=new Date(baseDate.getFullYear(),baseDate.getMonth(),baseDate.getDate()+days);
+  const newStr=newDate.toISOString().split('T')[0];
+  const entry=_historyEntry(`Snoozed ${days}d`,{nextFollowUp:{from:lead.nextFollowUp||'—',to:newStr}});
+  const upd={nextFollowUp:newStr,updatedAt:new Date().toISOString(),history:[...(lead.history||[]),entry]};
+  try{
+    await fsUpdate('leads',id,upd);
+    const idx=APP.leads.findIndex(l=>l.id===id);
+    if(idx>=0)APP.leads[idx]={...APP.leads[idx],...upd};
+    renderTodayTab();
+    if(typeof renderLeadList==='function')renderLeadList();
+    showToast(`Snoozed to ${newDate.toLocaleDateString('en-IN',{day:'numeric',month:'short'})}`,'success');
+  }catch(e){showToast('Snooze failed: '+e.message,'error')}
+}
+
 function openQuickUpdate(id){
   const lead=APP.leads.find(l=>l.id===id);if(!lead)return;
   _quickUpdateId=id;
@@ -2659,12 +2930,13 @@ async function saveQuickUpdate(){
   if(!ps){showToast('Select a primary status','error');return}
   const na=['Won','Lost'].includes(ps)?'Closed':'Open';
   const upd={primaryStatus:ps,secondaryStatus:ss,lastFollowUp:lf,nextFollowUp:nf,nextAction:na,remarks:rem,updatedAt:new Date().toISOString()};
-  // Build history entry for audit trail
+  // Build history entry for audit trail — only if something actually changed
   const before=APP.leads.find(l=>l.id===_quickUpdateId)||{};
   const changes=_diffForHistory(before,upd);
-  const entry=_historyEntry('Quick update',changes);
-  const history=[...(before.history||[]),entry];
-  upd.history=history;
+  if(Object.keys(changes).length){
+    const entry=_historyEntry('Quick update',changes);
+    upd.history=[...(before.history||[]),entry];
+  }
   try{
     await fsUpdate('leads',_quickUpdateId,upd);
     const idx=APP.leads.findIndex(l=>l.id===_quickUpdateId);
@@ -2678,6 +2950,64 @@ async function saveQuickUpdate(){
 function closeQuickUpdate(){document.getElementById('quick-update-modal').classList.remove('open');_quickUpdateId=null;}
 
 // ===== ADMIN — ALL LEADS =====
+// Tracks which lead IDs are checked for bulk operations (reassign, delete in future).
+const _bulkSel=new Set();
+function _toggleBulk(id,checked){
+  if(checked)_bulkSel.add(id);else _bulkSel.delete(id);
+  _renderBulkBar();
+}
+function _clearBulk(){_bulkSel.clear();document.querySelectorAll('.lead-check').forEach(c=>{c.checked=false});_renderBulkBar();}
+function _renderBulkBar(){
+  const bar=document.getElementById('bulk-bar');if(!bar)return;
+  if(_bulkSel.size===0){bar.classList.remove('show');return;}
+  bar.classList.add('show');
+  document.getElementById('bulk-count').textContent=_bulkSel.size+' selected';
+}
+function openBulkReassign(){
+  if(!_bulkSel.size){showToast('Select at least one lead','error');return;}
+  const managers=APP.users.filter(u=>u.role==='sales_manager');
+  document.getElementById('adm-modal-title').textContent=`Reassign ${_bulkSel.size} Leads`;
+  document.getElementById('adm-modal-body').innerHTML=`
+    <div style="padding:10px 12px;background:var(--bg);border-radius:10px;margin-bottom:14px">
+      <div style="font-weight:700;font-size:14px">${_bulkSel.size} leads selected</div>
+      <div style="font-size:12px;color:var(--sub);margin-top:2px">All will be moved to the selected manager.</div>
+    </div>
+    <div class="field"><label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">Assign to</label>
+      <select id="bulk-reassign-sel" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;background:#fff;-webkit-appearance:none;appearance:none;outline:none">
+        <option value="">Select manager…</option>
+        ${managers.map(m=>`<option value="${esc(m.username)}">${esc(m.name)}</option>`).join('')}
+      </select>
+    </div>
+    <button class="btn" onclick="confirmBulkReassign()">Reassign ${_bulkSel.size} Leads</button>`;
+  document.getElementById('adm-modal').classList.add('open');
+}
+async function confirmBulkReassign(){
+  const username=document.getElementById('bulk-reassign-sel').value;
+  if(!username){showToast('Select a manager','error');return;}
+  const mgr=APP.users.find(u=>u.username===username);if(!mgr)return;
+  const ids=[..._bulkSel];
+  let ok=0,fail=0;
+  for(const id of ids){
+    const lead=APP.leads.find(l=>l.id===id);if(!lead){fail++;continue;}
+    const histEntry=_historyEntry('Bulk reassigned',{assignedTo:{from:lead.assignedTo||'—',to:mgr.name},createdBy:{from:lead.createdBy||'—',to:mgr.username}});
+    const upd={
+      assignedTo:mgr.name,createdBy:mgr.username,
+      originalCreatedBy:lead.originalCreatedBy||lead.createdBy,
+      updatedAt:new Date().toISOString(),
+      history:[...(lead.history||[]),histEntry]
+    };
+    try{
+      await fsUpdate('leads',id,upd);
+      const idx=APP.leads.findIndex(l=>l.id===id);
+      if(idx>=0)APP.leads[idx]={...APP.leads[idx],...upd};
+      ok++;
+    }catch(e){fail++;}
+  }
+  _auditLog('bulk_reassign',{count:ok,to:mgr.username,toName:mgr.name});
+  _clearBulk();closeAdmModal();renderAllLeadsAdmin();
+  showToast(`Reassigned ${ok} lead${ok===1?'':'s'} to ${mgr.name}${fail?` · ${fail} failed`:''}`, fail?'error':'success');
+}
+
 function renderAllLeadsAdmin(){
   const mgSel=document.getElementById('adm-filter-mgr');
   const stSel=document.getElementById('adm-filter-st');
@@ -2707,7 +3037,9 @@ function renderAllLeadsAdmin(){
   list.innerHTML=fil.map(l=>{
     const mgr=APP.users.find(u=>u.username===l.createdBy);
     const mgrName=mgr?mgr.name:(l.assignedTo||l.createdBy||'Unknown');
+    const checked=_bulkSel.has(l.id)?'checked':'';
     return`<div class="lead-card" style="cursor:default">
+      <input type="checkbox" class="lead-check" ${checked} onclick="_toggleBulk('${esc(l.id)}',this.checked)" title="Select for bulk action">
       <div class="lead-info" style="flex:1;min-width:0">
         <div class="lead-name">${esc(l.guestName)}</div>
         <div class="lead-meta">${esc(l.resortName||'—')} · ${esc(l.primaryStatus||'—')}</div>
@@ -2721,6 +3053,7 @@ function renderAllLeadsAdmin(){
       </div>
     </div>`;
   }).join('');
+  _renderBulkBar();
   const lc=document.getElementById('adm-count-leads');
   if(lc)lc.textContent=APP.leads.length+' total leads';
 }
@@ -2749,10 +3082,23 @@ async function confirmReassign(){
   const username=document.getElementById('reassign-sel').value;
   if(!username){showToast('Select a manager','error');return}
   const mgr=APP.users.find(u=>u.username===username);if(!mgr)return;
+  const lead=APP.leads.find(l=>l.id===leadId);if(!lead)return;
+  // Preserve original-creator attribution + write an audit-trail history entry on every reassign.
+  const prevAssigned=lead.assignedTo||'Unassigned';
+  const prevOwner=lead.createdBy||'unknown';
+  const histEntry=_historyEntry('Reassigned',{assignedTo:{from:prevAssigned,to:mgr.name},createdBy:{from:prevOwner,to:mgr.username}});
+  const upd={
+    assignedTo:mgr.name,
+    createdBy:mgr.username,
+    originalCreatedBy:lead.originalCreatedBy||lead.createdBy,
+    updatedAt:new Date().toISOString(),
+    history:[...(lead.history||[]),histEntry]
+  };
   try{
-    await fsUpdate('leads',leadId,{assignedTo:mgr.name,createdBy:mgr.username,updatedAt:new Date().toISOString()});
+    await fsUpdate('leads',leadId,upd);
     const idx=APP.leads.findIndex(l=>l.id===leadId);
-    if(idx>=0){APP.leads[idx].assignedTo=mgr.name;APP.leads[idx].createdBy=mgr.username;}
+    if(idx>=0)APP.leads[idx]={...APP.leads[idx],...upd};
+    _auditLog('lead_reassigned',{leadId,guestName:lead.guestName,from:prevAssigned,to:mgr.name});
     closeAdmModal();renderAllLeadsAdmin();showToast('Reassigned to '+mgr.name,'success');
   }catch(e){showToast('Failed: '+e.message,'error')}
 }
@@ -2769,6 +3115,36 @@ function showToast(msg,type=''){const t=document.getElementById('toast');t.textC
 // ===== KEYBOARD =====
 ['login-u','login-p'].forEach((id,i,a)=>{
   document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter'){if(i<a.length-1)document.getElementById(a[i+1]).focus();else doLogin()}});
+});
+
+// Global keyboard shortcuts (power-user productivity).
+// /   focus global search (admin + NSH only)
+// n   open the New Lead tab (sales manager)
+// esc close any open modal / global search dropdown
+document.addEventListener('keydown',function(e){
+  // Don't intercept when typing in inputs (except for Esc which is universal)
+  const target=e.target;
+  const isTyping=target.tagName==='INPUT'||target.tagName==='TEXTAREA'||target.tagName==='SELECT'||target.isContentEditable;
+  if(e.key==='Escape'){
+    // Close modals + search dropdown
+    document.querySelectorAll('.modal-overlay.open').forEach(m=>m.classList.remove('open'));
+    const gs=document.getElementById('gs-results');if(gs)gs.classList.remove('open');
+    return;
+  }
+  if(isTyping)return;
+  if(e.key==='/'){
+    e.preventDefault();
+    const onAdmin=document.getElementById('screen-admin').classList.contains('active');
+    const onNSH=document.getElementById('screen-nsh').classList.contains('active');
+    const gsId=onAdmin?'gs-admin':(onNSH?'gs-nsh':null);
+    if(gsId){const inp=document.querySelector(`#${gsId} input`);if(inp)inp.focus();}
+  }else if(e.key==='n'||e.key==='N'){
+    // Sales manager: switch to New Lead tab
+    if(document.getElementById('screen-manager').classList.contains('active')){
+      const newLeadBtn=document.querySelector('.tab-btn[onclick*="new-lead"]');
+      if(newLeadBtn)newLeadBtn.click();
+    }
+  }
 });
 
 // ===== BOOT =====
