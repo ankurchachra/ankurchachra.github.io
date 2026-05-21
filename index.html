@@ -560,7 +560,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <!-- TODAY -->
   <div id="tab-today" class="tab-pane">
     <div class="pg-hdr" style="display:flex;justify-content:space-between;align-items:center">
-      <div><div class="pg-title">Today's Board</div><div class="pg-sub">Follow-ups that need attention</div></div>
+      <div><div class="pg-title">Today's Board</div><div class="pg-sub">Your open leads, bucketed by next-follow-up date · auto-sorted by priority</div></div>
     </div>
     <div style="padding:0 16px 80px" id="today-body"></div>
   </div>
@@ -2391,17 +2391,37 @@ function openMgrDrilldown(username){
   const initls=mgr.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
   let tgtSection='';
   if(t){
-    const pct=t.leadsTarget>0?Math.min(theirs.length/t.leadsTarget*100,100):0;
-    const col=pct>=100?'#34c759':pct>=75?'#ff9500':'#C8102E';
+    // Each metric tile shows its own % independently. The headline bar at the bottom tracks REVENUE
+    // (the metric leadership cares about most). Leads and wins are supporting context.
+    const leadsPct = t.leadsTarget>0     ? Math.min(theirs.length/t.leadsTarget*100,100)     : null;
+    const wonPct   = t.convertedTarget>0 ? Math.min(won.length/t.convertedTarget*100,100)    : null;
+    const revPct   = t.revenueTarget>0   ? Math.min(rev/t.revenueTarget*100,100)             : null;
+    const headline = revPct!==null?revPct:(wonPct!==null?wonPct:(leadsPct||0));
+    const col=headline>=100?'#34c759':headline>=75?'#ff9500':'#C8102E';
+    const tag=headline>=100?'on target':headline>=75?'close':'behind';
+    const pctTxt=(p)=>p===null?'—':p.toFixed(0)+'%';
+    const pctCol=(p)=>p===null?'var(--sub)':p>=100?'#34c759':p>=75?'#ff9500':'#C8102E';
     tgtSection=`<div style="background:#fafafa;border-radius:10px;padding:12px;margin-bottom:14px">
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--sub);margin-bottom:8px">Target Progress · MTD</div>
       <div style="display:flex;gap:14px;flex-wrap:wrap">
-        <div style="flex:1;min-width:80px"><div style="font-size:10px;color:var(--sub)">LEADS</div><div style="font-size:18px;font-weight:800">${theirs.length}<span style="font-size:11px;color:var(--sub);font-weight:500"> / ${t.leadsTarget||'—'}</span></div></div>
-        <div style="flex:1;min-width:80px"><div style="font-size:10px;color:var(--sub)">WON</div><div style="font-size:18px;font-weight:800">${won.length}<span style="font-size:11px;color:var(--sub);font-weight:500"> / ${t.convertedTarget||'—'}</span></div></div>
-        <div style="flex:1;min-width:90px"><div style="font-size:10px;color:var(--sub)">REVENUE</div><div style="font-size:18px;font-weight:800">₹${shortNum(rev)}<span style="font-size:11px;color:var(--sub);font-weight:500"> / ₹${shortNum(t.revenueTarget||0)}</span></div></div>
+        <div style="flex:1;min-width:90px">
+          <div style="font-size:10px;color:var(--sub)">LEADS</div>
+          <div style="font-size:18px;font-weight:800">${theirs.length}<span style="font-size:11px;color:var(--sub);font-weight:500"> / ${t.leadsTarget||'—'}</span></div>
+          <div style="font-size:11px;font-weight:700;color:${pctCol(leadsPct)}">${pctTxt(leadsPct)} of target</div>
+        </div>
+        <div style="flex:1;min-width:90px">
+          <div style="font-size:10px;color:var(--sub)">WON</div>
+          <div style="font-size:18px;font-weight:800">${won.length}<span style="font-size:11px;color:var(--sub);font-weight:500"> / ${t.convertedTarget||'—'}</span></div>
+          <div style="font-size:11px;font-weight:700;color:${pctCol(wonPct)}">${pctTxt(wonPct)} of target</div>
+        </div>
+        <div style="flex:1;min-width:100px">
+          <div style="font-size:10px;color:var(--sub)">REVENUE</div>
+          <div style="font-size:18px;font-weight:800">₹${shortNum(rev)}<span style="font-size:11px;color:var(--sub);font-weight:500"> / ₹${shortNum(t.revenueTarget||0)}</span></div>
+          <div style="font-size:11px;font-weight:700;color:${pctCol(revPct)}">${pctTxt(revPct)} of target</div>
+        </div>
       </div>
-      <div style="height:6px;background:#e5e5ea;border-radius:3px;overflow:hidden;margin-top:10px"><div style="height:100%;width:${pct.toFixed(0)}%;background:${col};border-radius:3px"></div></div>
-      <div style="font-size:11px;color:${col};font-weight:700;margin-top:5px">${pct.toFixed(0)}% of leads target</div>
+      <div style="height:6px;background:#e5e5ea;border-radius:3px;overflow:hidden;margin-top:12px"><div style="height:100%;width:${headline.toFixed(0)}%;background:${col};border-radius:3px"></div></div>
+      <div style="font-size:11px;color:${col};font-weight:700;margin-top:5px">${headline.toFixed(0)}% of revenue target · ${tag}</div>
     </div>`;
   }
   const recent=theirs.slice().sort((a,b)=>new Date(b.updatedAt||b.createdAt)-new Date(a.updatedAt||a.createdAt)).slice(0,8);
@@ -2639,16 +2659,22 @@ function renderNSH(){
         if(NSH.period==='MTD'){
           const tNow=new Date();
           const t=getTarget(m.username,tNow.getFullYear(),tNow.getMonth());
-          if(t&&t.leadsTarget>0){
-            const pct=Math.min(m.leads/t.leadsTarget*100,100);
-            const col=pct>=100?'#34c759':pct>=75?'#ff9500':'#C8102E';
+          if(t&&(t.leadsTarget>0||t.convertedTarget>0||t.revenueTarget>0)){
+            // The headline badge tracks REVENUE achievement — that's the metric leadership cares about most.
+            // Leads and wins are supporting metrics shown in the bar caption below.
+            const leadsPct = t.leadsTarget>0     ? Math.min(m.leads/t.leadsTarget*100,100)     : null;
+            const wonPct   = t.convertedTarget>0 ? Math.min(m.won/t.convertedTarget*100,100)   : null;
+            const revPct   = t.revenueTarget>0   ? Math.min(m.rev/t.revenueTarget*100,100)     : null;
+            const headline = revPct!==null?revPct:(wonPct!==null?wonPct:(leadsPct||0));
+            const col=headline>=100?'#34c759':headline>=75?'#ff9500':'#C8102E';
             avatarBg=col;
             rowAccent=`border-left:4px solid ${col};padding-left:8px;margin-left:-8px;`;
-            // Badge clearly labels % of LEADS TARGET achieved (the source of the % is now explicit
-            // in the hover tooltip and the bar caption below).
-            const tag=pct>=100?'on target':pct>=75?'close':'behind';
-            achBadge=`<span title="${m.leads} leads logged ÷ ${t.leadsTarget} leads target = ${pct.toFixed(0)}%" style="display:inline-block;background:${col};color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:8px;margin-left:6px;letter-spacing:.3px">${pct.toFixed(0)}% of target · ${tag}</span>`;
-            tgtBar=`<div style="margin-top:5px"><div style="height:4px;background:#f0f0f0;border-radius:2px;overflow:hidden"><div style="height:100%;width:${pct.toFixed(1)}%;background:${col};border-radius:2px;transition:width .5s"></div></div><div style="font-size:9px;color:var(--sub);margin-top:2px">${m.leads}/${t.leadsTarget} leads · ${m.won}/${t.convertedTarget||0} won · ₹${shortNum(m.rev)}/${shortNum(t.revenueTarget||0)} rev</div></div>`;
+            const tag=headline>=100?'on target':headline>=75?'close':'behind';
+            const pctTxt=(p)=>p===null?'—':p.toFixed(0)+'%';
+            const tip=`Revenue: ₹${shortNum(m.rev)} ÷ ₹${shortNum(t.revenueTarget||0)} target = ${pctTxt(revPct)}.  Leads: ${pctTxt(leadsPct)}.  Wins: ${pctTxt(wonPct)}.`;
+            achBadge=`<span title="${esc(tip)}" style="display:inline-block;background:${col};color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:8px;margin-left:6px;letter-spacing:.3px">${headline.toFixed(0)}% revenue · ${tag}</span>`;
+            // Bar tracks revenue achievement; caption shows all three individual %s
+            tgtBar=`<div style="margin-top:5px"><div style="height:4px;background:#f0f0f0;border-radius:2px;overflow:hidden"><div style="height:100%;width:${headline.toFixed(1)}%;background:${col};border-radius:2px;transition:width .5s"></div></div><div style="font-size:9px;color:var(--sub);margin-top:2px">${m.leads}/${t.leadsTarget||'—'} leads (${pctTxt(leadsPct)}) · ${m.won}/${t.convertedTarget||'—'} won (${pctTxt(wonPct)}) · ₹${shortNum(m.rev)}/${shortNum(t.revenueTarget||0)} rev (${pctTxt(revPct)})</div></div>`;
           }
         }
         return`<div style="display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border);${rowAccent};cursor:pointer" onclick="openMgrDrilldown('${esc(m.username)}')">
@@ -2836,17 +2862,24 @@ function renderTodayTab(){
     return;
   }
   // Three columns side-by-side on desktop (CSS via .today-cols), stack vertically on mobile.
-  // Empty sections render a quiet placeholder so the column layout stays consistent.
+  // Each lane gets a one-line caption so leadership doesn't need a verbal explanation of what "overdue" means.
   body.className='today-cols';
-  const col=(title,color,leads,emoji,emptyMsg)=>{
-    const hdr=`<div class="today-sec-hdr" style="color:${color}">${emoji} ${title}${leads.length?`<span class="today-badge" style="background:${color}">${leads.length}</span>`:''}</div>`;
+  const col=(title,color,leads,emoji,emptyMsg,subtitle,tip)=>{
+    const hdr=`<div class="today-sec-hdr" style="color:${color}" title="${esc(tip)}">${emoji} ${title}${leads.length?`<span class="today-badge" style="background:${color}">${leads.length}</span>`:''}</div>`;
+    const sub=`<div style="font-size:10.5px;color:var(--sub);margin:-4px 0 8px;font-style:italic;line-height:1.35">${esc(subtitle)}</div>`;
     const cards=leads.length?leads.map(l=>todayCard(l,color)).join(''):`<div style="font-size:12px;color:var(--sub);padding:14px 4px;font-style:italic">${emptyMsg}</div>`;
-    return`<div class="today-col">${hdr}${cards}</div>`;
+    return`<div class="today-col">${hdr}${sub}${cards}</div>`;
   };
   body.innerHTML=
-    col('Overdue','#ff3b30',overdue,'🔴','Nothing overdue 🎯')+
-    col('Due Today','var(--orange)',dueToday,'🟡','Nothing due today')+
-    col('This Week','var(--blue)',thisWeek,'📅','Nothing this week');
+    col('Overdue','#ff3b30',overdue,'🔴','Nothing overdue 🎯',
+        'Follow-up date has passed and the lead is still Open',
+        'An open lead whose next-follow-up date is earlier than today.') +
+    col('Due Today','var(--orange)',dueToday,'🟡','Nothing due today',
+        'Follow-up date is today and the lead is still Open',
+        'An open lead whose next-follow-up date matches today.') +
+    col('This Week','var(--blue)',thisWeek,'📅','Nothing this week',
+        'Follow-up due in the next 7 days (excluding today)',
+        'An open lead whose next-follow-up date is between tomorrow and 7 days from today.');
 }
 
 // ===== QUICK UPDATE =====
