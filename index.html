@@ -6,6 +6,7 @@
 <title>Club Mahindra | Sales CRM</title>
 <!-- Firebase Compat SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <!-- Charts -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -224,6 +225,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
 /* ---- QUICK UPDATE ---- */
 .qu-btn{background:var(--blue);border:none;color:#fff;padding:5px 10px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.ca-btn{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;text-decoration:none;font-size:13px;flex-shrink:0;transition:transform .15s}
+.ca-btn:active{transform:scale(.92)}
+.ca-call{background:#34c759;color:#fff}
+.ca-wa{background:#25d366;color:#fff}
+/* Priority tag on Today's Board cards */
+.prio-tag{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.3px;padding:2px 6px;border-radius:8px;color:#fff;margin-left:4px}
+/* Activity timeline in edit modal */
+.timeline{background:#fafafa;border-radius:10px;padding:10px;max-height:240px;overflow-y:auto}
+.timeline-item{padding:8px 0;border-bottom:1px solid var(--border);font-size:12px}
+.timeline-item:last-child{border-bottom:none}
+.timeline-when{font-size:10px;color:var(--sub);font-weight:600}
+.timeline-who{font-weight:700;color:var(--text)}
+.timeline-changes{margin-top:3px;color:var(--sub);font-size:11px}
+.timeline-changes strong{color:var(--text);font-weight:600}
 
 /* ---- EXPORT BUTTON ---- */
 .exp-btn{background:none;border:1.5px solid var(--border);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;color:var(--sub);cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:border-color .15s}
@@ -517,6 +532,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </div>
 
   <div id="nsh-body" style="padding:10px 16px 60px"></div>
+
+  <!-- Manager drill-down modal (opened by clicking a row in the leaderboard) -->
+  <div class="modal-overlay" id="nsh-mgr-modal" onclick="if(event.target===this)closeMgrDrilldown()">
+    <div class="modal">
+      <div class="modal-hdr">
+        <h3 id="nsh-mgr-modal-title">Manager</h3>
+        <button class="modal-close" onclick="closeMgrDrilldown()">&times;</button>
+      </div>
+      <div class="modal-body" id="nsh-mgr-modal-body"></div>
+    </div>
+  </div>
 </div>
 
 <!-- Admin -->
@@ -912,11 +938,21 @@ async function saveSettings(){await fsSet('settings','config',APP.settings)}
 async function loadUsers(){
   try{
     const docs=await fsQuery('users',c=>c);
-    if(!docs.length){
-      for(const u of DEF_U)await fsSet('users',u.username,u).catch(()=>{});
-      APP.users=[...DEF_U];return;
-    }
-    APP.users=docs.map(d=>{const def=DEF_U.find(u=>u.username===d.username);return def?{...d,...def}:d;});
+    if(!docs.length){APP.users=[...DEF_U];return;}
+    // Deduplicate by username (uid-keyed docs win over older username-keyed docs).
+    // Merge DEF_U metadata so display name/role stay authoritative from the code base.
+    const byUsername={};
+    docs.forEach(d=>{
+      if(!d.username)return;
+      const existing=byUsername[d.username];
+      if(!existing||(d.uid&&!existing.uid))byUsername[d.username]=d;
+    });
+    APP.users=Object.values(byUsername).map(d=>{
+      const def=DEF_U.find(u=>u.username===d.username);
+      return def?{...d,name:def.name,role:def.role,username:def.username}:d;
+    });
+    // Ensure any DEF_U user not in Firestore is still available in-memory for the UI
+    DEF_U.forEach(u=>{if(!byUsername[u.username])APP.users.push({...u});});
   }catch(e){APP.users=[...DEF_U];}
 }
 
@@ -932,78 +968,187 @@ async function loadLeads(){
 async function loadTargets(){
   try{
     const docs=await fsQuery('targets',c=>c);
-    APP.targets={};docs.forEach(t=>{APP.targets[t.id]=t});
-  }catch(e){APP.targets={};}
+    // Only replace sample targets if Firestore actually has data — never wipe to empty.
+    if(docs.length){APP.targets={};docs.forEach(t=>{APP.targets[t.id]=t});}
+  }catch(e){/* keep whatever was primed before — usually sample targets */}
+}
+
+// ===== REAL-TIME LISTENERS =====
+// onSnapshot fires whenever any lead changes — keeps every signed-in user's UI in sync.
+let _leadsUnsub=null;
+function startRealtimeLeadsListener(user){
+  stopRealtimeListeners();
+  if(!db)return;
+  try{
+    _leadsUnsub=db.collection('leads').orderBy('createdAt','desc').onSnapshot(snap=>{
+      if(snap.empty)return; // keep sample data if Firestore is empty
+      APP.leads=snap.docs.map(d=>({id:d.id,...d.data()}));
+      // Refresh whichever screen is currently visible — non-destructive (preserves tab state)
+      if(document.getElementById('screen-manager').classList.contains('active'))refreshManagerUI();
+      else if(document.getElementById('screen-admin').classList.contains('active'))refreshAdminUI();
+      else if(document.getElementById('screen-nsh').classList.contains('active'))renderNSH();
+    },err=>{/* silently ignore — sample data persists */});
+  }catch(e){/* ignore */}
+}
+function stopRealtimeListeners(){if(_leadsUnsub){try{_leadsUnsub();}catch(e){}_leadsUnsub=null;}}
+
+function refreshManagerUI(){
+  if(typeof renderLeadList==='function')renderLeadList();
+  const active=document.querySelector('.tab-btn.active');
+  if(active){
+    const onclick=active.getAttribute('onclick')||'';
+    if(onclick.includes('today')&&typeof renderTodayTab==='function')renderTodayTab();
+    else if(onclick.includes('analytics')&&typeof renderAnalytics==='function')renderAnalytics();
+  }
+}
+function refreshAdminUI(){
+  if(typeof updateAdminCounts==='function')updateAdminCounts();
+  if(document.getElementById('adm-all-leads')&&document.getElementById('adm-all-leads').classList.contains('active')&&typeof renderAllLeadsAdmin==='function')renderAllLeadsAdmin();
+}
+
+// ===== ACTIVITY HISTORY =====
+// Append-only audit trail entries on each lead. Used for the timeline in the edit modal.
+function _historyEntry(action,changes){
+  return{at:new Date().toISOString(),by:APP.user?APP.user.username:'unknown',byName:APP.user?APP.user.name:'',action,changes:changes||{}};
+}
+function _diffForHistory(before,after){
+  const fields=['primaryStatus','secondaryStatus','nextFollowUp','lastFollowUp','nextAction','leadValue','convertedValue','remarks','assignedTo'];
+  const out={};
+  fields.forEach(f=>{if((before||{})[f]!==undefined&&(before||{})[f]!==(after||{})[f]&&(after||{})[f]!==undefined)out[f]={from:before[f],to:after[f]};});
+  return out;
 }
 
 function getMyLeads(){
   return APP.leads.filter(l=>l.createdBy===APP.user.username||l.assignedTo===APP.user.name);
 }
 
-// ===== AUTH =====
+// ===== AUTH (real Firebase Auth + role-based access) =====
+// We use email aliases (e.g. `ankur@cm.local`) under the hood so usernames stay short.
+// On first sign-in, the app auto-creates the user in Firebase Auth + Firestore.
+function _emailFor(username){return `${username}@cm.local`;}
+
+// Tracks whether we just rendered the app via doLogin so onAuthStateChanged
+// doesn't redundantly re-render the same screen.
+let _freshLoginInProgress=false;
+
 async function doLogin(){
   const u=document.getElementById('login-u').value.trim().toLowerCase();
   const p=document.getElementById('login-p').value;
   document.getElementById('login-error').style.display='none';
-  // Instant credential check — no network needed
   const defUser=DEF_U.find(x=>x.username===u&&x.password===p);
   if(!defUser){document.getElementById('login-error').style.display='block';return}
-  // ── INSTANT LOGIN: prime APP with defaults + sample data, render the screen immediately ──
-  APP.user=defUser;
+  // ── INSTANT OPTIMISTIC LOGIN: render the app immediately with sample data, no awaits ──
+  _freshLoginInProgress=true;
+  APP.user={...defUser};
   APP.users=[...DEF_U];
   APP.settings={...DEF_S};
   APP.targets=makeSampleTargets(new Date());
   const sample=makeSampleLeads(new Date());
   APP.leads=sample.map((l,i)=>({...l,id:'demo-'+i}));
-  sessionStorage.setItem('mh_u',JSON.stringify({username:defUser.username,id:defUser.id}));
   setLoading(false);
   if(defUser.role==='admin'){showScreen('admin');initAdmin();}
   else if(defUser.role==='national_sales_head'){showScreen('nsh');initNSH();}
   else{showScreen('manager');initManager();}
-  // ── BACKGROUND SYNC: pull real data from Firestore and refresh the UI when ready ──
-  syncFromFirestore(defUser);
+  // ── BACKGROUND: real Firebase Auth + data sync — happens after the screen is visible ──
+  _signInWithFirebaseInBackground(u,p,defUser);
+}
+
+async function _signInWithFirebaseInBackground(username,password,defUser){
+  const email=_emailFor(username);
+  try{
+    await firebase.auth().signInWithEmailAndPassword(email,password);
+  }catch(e){
+    if(e.code==='auth/user-not-found'||e.code==='auth/invalid-credential'||e.code==='auth/invalid-login-credentials'){
+      // First-time bootstrap: create user in Firebase Auth + write user profile doc
+      try{
+        const cred=await firebase.auth().createUserWithEmailAndPassword(email,password);
+        await db.collection('users').doc(cred.user.uid).set({
+          uid:cred.user.uid,username:defUser.username,name:defUser.name,role:defUser.role,email,createdAt:new Date().toISOString()
+        });
+      }catch(createErr){
+        _freshLoginInProgress=false;
+        showToast('Could not link to Firebase Auth — running in offline demo mode','error');
+        return;
+      }
+    }else if(e.code==='auth/wrong-password'){
+      _freshLoginInProgress=false;
+      doLogout();showToast('Firebase Auth rejected the password','error');return;
+    }else{
+      _freshLoginInProgress=false;
+      showToast('Auth warning: '+e.message,'error');return;
+    }
+  }
+  // onAuthStateChanged will fire shortly — it'll trigger the real-data sync
+}
+
+function doLogout(){
+  stopRealtimeListeners();
+  firebase.auth().signOut().catch(()=>{});
+  APP={user:null,leads:[],settings:{},users:[],targets:{},charts:{},analyticsYear:new Date().getFullYear(),analyticsMonth:new Date().getMonth()};
+  sessionStorage.removeItem('mh_u');
+  showScreen('login');
+  document.getElementById('login-u').value='';
+  document.getElementById('login-p').value='';
+}
+
+// Called by onAuthStateChanged when a user is authenticated — primes the app and renders the right screen
+async function handleAuthenticatedUser(authUser){
+  // Look up the user's profile (role, name, username) from Firestore by uid
+  let profile=null;
+  try{
+    const docSnap=await db.collection('users').doc(authUser.uid).get();
+    if(docSnap.exists)profile=docSnap.data();
+  }catch(e){/* fall back below */}
+  // If no Firestore doc, derive from email alias as last-resort fallback
+  if(!profile){
+    const username=(authUser.email||'').split('@')[0];
+    const def=DEF_U.find(x=>x.username===username);
+    profile=def?{...def,uid:authUser.uid,email:authUser.email}:{uid:authUser.uid,username,name:username,role:'sales_manager',email:authUser.email};
+  }
+  // Prime APP with demo defaults so the UI never blocks on data loads
+  APP.user=profile;
+  APP.users=[...DEF_U];
+  APP.settings={...DEF_S};
+  APP.targets=makeSampleTargets(new Date());
+  const sample=makeSampleLeads(new Date());
+  APP.leads=sample.map((l,i)=>({...l,id:'demo-'+i}));
+  setLoading(false);
+  if(profile.role==='admin'){showScreen('admin');initAdmin();}
+  else if(profile.role==='national_sales_head'){showScreen('nsh');initNSH();}
+  else{showScreen('manager');initManager();}
+  // Sync real data + attach real-time listeners
+  syncFromFirestore(profile);
 }
 
 async function syncFromFirestore(user){
   if(!db)return;
   try{
     await loadUsers();
-    const real=APP.users.find(x=>x.username===user.username);
-    if(real)APP.user=real;
+    await loadSettings();
+    await loadTargets();
+    // Admin-only one-time seed: populate Firestore with sample leads + targets if collections are empty.
+    // This ensures every user sees the same data once an admin has logged in once.
     if(user.role==='admin'){
-      await Promise.all([loadSettings(),loadTargets(),loadLeads()]);
-      if(document.getElementById('screen-admin').classList.contains('active'))updateAdminCounts();
-    }else if(user.role==='national_sales_head'){
-      await Promise.all([loadSettings(),loadLeads(),loadTargets()]);
-      if(document.getElementById('screen-nsh').classList.contains('active'))renderNSH();
-    }else{
-      await Promise.all([loadSettings(),loadLeads()]);
-      if(document.getElementById('screen-manager').classList.contains('active')){
-        // Re-fill select options with latest settings (statuses, sources, resorts may have changed)
-        const s=APP.settings;
-        fillSel('f-channel',s.channels);fillSel('f-sourceName',s.sourceNames);
-        fillSel('f-resortName',s.resorts);fillSel('f-primaryStatus',s.primaryStatuses);
-        fillSel('f-secondaryStatus',s.secondaryStatuses);
-        fillSel2('filter-status',['All Statuses',...(s.primaryStatuses||[])]);
-        renderLeadList();
-        // Refresh whichever tab is currently visible
-        const activeTab=document.querySelector('.tab-btn.active');
-        if(activeTab){
-          const onclick=activeTab.getAttribute('onclick')||'';
-          if(onclick.includes('analytics'))renderAnalytics();
-          else if(onclick.includes('today'))renderTodayTab();
+      try{
+        const leadsSnap=await db.collection('leads').limit(1).get();
+        if(leadsSnap.empty){
+          const samples=makeSampleLeads(new Date());
+          const batch=db.batch();
+          samples.forEach(l=>{const ref=db.collection('leads').doc();const ts=new Date().toISOString();batch.set(ref,{...l,id:ref.id,createdAt:ts,updatedAt:ts,history:[_historyEntry('Lead created',{})]});});
+          await batch.commit();
         }
-      }
+        const tgtSnap=await db.collection('targets').limit(1).get();
+        if(tgtSnap.empty){
+          const sampleT=makeSampleTargets(new Date());
+          const tBatch=db.batch();
+          Object.values(sampleT).forEach(t=>{const ref=db.collection('targets').doc(t.id);tBatch.set(ref,t);});
+          await tBatch.commit();
+        }
+      }catch(seedErr){/* probably permissions — leave sample data in memory */}
     }
-  }catch(e){/* keep sample data, demo continues working */}
-}
-
-function doLogout(){
-  APP={user:null,leads:[],settings:{},users:[],targets:{},charts:{},analyticsYear:new Date().getFullYear(),analyticsMonth:new Date().getMonth()};
-  sessionStorage.removeItem('mh_u');
-  showScreen('login');
-  document.getElementById('login-u').value='';
-  document.getElementById('login-p').value='';
+    // Real-time listener — keeps every signed-in user in sync as data changes
+    startRealtimeLeadsListener(user);
+  }catch(e){/* sample data continues working */}
 }
 
 function showScreen(n){document.querySelectorAll('.screen').forEach(s=>{s.classList.remove('active');s.style.display='none';});const el=document.getElementById('screen-'+n);el.classList.add('active');el.style.display=(n==='login'||n==='setup')?'flex':'block';}
@@ -1087,7 +1232,7 @@ async function submitNewLead(e){
   btn.disabled=true;btn.textContent='Saving…';
   try{
     const ref=db.collection('leads').doc();
-    const lead={...data,id:ref.id,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),createdBy:APP.user.username};
+    const lead={...data,id:ref.id,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),createdBy:APP.user.username,history:[_historyEntry('Lead created',{})]};
     await ref.set(lead);
     APP.leads.unshift(lead);
     showToast('Lead saved!','success');
@@ -1125,7 +1270,11 @@ function renderLeadList(){
         <div class="lead-name">${esc(l.guestName)}</div>
         <div class="lead-meta">${esc(l.resortName||'—')} &bull; ${esc(l.primaryStatus||'—')}</div>
         <div class="lead-meta">${esc(l.contactNumber)} &bull; ${esc(l.sourceName||'—')} &bull; ${fmt(l.leadDate)}</div>
-        <div style="margin-top:5px;display:flex;align-items:center;gap:6px">${agingBadge(l.lastFollowUp)}<button class="qu-btn" onclick="event.stopPropagation();openQuickUpdate('${esc(l.id)}')">⚡ Update</button></div>
+        <div style="margin-top:5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          ${agingBadge(l.lastFollowUp)}
+          ${contactActions(l)}
+          <button class="qu-btn" onclick="event.stopPropagation();openQuickUpdate('${esc(l.id)}')">⚡ Update</button>
+        </div>
       </div>
       <div class="lead-side">
         <div class="badge ${l.nextAction==='Closed'?'b-closed':'b-open'}">${l.nextAction||'Open'}</div>
@@ -1133,6 +1282,17 @@ function renderLeadList(){
         <div style="font-size:11px;color:var(--sub);margin-top:4px;font-weight:600">₹${shortNum(l.leadValue)}</div>
       </div>
     </div>`).join('');
+}
+
+// ===== ONE-TAP CONTACT ACTIONS =====
+// tel: opens the dialer with the number pre-filled; wa.me opens WhatsApp chat.
+// Saves ~5 sec per touch — multiplied across a sales manager's day, that's meaningful.
+function contactActions(l){
+  const num=(l.contactNumber||'').replace(/\D/g,'');
+  if(!num)return'';
+  const wa=num.length===10?'91'+num:num;
+  return`<a href="tel:${esc(num)}" onclick="event.stopPropagation()" class="ca-btn ca-call" title="Call ${esc(l.guestName)}">📞</a>` +
+         `<a href="https://wa.me/${esc(wa)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="ca-btn ca-wa" title="WhatsApp ${esc(l.guestName)}">💬</a>`;
 }
 
 // ===== EDIT MODAL =====
@@ -1218,7 +1378,39 @@ function buildEditForm(l,s){
     <button class="btn" onclick="saveEditLead()" style="flex:1" id="save-edit-btn">Save Changes</button>
     <button class="btn danger" onclick="deleteLead('${esc(l.id)}')" style="flex:0;padding:14px 18px">Delete</button>
   </div>
-  <p style="text-align:center;font-size:11px;color:var(--sub);margin-top:10px">Last updated: ${new Date(l.updatedAt||l.createdAt).toLocaleString('en-IN')}</p>`;
+  <p style="text-align:center;font-size:11px;color:var(--sub);margin-top:10px">Last updated: ${new Date(l.updatedAt||l.createdAt).toLocaleString('en-IN')}</p>
+  ${buildHistorySection(l)}`;
+}
+
+// Collapsible activity timeline rendered at the bottom of the edit modal.
+// Newest-first. Each entry shows who, when, what changed.
+function buildHistorySection(l){
+  const h=(l.history||[]).slice().reverse();
+  const count=h.length;
+  return`<details style="margin-top:14px;background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px">
+    <summary style="cursor:pointer;font-weight:700;font-size:13px;outline:none">📜 Activity Timeline ${count?`<span style="background:var(--blue);color:#fff;border-radius:10px;padding:1px 8px;font-size:11px;font-weight:700;margin-left:6px">${count}</span>`:'<span style="color:var(--sub);font-weight:500;font-size:11px;margin-left:6px">(no activity yet)</span>'}</summary>
+    ${count?`<div class="timeline" style="margin-top:10px">${h.map(formatHistoryEntry).join('')}</div>`:''}
+  </details>`;
+}
+function formatHistoryEntry(e){
+  const when=new Date(e.at).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+  const who=esc(e.byName||e.by||'Unknown');
+  let changesHTML='';
+  const ck=Object.keys(e.changes||{});
+  if(ck.length){
+    changesHTML='<div class="timeline-changes">'+ck.map(k=>{
+      const lbl={primaryStatus:'Status',secondaryStatus:'Sub-status',nextFollowUp:'Next follow-up',lastFollowUp:'Last contact',nextAction:'Action',leadValue:'Value',convertedValue:'Booked value',remarks:'Note',assignedTo:'Assigned to'}[k]||k;
+      const from=e.changes[k].from,to=e.changes[k].to;
+      const fromS=from===''||from==null?'—':String(from);
+      const toS=to===''||to==null?'—':String(to);
+      return `<div>${lbl}: <strong>${esc(fromS)}</strong> → <strong>${esc(toS)}</strong></div>`;
+    }).join('')+'</div>';
+  }
+  return`<div class="timeline-item">
+    <div><span class="timeline-who">${who}</span> <span style="color:var(--sub)">·</span> <span style="font-size:11px;color:var(--text)">${esc(e.action||'Updated')}</span></div>
+    <div class="timeline-when">${when}</div>
+    ${changesHTML}
+  </div>`;
 }
 
 function calcERN(){
@@ -1246,6 +1438,11 @@ async function saveEditLead(){
   const btn=document.getElementById('save-edit-btn');
   btn.disabled=true;btn.textContent='Saving…';
   const upd={leadName:v('leadName'),channel:v('channel'),sourceName:v('sourceName'),guestName:v('guestName'),contactNumber:v('contactNumber'),email:v('email'),resortName:v('resortName'),interest:v('interest'),primaryStatus:v('primaryStatus'),secondaryStatus:v('secondaryStatus'),checkIn:v('checkIn'),checkOut:v('checkOut'),noRooms:+v('noRooms')||0,noNights:+v('noNights')||0,roomNights:+v('roomNights')||0,mealPlan:v('mealPlan'),leadValue:+v('leadValue')||0,converted:v('converted'),bookingCV:v('bookingCV'),convertedValue:+v('convertedValue')||0,remarks:v('remarks'),lastFollowUp:v('lastFollowUp'),nextFollowUp:v('nextFollowUp'),nextAction:v('nextAction'),adults:+v('adults')||0,children:+v('children')||0,guestCategory:v('guestCategory'),updatedAt:new Date().toISOString()};
+  // Build history entry for audit trail
+  const before=APP.leads.find(l=>l.id===id)||{};
+  const changes=_diffForHistory(before,upd);
+  const entry=_historyEntry('Edit lead',changes);
+  upd.history=[...(before.history||[]),entry];
   try{
     await fsUpdate('leads',id,upd);
     const idx=APP.leads.findIndex(l=>l.id===id);
@@ -1893,6 +2090,69 @@ function getNSHFilteredLeads(){
   });
 }
 
+// ===== NSH MANAGER DRILL-DOWN =====
+// Tap any row in the Manager Leaderboard → modal with that manager's full pipeline,
+// target progress, and recent leads. The most common action an NSH wants to do.
+function openMgrDrilldown(username){
+  const mgr=APP.users.find(u=>u.username===username);
+  if(!mgr){showToast('Manager not found','error');return}
+  const all=getNSHFilteredLeads();
+  const theirs=all.filter(l=>l.createdBy===username||l.assignedTo===mgr.name);
+  const won=theirs.filter(l=>l.primaryStatus==='Won');
+  const lost=theirs.filter(l=>l.primaryStatus==='Lost');
+  const active=theirs.filter(l=>!['Won','Lost'].includes(l.primaryStatus));
+  const rev=won.reduce((s,l)=>s+(l.convertedValue||0),0);
+  const pipe=active.reduce((s,l)=>s+(l.leadValue||0),0);
+  const cr=theirs.length?((won.length/theirs.length)*100).toFixed(0):0;
+  const t=getTarget(username,new Date().getFullYear(),new Date().getMonth());
+  const initls=mgr.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+  let tgtSection='';
+  if(t){
+    const pct=t.leadsTarget>0?Math.min(theirs.length/t.leadsTarget*100,100):0;
+    const col=pct>=100?'#34c759':pct>=75?'#ff9500':'#C8102E';
+    tgtSection=`<div style="background:#fafafa;border-radius:10px;padding:12px;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--sub);margin-bottom:8px">Target Progress · MTD</div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap">
+        <div style="flex:1;min-width:80px"><div style="font-size:10px;color:var(--sub)">LEADS</div><div style="font-size:18px;font-weight:800">${theirs.length}<span style="font-size:11px;color:var(--sub);font-weight:500"> / ${t.leadsTarget||'—'}</span></div></div>
+        <div style="flex:1;min-width:80px"><div style="font-size:10px;color:var(--sub)">WON</div><div style="font-size:18px;font-weight:800">${won.length}<span style="font-size:11px;color:var(--sub);font-weight:500"> / ${t.convertedTarget||'—'}</span></div></div>
+        <div style="flex:1;min-width:90px"><div style="font-size:10px;color:var(--sub)">REVENUE</div><div style="font-size:18px;font-weight:800">₹${shortNum(rev)}<span style="font-size:11px;color:var(--sub);font-weight:500"> / ₹${shortNum(t.revenueTarget||0)}</span></div></div>
+      </div>
+      <div style="height:6px;background:#e5e5ea;border-radius:3px;overflow:hidden;margin-top:10px"><div style="height:100%;width:${pct.toFixed(0)}%;background:${col};border-radius:3px"></div></div>
+      <div style="font-size:11px;color:${col};font-weight:700;margin-top:5px">${pct.toFixed(0)}% of leads target</div>
+    </div>`;
+  }
+  const recent=theirs.slice().sort((a,b)=>new Date(b.updatedAt||b.createdAt)-new Date(a.updatedAt||a.createdAt)).slice(0,8);
+  document.getElementById('nsh-mgr-modal-title').textContent=mgr.name;
+  document.getElementById('nsh-mgr-modal-body').innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+      <div style="width:48px;height:48px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:17px">${initls}</div>
+      <div><div style="font-size:15px;font-weight:700">${esc(mgr.name)}</div><div style="font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:.4px">Sales Manager</div></div>
+    </div>
+    <div class="kpi2-grid" style="margin-bottom:14px">
+      <div class="kpi2"><div class="kpi2-lbl">Active Pipeline</div><div class="kpi2-val">₹${shortNum(pipe)}</div><div class="kpi2-delta">${active.length} open leads</div></div>
+      <div class="kpi2"><div class="kpi2-lbl">Conv. Rate</div><div class="kpi2-val">${cr}%</div><div class="kpi2-delta">${won.length}W · ${lost.length}L</div></div>
+    </div>
+    ${tgtSection}
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--sub);margin-bottom:8px">Recent Activity</div>
+    ${recent.length?recent.map(l=>{
+      const statusCol=l.primaryStatus==='Won'?'#34c759':l.primaryStatus==='Lost'?'#C8102E':'#007aff';
+      return`<div style="padding:9px 0;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <div style="font-size:13px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(l.guestName)}</div>
+          <span style="font-size:10px;font-weight:700;color:#fff;background:${statusCol};padding:2px 7px;border-radius:8px">${esc(l.primaryStatus||'—')}</span>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:2px">${esc(l.resortName||'—')} · ₹${shortNum(l.leadValue||0)} · ${fmt(l.updatedAt?l.updatedAt.split('T')[0]:l.leadDate)}</div>
+      </div>`;
+    }).join(''):'<p style="font-size:13px;color:var(--sub);font-style:italic">No leads yet for the current filter.</p>'}
+    <button class="btn" style="margin-top:14px;background:#444" onclick="exportMgrLeads('${esc(username)}')">⬇ Export this manager's leads</button>`;
+  // Cache for export click
+  _drilldownMgr=username;_drilldownLeads=theirs;
+  document.getElementById('nsh-mgr-modal').classList.add('open');
+}
+function closeMgrDrilldown(){document.getElementById('nsh-mgr-modal').classList.remove('open');}
+let _drilldownMgr=null,_drilldownLeads=null;
+function exportMgrLeads(username){if(_drilldownLeads&&_drilldownMgr===username)exportToCSV(_drilldownLeads,'leads_'+username);}
+
 function getNSHRanges(){
   const now=new Date();
   const curFY=now.getMonth()>=3?now.getFullYear():now.getFullYear()-1;
@@ -2080,7 +2340,7 @@ function renderNSH(){
             tgtBar=`<div style="margin-top:5px"><div style="height:4px;background:#f0f0f0;border-radius:2px;overflow:hidden"><div style="height:100%;width:${pct.toFixed(1)}%;background:${col};border-radius:2px;transition:width .5s"></div></div><div style="font-size:9px;color:var(--sub);margin-top:2px">${m.leads}/${t.leadsTarget} leads · ${m.won}/${t.convertedTarget||0} won · ₹${shortNum(m.rev)}/${shortNum(t.revenueTarget||0)} rev</div></div>`;
           }
         }
-        return`<div style="display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border);${rowAccent}">
+        return`<div style="display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border);${rowAccent};cursor:pointer" onclick="openMgrDrilldown('${esc(m.username)}')">
           <div style="width:36px;height:36px;border-radius:50%;background:${avatarBg};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0">${init}</div>
           <div style="flex:1;min-width:0">
             <div style="font-size:13px;font-weight:700">${esc(m.name)}${achBadge}</div>
@@ -2189,9 +2449,21 @@ function renderTodayTab(){
   const todayStr=today();
   const nowMs=new Date();
   const weekEnd=new Date(nowMs.getFullYear(),nowMs.getMonth(),nowMs.getDate()+7).toISOString().split('T')[0];
-  const overdue=mine.filter(l=>l.nextAction==='Open'&&l.nextFollowUp&&l.nextFollowUp<todayStr);
-  const dueToday=mine.filter(l=>l.nextAction==='Open'&&l.nextFollowUp===todayStr);
-  const thisWeek=mine.filter(l=>l.nextAction==='Open'&&l.nextFollowUp>todayStr&&l.nextFollowUp<=weekEnd);
+  let overdue=mine.filter(l=>l.nextAction==='Open'&&l.nextFollowUp&&l.nextFollowUp<todayStr);
+  let dueToday=mine.filter(l=>l.nextAction==='Open'&&l.nextFollowUp===todayStr);
+  let thisWeek=mine.filter(l=>l.nextAction==='Open'&&l.nextFollowUp>todayStr&&l.nextFollowUp<=weekEnd);
+
+  // Smart priority score: days overdue × 3 + intent weight + value tier.
+  // Highest-priority leads bubble to the top of each section.
+  const intentWeight=i=>i==='High'?10:i==='Medium'?5:i==='Low'?1:3;
+  const scoreLead=l=>{
+    const days=l.nextFollowUp?Math.max(0,Math.floor((nowMs-new Date(l.nextFollowUp+'T00:00:00'))/86400000)):0;
+    const valTier=Math.min((l.leadValue||0)/50000,5);
+    return days*3+intentWeight(l.interest)+valTier;
+  };
+  overdue=overdue.slice().sort((a,b)=>scoreLead(b)-scoreLead(a));
+  dueToday=dueToday.slice().sort((a,b)=>scoreLead(b)-scoreLead(a));
+  thisWeek=thisWeek.slice().sort((a,b)=>scoreLead(b)-scoreLead(a));
 
   function todayCard(l,tc){
     const nf=l.nextFollowUp;
@@ -2200,14 +2472,23 @@ function renderTodayTab(){
       const diff=Math.round((new Date(nf+'T00:00:00')-nowMs)/86400000);
       daysStr=diff===0?'Today':diff>0?`in ${diff}d`:`${Math.abs(diff)}d overdue`;
     }
+    // Show priority tag for top-of-list items
+    const s=scoreLead(l);
+    let prio='';
+    if(s>=15)prio=`<span class="prio-tag" style="background:#C8102E">🔥 Top Priority</span>`;
+    else if(s>=8&&l.interest==='High')prio=`<span class="prio-tag" style="background:#ff9500">⚡ High Intent</span>`;
     return`<div class="today-card" style="--tc:${tc}" onclick="openEditModal('${esc(l.id)}')">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-        <div style="font-size:14px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(l.guestName)}</div>
+        <div style="font-size:14px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(l.guestName)}${prio}</div>
         <button class="qu-btn" style="margin-left:8px;flex-shrink:0" onclick="event.stopPropagation();openQuickUpdate('${esc(l.id)}')">⚡ Update</button>
       </div>
       <div style="font-size:12px;color:var(--sub)">${esc(l.resortName||'—')} · ${esc(l.primaryStatus||'—')}</div>
       <div style="font-size:12px;color:var(--sub);margin-top:1px">${esc(l.contactNumber)} · ${esc(l.sourceName||'—')}</div>
-      <div style="display:flex;align-items:center;gap:6px;margin-top:6px">${agingBadge(l.lastFollowUp)}<span style="font-size:11px;font-weight:700;color:${tc}">${daysStr}</span></div>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap">
+        ${agingBadge(l.lastFollowUp)}
+        ${contactActions(l)}
+        <span style="font-size:11px;font-weight:700;color:${tc}">${daysStr}</span>
+      </div>
     </div>`;
   }
 
@@ -2262,6 +2543,12 @@ async function saveQuickUpdate(){
   if(!ps){showToast('Select a primary status','error');return}
   const na=['Won','Lost'].includes(ps)?'Closed':'Open';
   const upd={primaryStatus:ps,secondaryStatus:ss,lastFollowUp:lf,nextFollowUp:nf,nextAction:na,remarks:rem,updatedAt:new Date().toISOString()};
+  // Build history entry for audit trail
+  const before=APP.leads.find(l=>l.id===_quickUpdateId)||{};
+  const changes=_diffForHistory(before,upd);
+  const entry=_historyEntry('Quick update',changes);
+  const history=[...(before.history||[]),entry];
+  upd.history=history;
   try{
     await fsUpdate('leads',_quickUpdateId,upd);
     const idx=APP.leads.findIndex(l=>l.id===_quickUpdateId);
@@ -2372,43 +2659,42 @@ function showToast(msg,type=''){const t=document.getElementById('toast');t.textC
 (async function(){
   const configured=!Object.values(FIREBASE_CONFIG).some(v=>v.startsWith('YOUR_'));
   if(!configured){showScreen('setup');return}
-
-  // Show login immediately — no waiting spinner
   showScreen('login');
-
   try{
     firebase.initializeApp(FIREBASE_CONFIG);
     db=firebase.firestore();
-    // Note: offline persistence removed — it causes "client is offline" errors
-    // before the WebSocket connects when there is no local cache yet
-
-    // Try to restore a previous session (all loads are timeout-safe)
-    const saved=sessionStorage.getItem('mh_u');
-    if(saved){
-      setLoading(true,'Restoring session…');
-      const {username}=JSON.parse(saved);
-      await loadUsers();
-      const user=APP.users.find(u=>u.username===username);
-      if(user){
-        APP.user=user;
-        if(user.role==='admin'){await Promise.all([loadSettings(),loadTargets()]);setLoading(false);showScreen('admin');initAdmin();return}
-        else if(user.role==='national_sales_head'){await Promise.all([loadSettings(),loadLeads(),loadTargets()]);setLoading(false);showScreen('nsh');initNSH();return}
-        else{await Promise.all([loadSettings(),loadLeads()]);setLoading(false);showScreen('manager');initManager();return}
-      }
-      setLoading(false);
-    }
-    // First launch: seed sample data in background (don't block the login screen)
-    db.collection('leads').limit(1).get().then(snap=>{
-      if(snap.empty){
-        const now=new Date();const samples=makeSampleLeads(now);
-        const batch=db.batch();
-        samples.forEach(l=>{const ref=db.collection('leads').doc();const ts=new Date().toISOString();batch.set(ref,{...l,id:ref.id,createdAt:ts,updatedAt:ts})});
-        batch.commit().catch(()=>{});
+    firebase.auth().onAuthStateChanged(async(authUser)=>{
+      if(authUser){
+        // Two cases:
+        // a) Fresh login via doLogin → app is already rendered with sample data; just sync real data silently
+        // b) Page reload with persisted session → no app on screen; render it from scratch
+        const onApp=['screen-admin','screen-manager','screen-nsh'].some(id=>{
+          const el=document.getElementById(id);return el&&el.classList.contains('active');
+        });
+        if(onApp&&_freshLoginInProgress){
+          // Already rendered — just sync real Firestore data + attach real-time listener
+          _freshLoginInProgress=false;
+          syncFromFirestore(APP.user);
+        }else{
+          setLoading(true,'Loading…');
+          await handleAuthenticatedUser(authUser);
+        }
+      }else{
+        // Signed out (or initial page load with no session)
+        stopRealtimeListeners();
+        setLoading(false);
+        if(!_freshLoginInProgress){
+          const onApp=['screen-admin','screen-manager','screen-nsh'].some(id=>{
+            const el=document.getElementById(id);return el&&el.classList.contains('active');
+          });
+          if(!onApp)showScreen('login');
+        }
       }
     });
+    // Note: seeding now happens in syncFromFirestore on admin's first sign-in (after auth).
+    // Doing it before auth would be rejected by the security rules.
   }catch(e){setLoading(false);showToast('Firebase error: '+e.message,'error');}
 })();
 </script>
 </body>
 </html>
-
