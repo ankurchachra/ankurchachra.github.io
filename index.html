@@ -753,6 +753,29 @@ const RESORT_META = {
   'Virajpet':                     {zone:'South',   state:'Karnataka'}
 };
 
+// Dummy targets for all sales managers for current and previous months.
+// Calibrated so the demo shows a mix of: hit-target (green), close (orange), behind (red).
+function makeSampleTargets(now){
+  const map={};
+  const set=(username,y,m,leadsTarget,convertedTarget,revenueTarget)=>{
+    const key=`${username}_${y}_${String(m+1).padStart(2,'0')}`;
+    map[key]={id:key,username,year:y,month:m,leadsTarget,convertedTarget,revenueTarget,updatedBy:'ankur',updatedAt:new Date().toISOString()};
+  };
+  const months=[];
+  for(let i=0;i<3;i++){const d=new Date(now.getFullYear(),now.getMonth()-i,1);months.push({y:d.getFullYear(),m:d.getMonth()});}
+  // Ashima: strong performer — easy targets so she hits >100% (green)
+  // Ravi:   solid — targets she meets ~75-90% (orange)
+  // Meera:  on-pace performer — green
+  // Pooja:  ambitious targets — behind, ~50-70% (red)
+  months.forEach(({y,m})=>{
+    set('ashima',y,m, 12, 5, 200000);
+    set('ravi',  y,m, 14, 4, 180000);
+    set('meera', y,m, 10, 4, 160000);
+    set('pooja', y,m, 14, 5, 220000);
+  });
+  return map;
+}
+
 function makeSampleLeads(now){
   const y=now.getFullYear(),m=now.getMonth();
   function mo(back){const d=new Date(y,m-back,1);return{y:d.getFullYear(),m:d.getMonth()}}
@@ -929,7 +952,7 @@ async function doLogin(){
   APP.user=defUser;
   APP.users=[...DEF_U];
   APP.settings={...DEF_S};
-  APP.targets={};
+  APP.targets=makeSampleTargets(new Date());
   const sample=makeSampleLeads(new Date());
   APP.leads=sample.map((l,i)=>({...l,id:'demo-'+i}));
   sessionStorage.setItem('mh_u',JSON.stringify({username:defUser.username,id:defUser.id}));
@@ -1328,13 +1351,15 @@ function kpiCard2(title,mtd,lmtd,tgt){
 function buildFunnelSVG(stages){
   // stages: [{label, count, color}]
   if(!stages.length)return'<p style="font-size:13px;color:var(--sub)">No data for this period.</p>';
-  const W=320,HP=46,GAP=4,MIN_W_RATIO=0.18;
+  // MIN_W_RATIO bumped from 0.18 → 0.45 so narrow bottom segments still fit their label text.
+  // Last segment uses r2 = r1 (flat-bottom) instead of r1*0.75 — same reason.
+  const W=320,HP=46,GAP=4,MIN_W_RATIO=0.45;
   const maxCount=stages[0].count||1;
   const totalH=stages.length*(HP+GAP)-GAP;
   const paths=stages.map((st,i)=>{
     const next=stages[i+1];
     const r1=Math.max(st.count/maxCount,MIN_W_RATIO);
-    const r2=next?Math.max(next.count/maxCount,MIN_W_RATIO):r1*0.75;
+    const r2=next?Math.max(next.count/maxCount,MIN_W_RATIO):r1;
     const w1=r1*W,w2=r2*W;
     const x1=(W-w1)/2,x2=(W-w2)/2;
     const y1=i*(HP+GAP),y2=y1+HP;
@@ -2041,20 +2066,24 @@ function renderNSH(){
       ${mgrList.map((m,i)=>{
         const init=m.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
         const cr=m.leads>0?(m.won/m.leads*100).toFixed(0):0;
-        let tgtBar='';
+        let tgtBar='',avatarBg=MGRC[i%MGRC.length],rowAccent='',achBadge='';
         if(NSH.period==='MTD'){
           const tNow=new Date();
           const t=getTarget(m.username,tNow.getFullYear(),tNow.getMonth());
           if(t&&t.leadsTarget>0){
             const pct=Math.min(m.leads/t.leadsTarget*100,100);
-            const col=pct>=100?'var(--green)':pct>=75?'var(--orange)':'var(--red)';
-            tgtBar=`<div style="margin-top:5px"><div style="height:4px;background:#f0f0f0;border-radius:2px;overflow:hidden"><div style="height:100%;width:${pct.toFixed(1)}%;background:${col};border-radius:2px;transition:width .5s"></div></div><div style="font-size:9px;color:var(--sub);margin-top:2px">${pct.toFixed(0)}% of ${t.leadsTarget} lead target</div></div>`;
+            const col=pct>=100?'#34c759':pct>=75?'#ff9500':'#C8102E';
+            avatarBg=col;
+            rowAccent=`border-left:4px solid ${col};padding-left:8px;margin-left:-8px;`;
+            const tag=pct>=100?'On Target':pct>=75?'Close':'Behind';
+            achBadge=`<span style="display:inline-block;background:${col};color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:8px;margin-left:6px;letter-spacing:.3px">${tag} · ${pct.toFixed(0)}%</span>`;
+            tgtBar=`<div style="margin-top:5px"><div style="height:4px;background:#f0f0f0;border-radius:2px;overflow:hidden"><div style="height:100%;width:${pct.toFixed(1)}%;background:${col};border-radius:2px;transition:width .5s"></div></div><div style="font-size:9px;color:var(--sub);margin-top:2px">${m.leads}/${t.leadsTarget} leads · ${m.won}/${t.convertedTarget||0} won · ₹${shortNum(m.rev)}/${shortNum(t.revenueTarget||0)} rev</div></div>`;
           }
         }
-        return`<div style="display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border)">
-          <div style="width:36px;height:36px;border-radius:50%;background:${MGRC[i%MGRC.length]};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0">${init}</div>
+        return`<div style="display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border);${rowAccent}">
+          <div style="width:36px;height:36px;border-radius:50%;background:${avatarBg};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0">${init}</div>
           <div style="flex:1;min-width:0">
-            <div style="font-size:13px;font-weight:700">${esc(m.name)}</div>
+            <div style="font-size:13px;font-weight:700">${esc(m.name)}${achBadge}</div>
             <div style="font-size:11px;color:var(--sub)">${m.leads} leads · ${m.won} won · ${cr}% conv</div>
             ${tgtBar}
           </div>
@@ -2382,3 +2411,4 @@ function showToast(msg,type=''){const t=document.getElementById('toast');t.textC
 </script>
 </body>
 </html>
+
