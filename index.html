@@ -860,13 +860,16 @@ const DEF_S = {
   secondaryStatuses:['Follow Up','Busy','Ringing','Not Reachable','Call Back Later','Email Sent','WhatsApp Sent','Meeting Scheduled','Demo Done','Interested','Not Interested','Wrong Number','Switched Off','Do Not Disturb']
 };
 
+// Each sales manager is tagged to a primary zone. Targets roll up:
+// per-manager → per-zone → pan-India. NSH's KPI cards show whichever
+// rollup matches the current zone filter.
 const DEF_U = [
   {id:1,name:'Ankur Chachra',username:'ankur',password:'ankur1234',role:'admin'},
-  {id:2,name:'Ashima Sehgal',username:'ashima',password:'ashima1234',role:'sales_manager'},
+  {id:2,name:'Ashima Sehgal',username:'ashima',password:'ashima1234',role:'sales_manager',zone:'North'},
   {id:3,name:'Brij Chachra',username:'brij',password:'brij1234',role:'national_sales_head'},
-  {id:4,name:'Ravi Sharma',username:'ravi',password:'ravi1234',role:'sales_manager'},
-  {id:5,name:'Meera Nair',username:'meera',password:'meera1234',role:'sales_manager'},
-  {id:6,name:'Pooja Arora',username:'pooja',password:'pooja1234',role:'sales_manager'}
+  {id:4,name:'Ravi Sharma',username:'ravi',password:'ravi1234',role:'sales_manager',zone:'South'},
+  {id:5,name:'Meera Nair',username:'meera',password:'meera1234',role:'sales_manager',zone:'West'},
+  {id:6,name:'Pooja Arora',username:'pooja',password:'pooja1234',role:'sales_manager',zone:'East'}
 ];
 
 // Resort → Zone & State master data (all 39 Club Mahindra resorts)
@@ -2368,8 +2371,16 @@ function getNSHFilteredLeads(){
 function openMgrDrilldown(username){
   const mgr=APP.users.find(u=>u.username===username);
   if(!mgr){showToast('Manager not found','error');return}
-  const all=getNSHFilteredLeads();
-  const theirs=all.filter(l=>l.createdBy===username||l.assignedTo===mgr.name);
+  // Match the leaderboard's filter exactly:
+  //   1. Geography filter (zone/state/resort)
+  //   2. Period filter (MTD / YTD / Custom range)
+  //   3. createdBy === username  (NOT createdBy OR assignedTo — that double-counts reassigned leads
+  //      and was the root cause of leaderboard 5/14 vs drill-down 16/14)
+  const geoFiltered=getNSHFilteredLeads();
+  const{cur}=getNSHRanges();
+  const inRange=(leads,{start,end})=>leads.filter(l=>{const d=new Date(l.leadDate?l.leadDate+'T00:00:00':l.createdAt);return d>=start&&d<=end;});
+  const periodFiltered=inRange(geoFiltered,cur);
+  const theirs=periodFiltered.filter(l=>l.createdBy===username);
   const won=theirs.filter(l=>l.primaryStatus==='Won');
   const lost=theirs.filter(l=>l.primaryStatus==='Lost');
   const active=theirs.filter(l=>!['Won','Lost'].includes(l.primaryStatus));
@@ -2535,6 +2546,27 @@ function renderNSH(){
   const MGRC=['#C8102E','#007aff','#34c759','#ff9500','#5856d6','#ff2d55','#00c7be'];
   const filterTag=[NSH.zone,NSH.state,NSH.resort].filter(Boolean).join(' › ')||'🇮🇳 All India';
 
+  // ── Target rollup for NSH KPIs ──
+  // Per-manager targets (set by admin) → summed across the managers whose primary zone
+  // matches the current NSH zone filter (or all managers if no zone filter is active).
+  // Only meaningful for MTD — YTD targets would need 12 months seeded. Other periods
+  // pass null and the card shows "No target set".
+  let nshLeadsTgt=null,nshWonTgt=null,nshRevTgt=null;
+  if(NSH.period==='MTD'){
+    const tNow=new Date(); const ty=tNow.getFullYear(), tm=tNow.getMonth();
+    const relevantMgrs=APP.users.filter(u=>{
+      if(u.role!=='sales_manager')return false;
+      if(NSH.zone&&u.zone!==NSH.zone)return false;
+      return true;
+    });
+    let lt=0,ct=0,rt=0,any=false;
+    relevantMgrs.forEach(u=>{
+      const t=getTarget(u.username,ty,tm);
+      if(t){any=true;lt+=(t.leadsTarget||0);ct+=(t.convertedTarget||0);rt+=(t.revenueTarget||0);}
+    });
+    if(any){nshLeadsTgt=lt;nshWonTgt=ct;nshRevTgt=rt;}
+  }
+
   document.getElementById('nsh-body').innerHTML=`
     <!-- Context bar -->
     <div style="background:#fff;border-radius:10px;padding:10px 14px;margin-bottom:10px;box-shadow:var(--sh);display:flex;justify-content:space-between;align-items:center;gap:8px">
@@ -2548,12 +2580,12 @@ function renderNSH(){
       </div>
     </div>
 
-    <!-- Primary KPIs -->
+    <!-- Primary KPIs (targets rolled up from per-manager targets, scoped to current zone filter) -->
     <div class="kpi2-grid">
-      ${kpiCard2('Total Leads',cTotal,pTotal,null)}
-      ${kpiCard2('Conversions',cWon,pWon,null)}
+      ${kpiCard2('Total Leads',cTotal,pTotal,nshLeadsTgt)}
+      ${kpiCard2('Conversions',cWon,pWon,nshWonTgt)}
     </div>
-    ${kpiCard1('Revenue Won',cRev,pRev,null)}
+    ${kpiCard1('Revenue Won',cRev,pRev,nshRevTgt)}
 
     <!-- Secondary metrics row -->
     <div class="card" style="padding:14px 16px;margin-bottom:10px">
@@ -2612,8 +2644,10 @@ function renderNSH(){
             const col=pct>=100?'#34c759':pct>=75?'#ff9500':'#C8102E';
             avatarBg=col;
             rowAccent=`border-left:4px solid ${col};padding-left:8px;margin-left:-8px;`;
-            const tag=pct>=100?'On Target':pct>=75?'Close':'Behind';
-            achBadge=`<span style="display:inline-block;background:${col};color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:8px;margin-left:6px;letter-spacing:.3px">${tag} · ${pct.toFixed(0)}%</span>`;
+            // Badge clearly labels % of LEADS TARGET achieved (the source of the % is now explicit
+            // in the hover tooltip and the bar caption below).
+            const tag=pct>=100?'on target':pct>=75?'close':'behind';
+            achBadge=`<span title="${m.leads} leads logged ÷ ${t.leadsTarget} leads target = ${pct.toFixed(0)}%" style="display:inline-block;background:${col};color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:8px;margin-left:6px;letter-spacing:.3px">${pct.toFixed(0)}% of target · ${tag}</span>`;
             tgtBar=`<div style="margin-top:5px"><div style="height:4px;background:#f0f0f0;border-radius:2px;overflow:hidden"><div style="height:100%;width:${pct.toFixed(1)}%;background:${col};border-radius:2px;transition:width .5s"></div></div><div style="font-size:9px;color:var(--sub);margin-top:2px">${m.leads}/${t.leadsTarget} leads · ${m.won}/${t.convertedTarget||0} won · ₹${shortNum(m.rev)}/${shortNum(t.revenueTarget||0)} rev</div></div>`;
           }
         }
