@@ -562,6 +562,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <div class="pg-hdr" style="display:flex;justify-content:space-between;align-items:center">
       <div><div class="pg-title">Today's Board</div><div class="pg-sub">Your open leads, bucketed by next-follow-up date · auto-sorted by priority</div></div>
     </div>
+    <!-- Mobile-friendly inline legend (hover tooltips don't work on touch devices) -->
+    <div style="margin:0 16px 8px;padding:10px 12px;background:#fef0f2;border-radius:10px;font-size:11.5px;line-height:1.55;color:var(--text)">
+      <div><strong style="color:#C8102E">🔥 Top Priority</strong> — score ≥ 15 from (days overdue × 3) + intent + value tier</div>
+      <div><strong style="color:#ff9500">⚡ High Intent</strong> — score ≥ 8 on a lead marked High interest</div>
+      <div><strong style="color:#5856d6">💤 Snooze 1d</strong> — pushes the next-follow-up to tomorrow (recorded in timeline)</div>
+    </div>
     <div style="padding:0 16px 80px" id="today-body"></div>
   </div>
 
@@ -2825,17 +2831,21 @@ function renderTodayTab(){
       const diff=Math.round((new Date(nf+'T00:00:00')-nowMs)/86400000);
       daysStr=diff===0?'Today':diff>0?`in ${diff}d`:`${Math.abs(diff)}d overdue`;
     }
-    // Show priority tag for top-of-list items
+    // Show priority tag for top-of-list items. Hover tooltip explains the score breakdown.
     const s=scoreLead(l);
+    const daysOver=l.nextFollowUp?Math.max(0,Math.floor((nowMs-new Date(l.nextFollowUp+'T00:00:00'))/86400000)):0;
+    const intentPts=intentWeight(l.interest);
+    const valuePts=Math.min((l.leadValue||0)/50000,5);
+    const scoreTip=`Priority score = (days overdue × 3) + intent + value tier\n= (${daysOver} × 3) + ${intentPts} + ${valuePts.toFixed(1)} = ${s.toFixed(1)}\nTop Priority ≥ 15 · High Intent ≥ 8 with High interest`;
     let prio='';
-    if(s>=15)prio=`<span class="prio-tag" style="background:#C8102E">🔥 Top Priority</span>`;
-    else if(s>=8&&l.interest==='High')prio=`<span class="prio-tag" style="background:#ff9500">⚡ High Intent</span>`;
+    if(s>=15)prio=`<span class="prio-tag" title="${esc(scoreTip)}" style="background:#C8102E">🔥 Top Priority</span>`;
+    else if(s>=8&&l.interest==='High')prio=`<span class="prio-tag" title="${esc(scoreTip)}" style="background:#ff9500">⚡ High Intent</span>`;
     return`<div class="today-card" style="--tc:${tc}" onclick="openEditModal('${esc(l.id)}')">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
         <div style="font-size:14px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(l.guestName)}${prio}</div>
         <div style="display:flex;gap:4px;flex-shrink:0;margin-left:8px">
-          <button class="snooze-btn" onclick="event.stopPropagation();snoozeLead('${esc(l.id)}',1)" title="Snooze to tomorrow">💤 +1d</button>
-          <button class="qu-btn" onclick="event.stopPropagation();openQuickUpdate('${esc(l.id)}')">⚡ Update</button>
+          <button class="snooze-btn" onclick="event.stopPropagation();snoozeLead('${esc(l.id)}',1)" title="Push the next-follow-up date to tomorrow (logged in activity timeline)">💤 Snooze 1d</button>
+          <button class="qu-btn" onclick="event.stopPropagation();openQuickUpdate('${esc(l.id)}')" title="Quick edit status, follow-up date, or remarks without opening the full form">⚡ Update</button>
         </div>
       </div>
       <div style="font-size:12px;color:var(--sub)">${esc(l.resortName||'—')} · ${esc(l.primaryStatus||'—')}</div>
