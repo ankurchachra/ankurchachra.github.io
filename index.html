@@ -358,7 +358,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
   /* ── Analytics & NSH: keep sections stacked but wider, with the funnel + chart-wrap items going side-by-side via grid where they appear sequentially ── */
   #analytics-body,#nsh-body{padding-top:24px}
-  .funnel-wrap{max-width:none}
+  /* Cap funnel width on desktop so it doesn't dominate the screen with 1400px-wide stages.
+     640px is wide enough to read every label comfortably without feeling oversized. */
+  .funnel-wrap{max-width:640px;margin-left:auto;margin-right:auto}
   .chart-wrap{margin-bottom:14px}
   /* Two-up rows for chart-wrap groups in analytics — they naturally come in pairs (trend + revtrend, src + dropoff) */
   #analytics-body{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
@@ -1668,8 +1670,26 @@ async function saveEditLead(){
     await fsUpdate('leads',id,upd);
     const idx=APP.leads.findIndex(l=>l.id===id);
     if(idx>=0)APP.leads[idx]={...APP.leads[idx],...upd};
-    closeModal();renderLeadList();showToast('Lead updated!','success');
+    closeModal();_refreshActiveScreen();showToast('Lead updated!','success');
   }catch(e){showToast('Update failed: '+e.message,'error');btn.disabled=false;btn.textContent='Save Changes'}
+}
+
+// Refresh whatever screen the user is currently on — used after edits / deletes that
+// could be triggered from any role's context (global search, drill-down, list, etc.)
+function _refreshActiveScreen(){
+  if(document.getElementById('screen-manager').classList.contains('active')){
+    if(typeof renderLeadList==='function')renderLeadList();
+    const active=document.querySelector('.tab-btn.active');
+    const oc=active?(active.getAttribute('onclick')||''):'';
+    if(oc.includes('today')&&typeof renderTodayTab==='function')renderTodayTab();
+    else if(oc.includes('analytics')&&typeof renderAnalytics==='function')renderAnalytics();
+  }else if(document.getElementById('screen-admin').classList.contains('active')){
+    if(typeof updateAdminCounts==='function')updateAdminCounts();
+    const allLeadsActive=document.getElementById('adm-all-leads')&&document.getElementById('adm-all-leads').classList.contains('active');
+    if(allLeadsActive&&typeof renderAllLeadsAdmin==='function')renderAllLeadsAdmin();
+  }else if(document.getElementById('screen-nsh').classList.contains('active')){
+    if(typeof renderNSH==='function')renderNSH();
+  }
 }
 
 async function deleteLead(id){
@@ -1679,7 +1699,7 @@ async function deleteLead(id){
     await fsDel('leads',id);
     APP.leads=APP.leads.filter(l=>l.id!==id);
     if(lead)_auditLog('lead_deleted',{leadId:id,guestName:lead.guestName,createdBy:lead.createdBy,leadValue:lead.leadValue});
-    closeModal();renderLeadList();showToast('Lead deleted');
+    closeModal();_refreshActiveScreen();showToast('Lead deleted');
   }catch(e){showToast('Delete failed: '+e.message,'error')}
 }
 
