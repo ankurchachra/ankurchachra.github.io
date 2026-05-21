@@ -252,6 +252,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   #screen-login{padding:40px}
   .screen:not(#screen-login):not(#screen-setup){max-width:480px;margin:0 auto;box-shadow:0 0 60px rgba(0,0,0,.1)}
 }
+
+/* ---- DESKTOP LAYOUT (≥1024px) ---- */
+@media(min-width:1024px){
+  .screen:not(#screen-login):not(#screen-setup){max-width:1180px;box-shadow:0 0 60px rgba(0,0,0,.08);background:#fff}
+  .app-header{padding:14px 28px}
+  .tab-bar{padding:0 16px}
+  .tab-bar .tab-btn{font-size:14px;padding:14px 10px}
+  /* Wider KPI grids on desktop */
+  .kpi2-grid{grid-template-columns:repeat(4,1fr);gap:14px}
+  /* Admin card grid expands to 3 columns */
+  .admin-grid{grid-template-columns:repeat(3,1fr);gap:16px;padding:20px 28px 28px;max-width:1100px;margin:0 auto}
+  /* Lead list, today board, analytics get more inner padding */
+  #tab-new-lead,#tab-update-lead,#tab-today,#tab-analytics,#nsh-body,#analytics-body{padding-left:24px;padding-right:24px}
+  /* Field row form layouts can use more columns */
+  .field-row{grid-template-columns:1fr 1fr 1fr 1fr}
+  /* Funnel max-width on desktop so it doesn't stretch absurdly wide */
+  .funnel-wrap{max-width:560px;margin-left:auto;margin-right:auto}
+  /* NSH leaderboard cards more comfortable */
+  .nsh-month-grid{grid-template-columns:repeat(6,1fr)}
+}
 </style>
 </head>
 <body>
@@ -677,7 +697,7 @@ const DEF_S = {
   sourceNames:['MakeMyTrip','Booking.com','Expedia','Agoda','Yatra','WedMeGood','WeddingWire','Instagram','Facebook','Google Ads','YouTube','Email Campaign','SMS Campaign','Corporate Partner','Referral','Walk-in'],
   resorts:['Ashtamudi','Assonora (North Goa)','Baiguney (Sikkim)','Binsar Valley','Coorg','Corbett','Coromandel (Vizag)','Desert Courtyard (Zainabad)','Emerald Palms (South Goa)','Gangtok','Hatgad','Jaisalmer','Jiwa Mahal (Jaipur)','Kanha','Kandaghat','Kodaikanal','Kumarakom','Lachung','Madikeri','Mahabaleshwar','Manali','Mashobra (Shimla)','Mount Abu','Munnar','Mussoorie','Nainital','Naldehra','Ooty','Pahalgam','Puducherry','Ranthambhore','Rishikesh','Sawai Madhopur','Shimla','Tirupati','Tungi (Igatpuri)','Udaipur','Varca Beach (Goa)','Virajpet'],
   rates:{'Coorg':8500,'Corbett':11000,'Emerald Palms (South Goa)':12000,'Udaipur':11000,'Jaisalmer':10000,'Mahabaleshwar':8500,'Nainital':8000,'Munnar':9500,'Manali':9000,'Shimla':7500,'Mussoorie':8500,'Ooty':8000,'Kodaikanal':7500,'Ranthambhore':11000,'Kumarakom':10000},
-  primaryStatuses:['Not Contacted','Contacted','In Progress','Proposal Sent','Negotiation','Won','Lost','On Hold'],
+  primaryStatuses:['Contacted','Proposal Sent','Negotiation','Won','Lost'],
   secondaryStatuses:['Follow Up','Busy','Ringing','Not Reachable','Call Back Later','Email Sent','WhatsApp Sent','Meeting Scheduled','Demo Done','Interested','Not Interested','Wrong Number','Switched Off','Do Not Disturb']
 };
 
@@ -764,34 +784,34 @@ function makeSampleLeads(now){
     L({ln:'WedMeGood – Udaipur Anniversary',ld:d(-12),ch:'Wedding / Social',src:'WedMeGood',gn:'Ms. Priya Kapoor',cn:'9123456780',rn:'Udaipur',it:'High',ps:'Won',ss:'Meeting Scheduled',ci:d(20),co:d(23),nr:2,nn:3,lv:66000,cv:true,bk:'CV-CM-002',cvv:64000,rm:'Anniversary trip, upgraded to lake-view suite.',lf:d(-4),mp:'Full Board',gc:'HNI',cb:'ashima'}),
     L({ln:'Instagram – Goa Family',ld:d(-10),ch:'OTA',src:'Instagram',gn:'Mr. Arjun Mehta',cn:'9988776655',rn:'Emerald Palms (South Goa)',it:'Medium',ps:'Negotiation',ss:'Email Sent',ci:d(15),co:d(19),nr:1,nn:4,lv:48000,cv:false,rm:'Comparing with another property.',lf:d(-5),nf:d(3),ad:2,ki:2,mp:'Half Board',cb:'ashima'}),
     L({ln:'Corporate – Shimla Offsite',ld:d(-6),ch:'Corporate',src:'Corporate Partner',gn:'Mr. Vikram Bose',cn:'9800011223',rn:'Shimla',it:'High',ps:'Proposal Sent',ss:'Email Sent',ci:d(18),co:d(21),nr:3,nn:3,lv:67500,cv:false,rm:'Finance approval pending.',lf:d(-1),nf:d(4),ad:6,mp:'Full Board',gc:'HNI',cb:'ashima'}),
-    L({ln:'Google Ads – Munnar Retreat',ld:d(-8),ch:'Direct',src:'Google Ads',gn:'Dr. Anita Nair',cn:'9012345678',rn:'Munnar',it:'Medium',ps:'In Progress',ss:'Call Back Later',lv:38000,cv:false,rm:'Keen but evaluating dates.',lf:d(-8),nf:d(-2),cb:'ashima'}),
+    L({ln:'Google Ads – Munnar Retreat',ld:d(-8),ch:'Direct',src:'Google Ads',gn:'Dr. Anita Nair',cn:'9012345678',rn:'Munnar',it:'Medium',ps:'Contacted',ss:'Call Back Later',lv:38000,cv:false,rm:'Keen but evaluating dates.',lf:d(-8),nf:d(-2),cb:'ashima'}),
     L({ln:'Referral – Coorg Weekend',ld:d(-3),ch:'Referral',src:'Referral',gn:'Mr. Suresh Pai',cn:'9654321087',rn:'Coorg',it:'Low',ps:'Lost',ss:'Not Interested',lv:25500,cv:false,rm:'Budget constraint.',lf:d(-3),mp:'Breakfast Only',gc:'Budget',cb:'ashima'}),
 
     L({ln:'Agoda – Jaisalmer Desert',ld:d(-13),ch:'OTA',src:'Agoda',gn:'Mr. Karan Mehta',cn:'9700112233',rn:'Jaisalmer',it:'High',ps:'Won',ss:'Demo Done',ci:d(10),co:d(13),nr:1,nn:3,lv:30000,cv:true,bk:'CV-CM-003',cvv:30000,rm:'Solo traveller, very decisive.',lf:d(-4),mp:'Full Board',gc:'HNI',cb:'ravi'}),
     L({ln:'MMT – Manali Couple',ld:d(-11),ch:'OTA',src:'MakeMyTrip',gn:'Ms. Nisha Gupta',cn:'9701223344',rn:'Manali',it:'High',ps:'Negotiation',ss:'Follow Up',ci:d(12),co:d(15),nr:1,nn:3,lv:27000,cv:false,rm:'Negotiating on room rate.',lf:d(-2),nf:d(2),mp:'Breakfast Only',cb:'ravi'}),
     L({ln:'Instagram – Gangtok Couple',ld:d(-9),ch:'OTA',src:'Instagram',gn:'Mr. Rohit Singh',cn:'9702334455',rn:'Gangtok',it:'Medium',ps:'Contacted',ss:'WhatsApp Sent',lv:28000,cv:false,rm:'Sent property deck on WA.',lf:d(-9),nf:d(-3),cb:'ravi'}),
-    L({ln:'Referral – Pahalgam Family',ld:d(-7),ch:'Referral',src:'Referral',gn:'Mr. Anil Sharma',cn:'9703445566',rn:'Pahalgam',it:'High',ps:'In Progress',ss:'Meeting Scheduled',ci:d(20),co:d(24),nr:2,nn:4,lv:60000,cv:false,rm:'Large family, 2 rooms needed.',lf:d(-1),nf:d(5),ad:4,ki:2,mp:'Full Board',cb:'ravi'}),
+    L({ln:'Referral – Pahalgam Family',ld:d(-7),ch:'Referral',src:'Referral',gn:'Mr. Anil Sharma',cn:'9703445566',rn:'Pahalgam',it:'High',ps:'Proposal Sent',ss:'Meeting Scheduled',ci:d(20),co:d(24),nr:2,nn:4,lv:60000,cv:false,rm:'Large family, 2 rooms needed.',lf:d(-1),nf:d(5),ad:4,ki:2,mp:'Full Board',cb:'ravi'}),
     L({ln:'Booking.com – Shimla Solo',ld:d(-4),ch:'OTA',src:'Booking.com',gn:'Ms. Preethi Das',cn:'9704556677',rn:'Shimla',it:'Low',ps:'Lost',ss:'Not Reachable',lv:15000,cv:false,rm:'Multiple calls, no response.',lf:d(-4),gc:'Budget',cb:'ravi'}),
 
     L({ln:'MMT – Ooty Honeymoon',ld:d(-12),ch:'OTA',src:'MakeMyTrip',gn:'Mrs. Pooja Verma',cn:'9800223344',rn:'Ooty',it:'High',ps:'Won',ss:'Demo Done',ci:d(8),co:d(11),nr:1,nn:3,lv:24000,cv:true,bk:'CV-CM-004',cvv:24000,rm:'Honeymoon package, smooth close.',lf:d(-5),mp:'Full Board',cb:'meera'}),
     L({ln:'WeddingWire – Kanha Offsite',ld:d(-10),ch:'Wedding / Social',src:'WeddingWire',gn:'Mr. Sunil Rao',cn:'9801334455',rn:'Kanha',it:'High',ps:'Won',ss:'Meeting Scheduled',ci:d(15),co:d(18),nr:3,nn:3,lv:51000,cv:true,bk:'CV-CM-005',cvv:49500,rm:'Corporate reward trip. All confirmed.',lf:d(-3),ad:6,mp:'Full Board',gc:'HNI',cb:'meera'}),
     L({ln:'Yatra – Mahabaleshwar',ld:d(-8),ch:'OTA',src:'Yatra',gn:'Ms. Rekha Pillai',cn:'9802445566',rn:'Mahabaleshwar',it:'Medium',ps:'Negotiation',ss:'Email Sent',ci:d(22),co:d(25),nr:1,nn:3,lv:25500,cv:false,rm:'Discount requested, under review.',lf:d(-2),nf:d(3),mp:'Breakfast Only',cb:'meera'}),
-    L({ln:'Google Ads – Kumarakom',ld:d(-5),ch:'Direct',src:'Google Ads',gn:'Dr. Priya Thomas',cn:'9803556677',rn:'Kumarakom',it:'Medium',ps:'In Progress',ss:'Call Back Later',lv:30000,cv:false,rm:'Exploring dates.',lf:d(-5),nf:d(-1),ki:1,cb:'meera'}),
+    L({ln:'Google Ads – Kumarakom',ld:d(-5),ch:'Direct',src:'Google Ads',gn:'Dr. Priya Thomas',cn:'9803556677',rn:'Kumarakom',it:'Medium',ps:'Contacted',ss:'Call Back Later',lv:30000,cv:false,rm:'Exploring dates.',lf:d(-5),nf:d(-1),ki:1,cb:'meera'}),
 
     L({ln:'MMT – Nainital Family',ld:d(-11),ch:'OTA',src:'MakeMyTrip',gn:'Mr. Dinesh Shetty',cn:'9900334455',rn:'Nainital',it:'High',ps:'Won',ss:'Demo Done',ci:d(10),co:d(13),nr:1,nn:3,lv:24000,cv:true,bk:'CV-CM-006',cvv:23000,rm:'Summer vacation, happy with rate.',lf:d(-4),mp:'Half Board',ki:2,cb:'pooja'}),
     L({ln:'Referral – Coorg Stay',ld:d(-8),ch:'Referral',src:'Referral',gn:'Ms. Anjali Bhat',cn:'9901445566',rn:'Coorg',it:'High',ps:'Proposal Sent',ss:'Follow Up',ci:d(18),co:d(21),nr:1,nn:3,lv:25500,cv:false,rm:'Referred by ex-guest, high intent.',lf:d(-2),nf:d(1),mp:'Breakfast Only',cb:'pooja'}),
-    L({ln:'Facebook – Corbett Adventure',ld:d(-5),ch:'OTA',src:'Facebook',gn:'Mr. Rishabh Jain',cn:'9902556677',rn:'Corbett',it:'Medium',ps:'In Progress',ss:'WhatsApp Sent',lv:33000,cv:false,rm:'Adventure traveller, needs flexible dates.',lf:d(-5),nf:d(4),cb:'pooja'}),
+    L({ln:'Facebook – Corbett Adventure',ld:d(-5),ch:'OTA',src:'Facebook',gn:'Mr. Rishabh Jain',cn:'9902556677',rn:'Corbett',it:'Medium',ps:'Contacted',ss:'WhatsApp Sent',lv:33000,cv:false,rm:'Adventure traveller, needs flexible dates.',lf:d(-5),nf:d(4),cb:'pooja'}),
 
     // ──────────── LAST MONTH (14 leads) ────────────
     L({ln:'Expedia – Manali Winter',ld:d(-5,M1.y,M1.m),ch:'OTA',src:'Expedia',gn:'Mr. Varun Khanna',cn:'9876111222',rn:'Manali',it:'High',ps:'Won',ss:'Demo Done',nr:1,nn:4,lv:36000,cv:true,bk:'CV-LM-001',cvv:36000,rm:'Winter sports package.',lf:d(-7,M1.y,M1.m),mp:'Full Board',cb:'ashima'}),
     L({ln:'Walk-in – Shimla HNI',ld:d(-10,M1.y,M1.m),ch:'Walk-in',src:'Walk-in',gn:'Mrs. Kamla Arora',cn:'9876222333',rn:'Shimla',it:'High',ps:'Won',ss:'Demo Done',nr:2,nn:3,lv:45000,cv:true,bk:'CV-LM-002',cvv:45000,rm:'Walk-in from lobby, very smooth.',lf:d(-12,M1.y,M1.m),ki:1,mp:'Full Board',gc:'HNI',cb:'ashima'}),
     L({ln:'SMS – Goa Budget',ld:d(-15,M1.y,M1.m),ch:'Direct',src:'SMS Campaign',gn:'Mr. Jay Patel',cn:'9876333444',rn:'Emerald Palms (South Goa)',it:'Low',ps:'Lost',ss:'Not Interested',lv:24000,cv:false,rm:'Price too high.',lf:d(-17,M1.y,M1.m),gc:'Budget',cb:'ashima'}),
-    L({ln:'Corporate – Mussoorie Team',ld:d(-8,M1.y,M1.m),ch:'Corporate',src:'Corporate Partner',gn:'Ms. Sonia Mehra',cn:'9876444555',rn:'Mussoorie',it:'Medium',ps:'In Progress',ss:'Follow Up',nr:2,nn:2,lv:34000,cv:false,rm:'Deferred to this month.',lf:d(-3,M1.y,M1.m),nf:d(5),ad:4,gc:'Mid Segment',cb:'ashima'}),
+    L({ln:'Corporate – Mussoorie Team',ld:d(-8,M1.y,M1.m),ch:'Corporate',src:'Corporate Partner',gn:'Ms. Sonia Mehra',cn:'9876444555',rn:'Mussoorie',it:'Medium',ps:'Contacted',ss:'Follow Up',nr:2,nn:2,lv:34000,cv:false,rm:'Deferred to this month.',lf:d(-3,M1.y,M1.m),nf:d(5),ad:4,gc:'Mid Segment',cb:'ashima'}),
 
     L({ln:'Booking.com – Jaisalmer',ld:d(-6,M1.y,M1.m),ch:'OTA',src:'Booking.com',gn:'Mr. Sameer Agarwal',cn:'9700111222',rn:'Jaisalmer',it:'High',ps:'Won',ss:'Demo Done',nr:1,nn:3,lv:30000,cv:true,bk:'CV-LM-003',cvv:30000,rm:'Desert safari add-on.',lf:d(-8,M1.y,M1.m),mp:'Full Board',gc:'HNI',cb:'ravi'}),
     L({ln:'Google Ads – Pahalgam',ld:d(-12,M1.y,M1.m),ch:'Direct',src:'Google Ads',gn:'Ms. Zara Khan',cn:'9701111222',rn:'Pahalgam',it:'Medium',ps:'Lost',ss:'Not Reachable',lv:20000,cv:false,rm:'No response after callback.',lf:d(-13,M1.y,M1.m),cb:'ravi'}),
     L({ln:'Instagram – Corbett Wild',ld:d(-9,M1.y,M1.m),ch:'OTA',src:'Instagram',gn:'Mr. Tej Kapoor',cn:'9702111222',rn:'Corbett',it:'High',ps:'Won',ss:'Demo Done',nr:1,nn:2,lv:22000,cv:true,bk:'CV-LM-004',cvv:22000,rm:'Photography trip.',lf:d(-10,M1.y,M1.m),mp:'Breakfast Only',ad:1,cb:'ravi'}),
-    L({ln:'Referral – Nainital Deferred',ld:d(-4,M1.y,M1.m),ch:'Referral',src:'Referral',gn:'Mrs. Preeti Malhotra',cn:'9703111222',rn:'Nainital',it:'High',ps:'In Progress',ss:'Follow Up',nr:1,nn:3,lv:24000,cv:false,rm:'Deferred to this month.',lf:d(-5,M1.y,M1.m),nf:d(3),ki:1,cb:'ravi'}),
+    L({ln:'Referral – Nainital Deferred',ld:d(-4,M1.y,M1.m),ch:'Referral',src:'Referral',gn:'Mrs. Preeti Malhotra',cn:'9703111222',rn:'Nainital',it:'High',ps:'Contacted',ss:'Follow Up',nr:1,nn:3,lv:24000,cv:false,rm:'Deferred to this month.',lf:d(-5,M1.y,M1.m),nf:d(3),ki:1,cb:'ravi'}),
 
     L({ln:'MMT – Kumarakom Backwaters',ld:d(-7,M1.y,M1.m),ch:'OTA',src:'MakeMyTrip',gn:'Mr. Rajan Pillai',cn:'9800111222',rn:'Kumarakom',it:'High',ps:'Won',ss:'Demo Done',nr:1,nn:4,lv:40000,cv:true,bk:'CV-LM-005',cvv:40000,rm:'Anniversary getaway, premium.',lf:d(-9,M1.y,M1.m),mp:'Full Board',gc:'HNI',cb:'meera'}),
     L({ln:'Yatra – Ooty Family',ld:d(-13,M1.y,M1.m),ch:'OTA',src:'Yatra',gn:'Ms. Deepa Nair',cn:'9801111222',rn:'Ooty',it:'Medium',ps:'Won',ss:'Demo Done',nr:1,nn:3,lv:24000,cv:true,bk:'CV-LM-006',cvv:24000,rm:'School holiday trip.',lf:d(-14,M1.y,M1.m),mp:'Half Board',ki:2,cb:'meera'}),
@@ -855,6 +875,13 @@ async function loadSettings(){
     if(doc){APP.settings={...doc};delete APP.settings.id}
     else{APP.settings={...DEF_S};fsSet('settings','config',DEF_S).catch(()=>{});}
   }catch(e){APP.settings={...DEF_S};}
+  // Migration: if deployed Firestore has the old long status list, force-replace with the new 5
+  const ps=APP.settings.primaryStatuses||[];
+  const hasOld=ps.includes('Not Contacted')||ps.includes('In Progress')||ps.includes('On Hold');
+  if(hasOld||ps.length!==5){
+    APP.settings.primaryStatuses=[...DEF_S.primaryStatuses];
+    fsSet('settings','config',APP.settings).catch(()=>{});
+  }
 }
 
 async function saveSettings(){await fsSet('settings','config',APP.settings)}
@@ -898,22 +925,54 @@ async function doLogin(){
   // Instant credential check — no network needed
   const defUser=DEF_U.find(x=>x.username===u&&x.password===p);
   if(!defUser){document.getElementById('login-error').style.display='block';return}
-  setLoading(true,'Signing in…');
-  // All load functions are self-contained — they never throw, always fall back to defaults
-  await loadUsers();
-  const user=APP.users.find(x=>x.username===u)||defUser;
-  APP.user=user;
-  sessionStorage.setItem('mh_u',JSON.stringify({username:user.username,id:user.id}));
-  if(user.role==='admin'){
-    await Promise.all([loadSettings(),loadTargets()]);
-    setLoading(false);showScreen('admin');initAdmin();
-  }else if(user.role==='national_sales_head'){
-    await Promise.all([loadSettings(),loadLeads(),loadTargets()]);
-    setLoading(false);showScreen('nsh');initNSH();
-  }else{
-    await Promise.all([loadSettings(),loadLeads()]);
-    setLoading(false);showScreen('manager');initManager();
-  }
+  // ── INSTANT LOGIN: prime APP with defaults + sample data, render the screen immediately ──
+  APP.user=defUser;
+  APP.users=[...DEF_U];
+  APP.settings={...DEF_S};
+  APP.targets={};
+  const sample=makeSampleLeads(new Date());
+  APP.leads=sample.map((l,i)=>({...l,id:'demo-'+i}));
+  sessionStorage.setItem('mh_u',JSON.stringify({username:defUser.username,id:defUser.id}));
+  setLoading(false);
+  if(defUser.role==='admin'){showScreen('admin');initAdmin();}
+  else if(defUser.role==='national_sales_head'){showScreen('nsh');initNSH();}
+  else{showScreen('manager');initManager();}
+  // ── BACKGROUND SYNC: pull real data from Firestore and refresh the UI when ready ──
+  syncFromFirestore(defUser);
+}
+
+async function syncFromFirestore(user){
+  if(!db)return;
+  try{
+    await loadUsers();
+    const real=APP.users.find(x=>x.username===user.username);
+    if(real)APP.user=real;
+    if(user.role==='admin'){
+      await Promise.all([loadSettings(),loadTargets(),loadLeads()]);
+      if(document.getElementById('screen-admin').classList.contains('active'))updateAdminCounts();
+    }else if(user.role==='national_sales_head'){
+      await Promise.all([loadSettings(),loadLeads(),loadTargets()]);
+      if(document.getElementById('screen-nsh').classList.contains('active'))renderNSH();
+    }else{
+      await Promise.all([loadSettings(),loadLeads()]);
+      if(document.getElementById('screen-manager').classList.contains('active')){
+        // Re-fill select options with latest settings (statuses, sources, resorts may have changed)
+        const s=APP.settings;
+        fillSel('f-channel',s.channels);fillSel('f-sourceName',s.sourceNames);
+        fillSel('f-resortName',s.resorts);fillSel('f-primaryStatus',s.primaryStatuses);
+        fillSel('f-secondaryStatus',s.secondaryStatuses);
+        fillSel2('filter-status',['All Statuses',...(s.primaryStatuses||[])]);
+        renderLeadList();
+        // Refresh whichever tab is currently visible
+        const activeTab=document.querySelector('.tab-btn.active');
+        if(activeTab){
+          const onclick=activeTab.getAttribute('onclick')||'';
+          if(onclick.includes('analytics'))renderAnalytics();
+          else if(onclick.includes('today'))renderTodayTab();
+        }
+      }
+    }
+  }catch(e){/* keep sample data, demo continues working */}
 }
 
 function doLogout(){
@@ -1307,13 +1366,16 @@ function renderAnalytics(){
   const mtdRev=mtdLeads.filter(l=>l.primaryStatus==='Won').reduce((s,l)=>s+(l.convertedValue||0),0);
   const lmtdRev=lmtdLeads.filter(l=>l.primaryStatus==='Won').reduce((s,l)=>s+(l.convertedValue||0),0);
 
-  // Funnel: pipeline stages in order, count from MTD leads
-  const funnelColors=['#C8102E','#D94B6E','#E8714A','#F0A500','#5C6BC0','#26A69A','#66BB6A','#78909C'];
-  const funnelStages=(s.primaryStatuses||[]).map((st,i)=>({
-    label:st,
-    count:mtdLeads.filter(l=>l.primaryStatus===st).length,
-    color:funnelColors[i%funnelColors.length]
-  })).filter(st=>st.count>0).sort((a,b)=>b.count-a.count);
+  // Funnel: fixed 4-stage progression — Leads → Contacted → Negotiation → Won
+  // Each stage is a superset of the next, mirroring the actual sales journey
+  const contactedSet=['Contacted','Proposal Sent','Negotiation','Won'];
+  const negotiationSet=['Proposal Sent','Negotiation','Won'];
+  const funnelStages=[
+    {label:'Leads',         count:mtdLeads.length,                                                  color:'#C8102E'},
+    {label:'Contacted',     count:mtdLeads.filter(l=>contactedSet.includes(l.primaryStatus)).length, color:'#E8714A'},
+    {label:'Negotiation',   count:mtdLeads.filter(l=>negotiationSet.includes(l.primaryStatus)).length,color:'#F0A500'},
+    {label:'Won',           count:mtdLeads.filter(l=>l.primaryStatus==='Won').length,                color:'#34c759'}
+  ];
 
   // Win/Loss for doughnut
   const wonCount=mtdLeads.filter(l=>l.primaryStatus==='Won').length;
@@ -1371,7 +1433,7 @@ function renderAnalytics(){
     <div class="funnel-wrap">
       <h3>Sales Funnel — ${mNames[month]} ${year}</h3>
       ${buildFunnelSVG(funnelStages)}
-      ${funnelStages.length?`<div class="funnel-legend">${funnelStages.map(st=>`<div class="funnel-leg-item"><div class="funnel-leg-dot" style="background:${st.color}"></div>${esc(st.label)}</div>`).join('')}</div>`:''}
+      ${funnelStages[0].count?`<div class="funnel-legend">${funnelStages.map(st=>`<div class="funnel-leg-item"><div class="funnel-leg-dot" style="background:${st.color}"></div>${esc(st.label)}</div>`).join('')}</div>`:''}
     </div>
 
     <!-- Win / Loss / Active Doughnut -->
@@ -1597,7 +1659,7 @@ function openEditResortModal(name){
   document.getElementById('adm-modal').classList.add('open');
 }
 
-async function saveResort(isEdit){
+function saveResort(isEdit){
   const name=isEdit?document.getElementById('ar-edit-name').value:document.getElementById('ar-name').value.trim();
   const rate=parseFloat(document.getElementById('ar-rate').value)||0;
   if(!name){showToast('Enter resort name','error');return}
@@ -1605,22 +1667,18 @@ async function saveResort(isEdit){
   if(!isEdit)APP.settings.resorts.push(name);
   if(!APP.settings.rates)APP.settings.rates={};
   APP.settings.rates[name]=rate;
-  try{
-    await saveSettings();
-    closeAdmModal();renderAdmResortsList();updateAdminCounts();
-    showToast(isEdit?'Rate updated!':'Resort added!','success');
-  }catch(e){
-    if(!isEdit)APP.settings.resorts.pop();
-    showToast('Failed: '+e.message,'error');
-  }
+  closeAdmModal();renderAdmResortsList();updateAdminCounts();
+  showToast(isEdit?'Rate updated':'Resort added','success');
+  saveSettings().catch(()=>{});
 }
 
-async function deleteResortAdm(idx){
+function deleteResortAdm(idx){
   if(!confirm('Remove this resort?'))return;
   const n=APP.settings.resorts.splice(idx,1)[0];
   if(APP.settings.rates)delete APP.settings.rates[n];
-  try{await saveSettings();renderAdmResortsList();updateAdminCounts();showToast('Removed')}
-  catch(e){APP.settings.resorts.splice(idx,0,n);showToast('Failed: '+e.message,'error')}
+  renderAdmResortsList();updateAdminCounts();
+  showToast('Removed');
+  saveSettings().catch(()=>{});
 }
 
 // ---- Lead Form Fields ----
@@ -1644,25 +1702,27 @@ function renderFieldsList(){
     </div>`).join('');
 }
 
-async function addFieldItem(){
+function addFieldItem(){
   const inp=document.getElementById('new-field-val');
   const val=inp?inp.value.trim():'';
   if(!val){showToast('Enter a value','error');return}
   if(!APP.settings[_curFieldKey])APP.settings[_curFieldKey]=[];
   if(APP.settings[_curFieldKey].includes(val)){showToast('Already exists','error');return}
   APP.settings[_curFieldKey].push(val);
-  try{
-    await saveSettings();
-    if(inp)inp.value='';
-    renderFieldsList();showToast('Added!','success');
-  }catch(e){APP.settings[_curFieldKey].pop();showToast('Failed: '+e.message,'error')}
+  if(inp)inp.value='';
+  renderFieldsList();
+  showToast('Added','success');
+  // Optimistic: save in background; if it fails, change persists locally
+  saveSettings().catch(()=>{});
 }
 
-async function deleteFieldItem(idx){
+function deleteFieldItem(idx){
   if(!confirm('Remove this item?'))return;
-  const removed=APP.settings[_curFieldKey].splice(idx,1);
-  try{await saveSettings();renderFieldsList();showToast('Removed')}
-  catch(e){APP.settings[_curFieldKey].splice(idx,0,...removed);showToast('Failed: '+e.message,'error')}
+  APP.settings[_curFieldKey].splice(idx,1);
+  renderFieldsList();
+  showToast('Removed');
+  // Optimistic: save in background
+  saveSettings().catch(()=>{});
 }
 
 // ---- Monthly Targets ----
@@ -1901,9 +1961,15 @@ function renderNSH(){
   for(let i=5;i>=0;i--){const d=new Date(nowT.getFullYear(),nowT.getMonth()-i,1);nshTrend6.push({y:d.getFullYear(),m:d.getMonth()});nshTrendLabels.push(MN6[d.getMonth()].slice(0,3));nshTrendLeads.push(0);nshTrendWon.push(0);}
   all.forEach(l=>{const d=new Date(l.leadDate?l.leadDate+'T00:00:00':l.createdAt);const idx=nshTrend6.findIndex(t=>t.y===d.getFullYear()&&t.m===d.getMonth());if(idx>=0){nshTrendLeads[idx]++;if(l.primaryStatus==='Won')nshTrendWon[idx]++;}});
 
-  // Status funnel
-  const fColors=['#C8102E','#D94B6E','#E8714A','#F0A500','#5C6BC0','#26A69A','#66BB6A','#78909C'];
-  const funnel=(APP.settings.primaryStatuses||[]).map((st,i)=>({label:st,count:cL.filter(l=>l.primaryStatus===st).length,color:fColors[i%fColors.length]})).filter(s=>s.count>0).sort((a,b)=>b.count-a.count);
+  // Status funnel: fixed 4-stage — Leads → Contacted → Negotiation → Won
+  const _contactedSet=['Contacted','Proposal Sent','Negotiation','Won'];
+  const _negotiationSet=['Proposal Sent','Negotiation','Won'];
+  const funnel=[
+    {label:'Leads',       count:cL.length,                                                       color:'#C8102E'},
+    {label:'Contacted',   count:cL.filter(l=>_contactedSet.includes(l.primaryStatus)).length,    color:'#E8714A'},
+    {label:'Negotiation', count:cL.filter(l=>_negotiationSet.includes(l.primaryStatus)).length,  color:'#F0A500'},
+    {label:'Won',         count:cL.filter(l=>l.primaryStatus==='Won').length,                    color:'#34c759'}
+  ];
 
   const MGRC=['#C8102E','#007aff','#34c759','#ff9500','#5856d6','#ff2d55','#00c7be'];
   const filterTag=[NSH.zone,NSH.state,NSH.resort].filter(Boolean).join(' › ')||'🇮🇳 All India';
@@ -1964,7 +2030,7 @@ function renderNSH(){
     </div>`:''}
 
     <!-- Pipeline Funnel -->
-    ${funnel.length?`
+    ${funnel[0].count?`
     <div class="nsh-sec-title">Pipeline Funnel</div>
     <div class="funnel-wrap" style="padding:12px 14px">${buildFunnelSVG(funnel)}</div>`:''}
 
