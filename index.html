@@ -515,15 +515,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         </div>
         <div class="field-row">
           <div class="field">
-            <label>No. of Rooms</label>
-            <input type="number" id="f-noRooms" placeholder="0" min="0" inputmode="numeric" oninput="autoLV()">
+            <label>No. of Rooms <span style="color:var(--red)">*</span></label>
+            <input type="number" id="f-noRooms" placeholder="0" min="1" inputmode="numeric" oninput="autoLV()">
+            <div class="err" id="e-noRooms">Required · must be at least 1</div>
             <div style="font-size:10px;color:var(--sub);margin-top:3px;cursor:pointer;text-decoration:underline" onclick="toggleCustomRooms('f')" id="f-customRoomsLink">+ Vary by night?</div>
             <textarea id="f-roomsBreakdown" placeholder="E.g. Night 1: 2 rooms, Night 2: 3 rooms, Night 3: 3 rooms" style="display:none;margin-top:5px;width:100%;min-height:50px;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit"></textarea>
           </div>
           <div class="field"><label>No. of Nights</label><input type="number" id="f-noNights" class="auto-field" readonly placeholder="Auto from dates"><div style="font-size:10px;color:var(--sub);margin-top:3px">Auto-calculated from Check In/Out</div></div>
         </div>
         <div class="field-row">
-          <div class="field"><label>Occupancy</label><select id="f-occupancy"><option value="">Select</option></select></div>
+          <div class="field"><label>Occupancy <span style="color:var(--red)">*</span></label><select id="f-occupancy"><option value="">Select</option></select><div class="err" id="e-occupancy">Required</div></div>
           <div class="field"><label>Meal Plan</label><select id="f-mealPlan"><option value="">Select</option><option>Room Only</option><option>Breakfast Only</option><option>Half Board</option><option>Full Board</option><option>All Inclusive</option></select></div>
         </div>
       </div>
@@ -1203,7 +1204,8 @@ async function loadUsers(){
     });
     APP.users=Object.values(byUsername).map(d=>{
       const def=DEF_U.find(u=>u.username===d.username);
-      return def?{...d,name:def.name,role:def.role,username:def.username}:d;
+      // Merge zone from DEF_U as well — Firestore docs created before zones existed are missing it.
+      return def?{...d,name:def.name,role:def.role,username:def.username,zone:def.zone}:d;
     });
     // Ensure any DEF_U user not in Firestore is still available in-memory for the UI
     DEF_U.forEach(u=>{if(!byUsername[u.username])APP.users.push({...u});});
@@ -1357,13 +1359,15 @@ async function _ensureUserDoc(defUser,email){
     if(!snap.exists){
       await ref.set({
         uid:u.uid,username:defUser.username,name:defUser.name,role:defUser.role,
+        zone:defUser.zone||null,
         email,createdAt:new Date().toISOString()
       });
     }else{
-      // Doc exists — heal stale fields (e.g. name renamed from "Ashima Singh" → "Ashima Sehgal")
+      // Doc exists — heal stale fields (name renamed, role changed, zone added since the doc was created)
       const cur=snap.data();
-      if(cur.name!==defUser.name||cur.role!==defUser.role||cur.username!==defUser.username){
-        await ref.set({...cur,username:defUser.username,name:defUser.name,role:defUser.role},{merge:true});
+      const needsHeal = cur.name!==defUser.name || cur.role!==defUser.role || cur.username!==defUser.username || (defUser.zone && cur.zone!==defUser.zone);
+      if(needsHeal){
+        await ref.set({...cur,username:defUser.username,name:defUser.name,role:defUser.role,zone:defUser.zone||null},{merge:true});
       }
     }
   }catch(e){showToast('Profile setup issue — some operations may fail. '+e.message,'error');}
@@ -1583,6 +1587,8 @@ function validateNewLead(){
     ['f-email','e-email',v=>v&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)],
     ['f-guestSegment','e-guestSegment',v=>!v],
     ['f-resortName','e-resortName',v=>!v],
+    ['f-noRooms','e-noRooms',v=>!v||(+v||0)<1],
+    ['f-occupancy','e-occupancy',v=>!v],
     ['f-interest','e-interest',v=>!v],
     ['f-primaryStatus','e-primaryStatus',v=>!v],
     ['f-secondaryStatus','e-secondaryStatus',v=>!v],
@@ -2575,6 +2581,26 @@ function nshDrillToZone(zone){
   showToast(`Filtered to ${zone} zone`,'success');
 }
 
+// "Show all resorts" — opens a modal listing every resort with leads in the current filter
+let _allResortsList=[];
+function showAllResorts(){
+  const list=_allResortsList||[];
+  if(!list.length){showToast('No resort data for this filter','error');return;}
+  const totalLeads=list.reduce((s,r)=>s+r.count,0);
+  document.getElementById('nsh-mgr-modal-title').textContent=`All Resorts (${list.length})`;
+  document.getElementById('nsh-mgr-modal-body').innerHTML=`
+    <div style="font-size:11px;color:var(--sub);font-style:italic;margin-bottom:10px">Showing every resort with at least one lead in the current filter. Tap a row to drill in.</div>
+    <div style="max-height:60vh;overflow-y:auto">
+      ${list.map(r=>`
+        <div class="f-row" style="cursor:pointer;padding:9px 4px;border-bottom:1px solid var(--border);transition:background .15s" onmouseover="this.style.background='#f7f7f9'" onmouseout="this.style.background=''" onclick="closeMgrDrilldown();setTimeout(()=>nshDrillToResort('${esc(r.name)}'),100)">
+          <div class="f-lbl">${esc(r.name.split('(')[0].trim())}<span style="font-size:10px;color:var(--sub);font-weight:500;margin-left:6px">${esc(RESORT_META[r.name]?.state||'')}</span></div>
+          <div class="f-bar-wrap"><div class="f-bar" style="width:${totalLeads?(r.count/totalLeads*100*4):0}%;background:var(--blue)"><span>${r.count}</span></div></div>
+          <div class="f-pct" style="white-space:nowrap">₹${shortNum(r.rev)}</div>
+        </div>`).join('')}
+    </div>`;
+  document.getElementById('nsh-mgr-modal').classList.add('open');
+}
+
 // Drill into a specific resort from the Top Resorts list — sets all geography filters to point at that resort
 function nshDrillToResort(resort){
   const meta=RESORT_META[resort]||{};
@@ -2911,7 +2937,10 @@ function renderNSH(){
   // Resort breakdown
   const resMap={};
   cL.forEach(l=>{const k=l.resortName||'Unknown';if(!resMap[k])resMap[k]={name:k,count:0,rev:0};resMap[k].count++;if(l.primaryStatus==='Won')resMap[k].rev+=(l.convertedValue||0);});
-  const topRes=Object.values(resMap).sort((a,b)=>b.count-a.count).slice(0,8);
+  const allRes=Object.values(resMap).sort((a,b)=>b.count-a.count);
+  const topRes=allRes.slice(0,8);
+  // Stash for the "Show all" modal so it can read the same filtered list
+  _allResortsList=allRes;
 
   // State breakdown
   const stMap={};
@@ -3140,6 +3169,7 @@ function renderNSH(){
           <div class="f-bar-wrap"><div class="f-bar" style="width:${cTotal?(r.count/cTotal*100):0}%;background:var(--blue)"><span>${r.count}</span></div></div>
           <div class="f-pct">₹${shortNum(r.rev)}</div>
         </div>`).join('')}
+      ${allRes.length>topRes.length?`<div style="text-align:center;margin-top:10px"><button onclick="showAllResorts()" style="background:none;border:none;color:var(--blue);font-size:12px;font-weight:700;cursor:pointer;text-decoration:underline">Show all ${allRes.length} resorts ›</button></div>`:''}
     </div>`:''}
 
     <!-- Leads by State -->
