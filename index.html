@@ -439,11 +439,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <h2>Welcome back</h2>
     <p class="sub">Sign in to your account</p>
     <div class="field"><label>Select User</label>
-    <select id="login-u" onchange="(function(v){const pw={ankur:'ankur1234',ashima:'ashima1234',brij:'brij1234',ravi:'ravi1234',meera:'meera1234',pooja:'pooja1234'};document.getElementById('login-p').value=pw[v]||'';if(v)document.getElementById('login-p').focus();})(this.value)">
+    <select id="login-u" onchange="(function(v){const pw={ankur:'ankur1234',ashima:'ashima1234',brij:'brij1234',mahima:'mahima1234',vikram:'vikram1234',rohit:'rohit1234',sanjana:'sanjana1234',ravi:'ravi1234',meera:'meera1234',pooja:'pooja1234'};document.getElementById('login-p').value=pw[v]||'';if(v)document.getElementById('login-p').focus();})(this.value)">
       <option value="">— choose a user —</option>
       <option value="ankur">Ankur Chachra · Admin</option>
-      <option value="ashima">Ashima Sehgal · Sales Manager</option>
       <option value="brij">Brij Chachra · National Sales Head</option>
+      <option value="mahima">Mahima Chugh · Regional Sales Head (North)</option>
+      <option value="ashima">Ashima Sehgal · Sales Manager (North)</option>
     </select></div>
     <div class="field"><label>Password</label><input type="password" id="login-p" autocomplete="current-password" placeholder="Password"></div>
     <button class="btn" id="login-btn" onclick="doLogin()">Sign In</button>
@@ -486,8 +487,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
           <div class="field"><label>Assigned To</label><input type="text" id="f-assignedTo" class="auto-field" readonly></div>
         </div>
         <div class="field-row">
-          <div class="field"><label>Channel <span style="color:var(--red)">*</span></label><select id="f-channel"><option value="">Select</option></select><div class="err" id="e-channel">Required</div></div>
-          <div class="field"><label>Source Name <span style="color:var(--red)">*</span></label><select id="f-sourceName"><option value="">Select</option></select><div class="err" id="e-sourceName">Required</div></div>
+          <div class="field"><label>Channel <span style="color:var(--red)">*</span></label><select id="f-channel" onchange="onChannelChange('f')"><option value="">Select</option></select><div class="err" id="e-channel">Required</div></div>
+          <div class="field"><label>Source <span style="color:var(--red)">*</span></label>
+            <select id="f-sourceSel" onchange="syncSource('f')" style="display:none"><option value="">Select</option></select>
+            <input type="text" id="f-sourceTxt" oninput="syncSource('f')" placeholder="Pick a channel first" style="display:none">
+            <input type="text" id="f-sourcePlaceholder" placeholder="Pick a channel first" readonly class="auto-field">
+            <input type="hidden" id="f-sourceName">
+            <div class="err" id="e-sourceName">Required</div>
+          </div>
         </div>
       </div>
       <div class="form-sec">
@@ -497,25 +504,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
           <div class="field"><label>Contact Number <span style="color:var(--red)">*</span></label><input type="tel" id="f-contactNumber" placeholder="10-digit mobile" maxlength="10" inputmode="numeric"><div class="err" id="e-contactNumber">Enter valid 10-digit number</div></div>
           <div class="field"><label>Email ID</label><input type="email" id="f-email" placeholder="Optional" inputmode="email"><div class="err" id="e-email">Enter valid email</div></div>
         </div>
-        <div class="field-row">
-          <div class="field"><label>No. of Adults</label><input type="number" id="f-adults" placeholder="0" min="0" inputmode="numeric"></div>
-          <div class="field"><label>No. of Children</label><input type="number" id="f-children" placeholder="0" min="0" inputmode="numeric"></div>
-        </div>
-        <div class="field"><label>Preferred Contact Time</label><select id="f-contactTime"><option value="">Select</option><option>Morning (9am – 12pm)</option><option>Afternoon (12pm – 4pm)</option><option>Evening (4pm – 8pm)</option><option>Any Time</option></select></div>
+        <div class="field"><label>Guest Segment <span style="color:var(--red)">*</span></label><select id="f-guestSegment"><option value="">Select</option></select><div class="err" id="e-guestSegment">Required</div></div>
       </div>
       <div class="form-sec">
         <div class="form-sec-title">Stay Preferences</div>
         <div class="field"><label>Resort Name <span style="color:var(--red)">*</span></label><select id="f-resortName" onchange="autoLV()"><option value="">Select Resort</option></select><div class="err" id="e-resortName">Required</div></div>
         <div class="field-row">
-          <div class="field"><label>Check In</label><input type="date" id="f-checkIn"></div>
-          <div class="field"><label>Check Out</label><input type="date" id="f-checkOut"></div>
+          <div class="field"><label>Check In</label><input type="date" id="f-checkIn" onchange="autoCalcNights('f')"></div>
+          <div class="field"><label>Check Out</label><input type="date" id="f-checkOut" onchange="autoCalcNights('f')"></div>
         </div>
         <div class="field-row">
-          <div class="field"><label>No. of Rooms</label><input type="number" id="f-noRooms" placeholder="0" min="0" inputmode="numeric" oninput="calcRN()"></div>
-          <div class="field"><label>No. of Nights</label><input type="number" id="f-noNights" placeholder="0" min="0" inputmode="numeric" oninput="calcRN()"></div>
+          <div class="field">
+            <label>No. of Rooms</label>
+            <input type="number" id="f-noRooms" placeholder="0" min="0" inputmode="numeric" oninput="autoLV()">
+            <div style="font-size:10px;color:var(--sub);margin-top:3px;cursor:pointer;text-decoration:underline" onclick="toggleCustomRooms('f')" id="f-customRoomsLink">+ Vary by night?</div>
+            <textarea id="f-roomsBreakdown" placeholder="E.g. Night 1: 2 rooms, Night 2: 3 rooms, Night 3: 3 rooms" style="display:none;margin-top:5px;width:100%;min-height:50px;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit"></textarea>
+          </div>
+          <div class="field"><label>No. of Nights</label><input type="number" id="f-noNights" class="auto-field" readonly placeholder="Auto from dates"><div style="font-size:10px;color:var(--sub);margin-top:3px">Auto-calculated from Check In/Out</div></div>
         </div>
         <div class="field-row">
-          <div class="field"><label>Room Nights</label><input type="number" id="f-roomNights" class="auto-field" readonly></div>
+          <div class="field"><label>Occupancy</label><select id="f-occupancy"><option value="">Select</option></select></div>
           <div class="field"><label>Meal Plan</label><select id="f-mealPlan"><option value="">Select</option><option>Room Only</option><option>Breakfast Only</option><option>Half Board</option><option>Full Board</option><option>All Inclusive</option></select></div>
         </div>
       </div>
@@ -523,17 +531,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <div class="form-sec-title">Lead Qualification</div>
         <div class="field-row">
           <div class="field"><label>Interest Level <span style="color:var(--red)">*</span></label><select id="f-interest"><option value="">Select</option><option>Low</option><option>Medium</option><option>High</option></select><div class="err" id="e-interest">Required</div></div>
-          <div class="field"><label>Guest Category</label><select id="f-guestCategory"><option value="">Select</option><option>HNI</option><option>Mid Segment</option><option>Budget</option></select></div>
+          <div class="field"><label>Primary Status <span style="color:var(--red)">*</span></label><select id="f-primaryStatus" onchange="onStatusChange('f')"><option value="">Select</option></select><div class="err" id="e-primaryStatus">Required</div></div>
         </div>
-        <div class="field-row">
-          <div class="field"><label>Primary Status <span style="color:var(--red)">*</span></label><select id="f-primaryStatus" onchange="calcNA()"><option value="">Select</option></select><div class="err" id="e-primaryStatus">Required</div></div>
-          <div class="field"><label>Secondary Status <span style="color:var(--red)">*</span></label><select id="f-secondaryStatus"><option value="">Select</option></select><div class="err" id="e-secondaryStatus">Required</div></div>
+        <div class="field"><label>Secondary Status <span style="color:var(--red)">*</span></label><select id="f-secondaryStatus"><option value="">Select</option></select><div class="err" id="e-secondaryStatus">Required</div></div>
+        <!-- Drop-out reason: shown only when Primary Status = Lost -->
+        <div class="field" id="f-dropOutWrap" style="display:none">
+          <label>Drop-out Reason <span style="color:var(--red)">*</span></label>
+          <textarea id="f-dropOutReason" placeholder="Why was this lead lost? (e.g. price too high, chose competitor, dates didn't work)" style="min-height:60px"></textarea>
+          <div class="err" id="e-dropOutReason">Required when status is Lost</div>
         </div>
       </div>
       <div class="form-sec">
         <div class="form-sec-title">Revenue &amp; Booking</div>
         <div class="field-row">
-          <div class="field"><label>Lead Value (₹)</label><input type="number" id="f-leadValue" placeholder="0" min="0" value="0" inputmode="numeric"><div style="font-size:10px;color:var(--sub);margin-top:3px">Auto-fills from resort rate</div></div>
+          <div class="field"><label>Lead Value (₹)</label><input type="number" id="f-leadValue" placeholder="0" min="0" value="0" inputmode="numeric"><div style="font-size:10px;color:var(--sub);margin-top:3px">Auto-fills from resort rate × nights × rooms</div></div>
           <div class="field"><label>Converted</label><select id="f-converted" onchange="togCF('f-conv-fields','f-converted')"><option value="No">No</option><option value="Yes">Yes</option></select></div>
         </div>
         <div id="f-conv-fields" style="display:none">
@@ -545,11 +556,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       </div>
       <div class="form-sec">
         <div class="form-sec-title">Follow Up</div>
-        <div class="field-row">
-          <div class="field"><label>Last Follow Up <span style="color:var(--red)">*</span></label><input type="date" id="f-lastFollowUp"><div class="err" id="e-lastFollowUp">Required</div></div>
-          <div class="field"><label>Next Follow Up</label><input type="date" id="f-nextFollowUp" onchange="calcNA()"></div>
-        </div>
-        <div class="field"><label>Next Action</label><input type="text" id="f-nextAction" class="auto-field" readonly value="Open"></div>
+        <div class="field"><label>Next Follow Up</label><input type="date" id="f-nextFollowUp"></div>
         <div class="field"><label>Remarks</label><textarea id="f-remarks" placeholder="Brief notes. E.g. Guest called back, asked for lower rate, follow up Monday."></textarea></div>
       </div>
       <button type="submit" class="btn" id="new-lead-btn">Save Lead</button>
@@ -615,15 +622,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <button class="nsh-expand-btn" id="nsh-filter-toggle" onclick="toggleNSHFilter()">Filters ▾</button>
     </div>
 
-    <!-- Custom month picker (shows when CUSTOM selected) -->
-    <div id="nsh-month-picker" style="display:none;margin-top:10px">
-      <div class="nsh-fy-nav">
-        <button onclick="shiftNSHFY(-1)">‹</button>
-        <span id="nsh-fy-label">FY 2025-26</span>
-        <button onclick="shiftNSHFY(1)">›</button>
-        <button class="nchip" style="margin-left:6px;font-size:11px;padding:3px 9px" onclick="clearNSHMonths()">Clear all</button>
+    <!-- Custom date-range picker (shows when CUSTOM selected) -->
+    <div id="nsh-month-picker" style="display:none;margin-top:10px;background:#fafafa;border-radius:10px;padding:12px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--sub);margin-bottom:8px">Custom date range</div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <div style="flex:1;min-width:140px">
+          <label style="font-size:11px;color:var(--sub);font-weight:600;display:block;margin-bottom:3px">From</label>
+          <input type="date" id="nsh-custom-from" onchange="onCustomRangeChange()" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;outline:none">
+        </div>
+        <div style="flex:1;min-width:140px">
+          <label style="font-size:11px;color:var(--sub);font-weight:600;display:block;margin-bottom:3px">To</label>
+          <input type="date" id="nsh-custom-to" onchange="onCustomRangeChange()" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;outline:none">
+        </div>
       </div>
-      <div class="nsh-month-grid" id="nsh-month-grid"></div>
+      <div style="font-size:11px;color:var(--sub);font-style:italic;margin-top:6px" id="nsh-custom-hint">Comparison will be the same date range, one month earlier.</div>
     </div>
 
     <!-- Expanded filters (Zone / State / Resort) -->
@@ -856,8 +868,21 @@ const FIREBASE_CONFIG = {
 
 // ===== DEFAULTS =====
 const DEF_S = {
-  channels:['OTA','Travel Agent','Wedding / Social','Direct','Corporate','Referral','Walk-in'],
-  sourceNames:['MakeMyTrip','Booking.com','Expedia','Agoda','Yatra','WedMeGood','WeddingWire','Instagram','Facebook','Google Ads','YouTube','Email Campaign','SMS Campaign','Corporate Partner','Referral','Walk-in'],
+  channels:['OTA','Travel Agent','Wedding / Social','Corporate','Referral','Walk-in'],
+  // Sources are organized as a channel→option map. Channels with a `freeText:true` value
+  // render as a text input instead of a dropdown.
+  sourcesByChannel:{
+    'OTA':              ['MakeMyTrip','Booking.com','Expedia','Agoda','Yatra'],
+    'Wedding / Social': ['WedMeGood','WeddingWire','Facebook','Instagram','Google Ads','YouTube'],
+    'Travel Agent':     {freeText:true,placeholder:'Agent name'},
+    'Corporate':        {freeText:true,placeholder:'Company / partner name'},
+    'Referral':         {freeText:true,placeholder:'Referrer name'},
+    'Walk-in':          {freeText:true,placeholder:'Walked in at (location)'}
+  },
+  // Legacy flat list kept for the admin's "Lead Form Fields" UI + any code that lists all sources.
+  sourceNames:['MakeMyTrip','Booking.com','Expedia','Agoda','Yatra','WedMeGood','WeddingWire','Facebook','Instagram','Google Ads','YouTube'],
+  guestSegments:['Corporate','Travel Agent','Wedding','Individual','Group','Conference'],
+  occupancyTypes:['Single','Double','Triple'],
   resorts:['Ashtamudi','Assonora (North Goa)','Baiguney (Sikkim)','Binsar Valley','Coorg','Corbett','Coromandel (Vizag)','Desert Courtyard (Zainabad)','Emerald Palms (South Goa)','Gangtok','Hatgad','Jaisalmer','Jiwa Mahal (Jaipur)','Kanha','Kandaghat','Kodaikanal','Kumarakom','Lachung','Madikeri','Mahabaleshwar','Manali','Mashobra (Shimla)','Mount Abu','Munnar','Mussoorie','Nainital','Naldehra','Ooty','Pahalgam','Puducherry','Ranthambhore','Rishikesh','Sawai Madhopur','Shimla','Tirupati','Tungi (Igatpuri)','Udaipur','Varca Beach (Goa)','Virajpet'],
   rates:{'Coorg':8500,'Corbett':11000,'Emerald Palms (South Goa)':12000,'Udaipur':11000,'Jaisalmer':10000,'Mahabaleshwar':8500,'Nainital':8000,'Munnar':9500,'Manali':9000,'Shimla':7500,'Mussoorie':8500,'Ooty':8000,'Kodaikanal':7500,'Ranthambhore':11000,'Kumarakom':10000},
   primaryStatuses:['Contacted','Proposal Sent','Negotiation','Won','Lost'],
@@ -867,13 +892,22 @@ const DEF_S = {
 // Each sales manager is tagged to a primary zone. Targets roll up:
 // per-manager → per-zone → pan-India. NSH's KPI cards show whichever
 // rollup matches the current zone filter.
+// Hierarchy:
+//   Sales Manager  →  Regional Sales Head (per zone)  →  National Sales Head
+// Each sales manager has a `zone`. Each regional head has a `zone`.
+// Targets and dashboards roll up: SM → zone → pan-India.
 const DEF_U = [
-  {id:1,name:'Ankur Chachra',username:'ankur',password:'ankur1234',role:'admin'},
-  {id:2,name:'Ashima Sehgal',username:'ashima',password:'ashima1234',role:'sales_manager',zone:'North'},
-  {id:3,name:'Brij Chachra',username:'brij',password:'brij1234',role:'national_sales_head'},
-  {id:4,name:'Ravi Sharma',username:'ravi',password:'ravi1234',role:'sales_manager',zone:'South'},
-  {id:5,name:'Meera Nair',username:'meera',password:'meera1234',role:'sales_manager',zone:'West'},
-  {id:6,name:'Pooja Arora',username:'pooja',password:'pooja1234',role:'sales_manager',zone:'East'}
+  {id:1, name:'Ankur Chachra', username:'ankur', password:'ankur1234', role:'admin'},
+  {id:2, name:'Ashima Sehgal', username:'ashima',password:'ashima1234',role:'sales_manager',zone:'North'},
+  {id:3, name:'Brij Chachra',  username:'brij',  password:'brij1234',  role:'national_sales_head'},
+  {id:4, name:'Ravi Sharma',   username:'ravi',  password:'ravi1234',  role:'sales_manager',zone:'South'},
+  {id:5, name:'Meera Nair',    username:'meera', password:'meera1234', role:'sales_manager',zone:'West'},
+  {id:6, name:'Pooja Arora',   username:'pooja', password:'pooja1234', role:'sales_manager',zone:'East'},
+  // Regional Sales Heads — each scoped to one zone
+  {id:7, name:'Mahima Chugh',  username:'mahima',password:'mahima1234',role:'regional_sales_head',zone:'North'},
+  {id:8, name:'Vikram Iyer',   username:'vikram',password:'vikram1234',role:'regional_sales_head',zone:'South'},
+  {id:9, name:'Rohit Patel',   username:'rohit', password:'rohit1234', role:'regional_sales_head',zone:'West'},
+  {id:10,name:'Sanjana Roy',   username:'sanjana',password:'sanjana1234',role:'regional_sales_head',zone:'East'}
 ];
 
 // Resort → Zone & State master data (all 39 Club Mahindra resorts)
@@ -927,121 +961,194 @@ function makeSampleTargets(now){
     const key=`${username}_${y}_${String(m+1).padStart(2,'0')}`;
     map[key]={id:key,username,year:y,month:m,leadsTarget,convertedTarget,revenueTarget,updatedBy:'ankur',updatedAt:new Date().toISOString()};
   };
+  // 12 months of targets so LYMTD comparisons have data on both sides.
+  // Targets are tuned so the demo shows a realistic mix of on-target / close / behind.
   const months=[];
-  for(let i=0;i<3;i++){const d=new Date(now.getFullYear(),now.getMonth()-i,1);months.push({y:d.getFullYear(),m:d.getMonth()});}
-  // Ashima: strong performer — easy targets so she hits >100% (green)
-  // Ravi:   solid — targets she meets ~75-90% (orange)
-  // Meera:  on-pace performer — green
-  // Pooja:  ambitious targets — behind, ~50-70% (red)
+  for(let i=0;i<13;i++){const d=new Date(now.getFullYear(),now.getMonth()-i,1);months.push({y:d.getFullYear(),m:d.getMonth()});}
   months.forEach(({y,m})=>{
-    set('ashima',y,m, 12, 5, 200000);
-    set('ravi',  y,m, 14, 4, 180000);
-    set('meera', y,m, 10, 4, 160000);
-    set('pooja', y,m, 14, 5, 220000);
+    set('ashima',y,m, 12, 5, 200000);  // North — strong target
+    set('ravi',  y,m, 14, 4, 180000);  // South — ambitious
+    set('meera', y,m, 10, 4, 160000);  // West  — steady
+    set('pooja', y,m, 14, 5, 220000);  // East  — stretch
   });
   return map;
 }
 
+// Programmatically generate 12 months of realistic lead data with the v2 schema.
+// Deterministic-ish (uses Math.random but only at seed time, then persisted in Firestore).
 function makeSampleLeads(now){
-  const y=now.getFullYear(),m=now.getMonth();
-  function mo(back){const d=new Date(y,m-back,1);return{y:d.getFullYear(),m:d.getMonth()}}
-  function d(off,yr=y,mo=m){return new Date(yr,mo,Math.max(1,Math.min(28,15+off))).toISOString().split('T')[0]}
-  const M1=mo(1),M2=mo(2),M3=mo(3),M4=mo(4),M5=mo(5);
-  // Helper: build a complete lead object
-  function L(o){
-    const nr=o.nr||1,nn=o.nn||2;
-    const nameMap={'ashima':'Ashima Sehgal','ravi':'Ravi Sharma','meera':'Meera Nair','pooja':'Pooja Arora'};
-    return{
-      leadName:o.ln,leadDate:o.ld,channel:o.ch,sourceName:o.src,
-      assignedTo:nameMap[o.cb]||o.cb,guestName:o.gn,contactNumber:o.cn,
-      resortName:o.rn,email:o.em||'',interest:o.it||'Medium',
-      primaryStatus:o.ps,secondaryStatus:o.ss||'Follow Up',
-      checkIn:o.ci||'',checkOut:o.co||'',
-      noRooms:nr,noNights:nn,roomNights:nr*nn,mealPlan:o.mp||'',
-      leadValue:o.lv||0,converted:o.cv?'Yes':'No',
-      bookingCV:o.bk||'',convertedValue:o.cvv||0,
-      remarks:o.rm||'',lastFollowUp:o.lf,nextFollowUp:o.nf||'',
-      nextAction:['Won','Lost'].includes(o.ps)?'Closed':'Open',
-      adults:o.ad||2,children:o.ki||0,
-      contactTime:o.ct||'Evening (4pm – 8pm)',
-      guestCategory:o.gc||'Mid Segment',createdBy:o.cb
-    };
-  }
-  return[
-    // ──────────── CURRENT MONTH (18 leads) ────────────
-    L({ln:'MMT – Corbett Getaway',ld:d(-14),ch:'OTA',src:'MakeMyTrip',gn:'Mr. Rahul Sharma',cn:'9876543210',rn:'Corbett',it:'High',ps:'Won',ss:'Demo Done',ci:d(5),co:d(8),nr:1,nn:3,lv:33000,cv:true,bk:'CV-CM-001',cvv:31500,rm:'Interested from day one, fast close.',lf:d(-3),mp:'Breakfast Only',gc:'Mid Segment',cb:'ashima'}),
-    L({ln:'WedMeGood – Udaipur Anniversary',ld:d(-12),ch:'Wedding / Social',src:'WedMeGood',gn:'Ms. Priya Kapoor',cn:'9123456780',rn:'Udaipur',it:'High',ps:'Won',ss:'Meeting Scheduled',ci:d(20),co:d(23),nr:2,nn:3,lv:66000,cv:true,bk:'CV-CM-002',cvv:64000,rm:'Anniversary trip, upgraded to lake-view suite.',lf:d(-4),mp:'Full Board',gc:'HNI',cb:'ashima'}),
-    L({ln:'Instagram – Goa Family',ld:d(-10),ch:'OTA',src:'Instagram',gn:'Mr. Arjun Mehta',cn:'9988776655',rn:'Emerald Palms (South Goa)',it:'Medium',ps:'Negotiation',ss:'Email Sent',ci:d(15),co:d(19),nr:1,nn:4,lv:48000,cv:false,rm:'Comparing with another property.',lf:d(-5),nf:d(3),ad:2,ki:2,mp:'Half Board',cb:'ashima'}),
-    L({ln:'Corporate – Shimla Offsite',ld:d(-6),ch:'Corporate',src:'Corporate Partner',gn:'Mr. Vikram Bose',cn:'9800011223',rn:'Shimla',it:'High',ps:'Proposal Sent',ss:'Email Sent',ci:d(18),co:d(21),nr:3,nn:3,lv:67500,cv:false,rm:'Finance approval pending.',lf:d(-1),nf:d(4),ad:6,mp:'Full Board',gc:'HNI',cb:'ashima'}),
-    L({ln:'Google Ads – Munnar Retreat',ld:d(-8),ch:'Direct',src:'Google Ads',gn:'Dr. Anita Nair',cn:'9012345678',rn:'Munnar',it:'Medium',ps:'Contacted',ss:'Call Back Later',lv:38000,cv:false,rm:'Keen but evaluating dates.',lf:d(-8),nf:d(-2),cb:'ashima'}),
-    L({ln:'Referral – Coorg Weekend',ld:d(-3),ch:'Referral',src:'Referral',gn:'Mr. Suresh Pai',cn:'9654321087',rn:'Coorg',it:'Low',ps:'Lost',ss:'Not Interested',lv:25500,cv:false,rm:'Budget constraint.',lf:d(-3),mp:'Breakfast Only',gc:'Budget',cb:'ashima'}),
+  const y=now.getFullYear(), m=now.getMonth();
+  function mo(back){const d=new Date(y,m-back,1);return{y:d.getFullYear(),m:d.getMonth()};}
+  function dStr(yr,mo,day){const dt=new Date(yr,mo,Math.max(1,Math.min(28,day)));return dt.toISOString().split('T')[0];}
 
-    L({ln:'Agoda – Jaisalmer Desert',ld:d(-13),ch:'OTA',src:'Agoda',gn:'Mr. Karan Mehta',cn:'9700112233',rn:'Jaisalmer',it:'High',ps:'Won',ss:'Demo Done',ci:d(10),co:d(13),nr:1,nn:3,lv:30000,cv:true,bk:'CV-CM-003',cvv:30000,rm:'Solo traveller, very decisive.',lf:d(-4),mp:'Full Board',gc:'HNI',cb:'ravi'}),
-    L({ln:'MMT – Manali Couple',ld:d(-11),ch:'OTA',src:'MakeMyTrip',gn:'Ms. Nisha Gupta',cn:'9701223344',rn:'Manali',it:'High',ps:'Negotiation',ss:'Follow Up',ci:d(12),co:d(15),nr:1,nn:3,lv:27000,cv:false,rm:'Negotiating on room rate.',lf:d(-2),nf:d(2),mp:'Breakfast Only',cb:'ravi'}),
-    L({ln:'Instagram – Gangtok Couple',ld:d(-9),ch:'OTA',src:'Instagram',gn:'Mr. Rohit Singh',cn:'9702334455',rn:'Gangtok',it:'Medium',ps:'Contacted',ss:'WhatsApp Sent',lv:28000,cv:false,rm:'Sent property deck on WA.',lf:d(-9),nf:d(-3),cb:'ravi'}),
-    L({ln:'Referral – Pahalgam Family',ld:d(-7),ch:'Referral',src:'Referral',gn:'Mr. Anil Sharma',cn:'9703445566',rn:'Pahalgam',it:'High',ps:'Proposal Sent',ss:'Meeting Scheduled',ci:d(20),co:d(24),nr:2,nn:4,lv:60000,cv:false,rm:'Large family, 2 rooms needed.',lf:d(-1),nf:d(5),ad:4,ki:2,mp:'Full Board',cb:'ravi'}),
-    L({ln:'Booking.com – Shimla Solo',ld:d(-4),ch:'OTA',src:'Booking.com',gn:'Ms. Preethi Das',cn:'9704556677',rn:'Shimla',it:'Low',ps:'Lost',ss:'Not Reachable',lv:15000,cv:false,rm:'Multiple calls, no response.',lf:d(-4),gc:'Budget',cb:'ravi'}),
+  // Map each zone to its sales manager (the createdBy attribution)
+  const mgrByZone={North:'ashima',South:'ravi',West:'meera',East:'pooja',Central:'meera'};
+  const mgrName  ={ashima:'Ashima Sehgal',ravi:'Ravi Sharma',meera:'Meera Nair',pooja:'Pooja Arora'};
 
-    L({ln:'MMT – Ooty Honeymoon',ld:d(-12),ch:'OTA',src:'MakeMyTrip',gn:'Mrs. Pooja Verma',cn:'9800223344',rn:'Ooty',it:'High',ps:'Won',ss:'Demo Done',ci:d(8),co:d(11),nr:1,nn:3,lv:24000,cv:true,bk:'CV-CM-004',cvv:24000,rm:'Honeymoon package, smooth close.',lf:d(-5),mp:'Full Board',cb:'meera'}),
-    L({ln:'WeddingWire – Kanha Offsite',ld:d(-10),ch:'Wedding / Social',src:'WeddingWire',gn:'Mr. Sunil Rao',cn:'9801334455',rn:'Kanha',it:'High',ps:'Won',ss:'Meeting Scheduled',ci:d(15),co:d(18),nr:3,nn:3,lv:51000,cv:true,bk:'CV-CM-005',cvv:49500,rm:'Corporate reward trip. All confirmed.',lf:d(-3),ad:6,mp:'Full Board',gc:'HNI',cb:'meera'}),
-    L({ln:'Yatra – Mahabaleshwar',ld:d(-8),ch:'OTA',src:'Yatra',gn:'Ms. Rekha Pillai',cn:'9802445566',rn:'Mahabaleshwar',it:'Medium',ps:'Negotiation',ss:'Email Sent',ci:d(22),co:d(25),nr:1,nn:3,lv:25500,cv:false,rm:'Discount requested, under review.',lf:d(-2),nf:d(3),mp:'Breakfast Only',cb:'meera'}),
-    L({ln:'Google Ads – Kumarakom',ld:d(-5),ch:'Direct',src:'Google Ads',gn:'Dr. Priya Thomas',cn:'9803556677',rn:'Kumarakom',it:'Medium',ps:'Contacted',ss:'Call Back Later',lv:30000,cv:false,rm:'Exploring dates.',lf:d(-5),nf:d(-1),ki:1,cb:'meera'}),
+  // Group resorts by zone via RESORT_META
+  const resortsByZone={};
+  Object.entries(RESORT_META).forEach(([resort,meta])=>{
+    if(!resortsByZone[meta.zone])resortsByZone[meta.zone]=[];
+    resortsByZone[meta.zone].push(resort);
+  });
 
-    L({ln:'MMT – Nainital Family',ld:d(-11),ch:'OTA',src:'MakeMyTrip',gn:'Mr. Dinesh Shetty',cn:'9900334455',rn:'Nainital',it:'High',ps:'Won',ss:'Demo Done',ci:d(10),co:d(13),nr:1,nn:3,lv:24000,cv:true,bk:'CV-CM-006',cvv:23000,rm:'Summer vacation, happy with rate.',lf:d(-4),mp:'Half Board',ki:2,cb:'pooja'}),
-    L({ln:'Referral – Coorg Stay',ld:d(-8),ch:'Referral',src:'Referral',gn:'Ms. Anjali Bhat',cn:'9901445566',rn:'Coorg',it:'High',ps:'Proposal Sent',ss:'Follow Up',ci:d(18),co:d(21),nr:1,nn:3,lv:25500,cv:false,rm:'Referred by ex-guest, high intent.',lf:d(-2),nf:d(1),mp:'Breakfast Only',cb:'pooja'}),
-    L({ln:'Facebook – Corbett Adventure',ld:d(-5),ch:'OTA',src:'Facebook',gn:'Mr. Rishabh Jain',cn:'9902556677',rn:'Corbett',it:'Medium',ps:'Contacted',ss:'WhatsApp Sent',lv:33000,cv:false,rm:'Adventure traveller, needs flexible dates.',lf:d(-5),nf:d(4),cb:'pooja'}),
-
-    // ──────────── LAST MONTH (14 leads) ────────────
-    L({ln:'Expedia – Manali Winter',ld:d(-5,M1.y,M1.m),ch:'OTA',src:'Expedia',gn:'Mr. Varun Khanna',cn:'9876111222',rn:'Manali',it:'High',ps:'Won',ss:'Demo Done',nr:1,nn:4,lv:36000,cv:true,bk:'CV-LM-001',cvv:36000,rm:'Winter sports package.',lf:d(-7,M1.y,M1.m),mp:'Full Board',cb:'ashima'}),
-    L({ln:'Walk-in – Shimla HNI',ld:d(-10,M1.y,M1.m),ch:'Walk-in',src:'Walk-in',gn:'Mrs. Kamla Arora',cn:'9876222333',rn:'Shimla',it:'High',ps:'Won',ss:'Demo Done',nr:2,nn:3,lv:45000,cv:true,bk:'CV-LM-002',cvv:45000,rm:'Walk-in from lobby, very smooth.',lf:d(-12,M1.y,M1.m),ki:1,mp:'Full Board',gc:'HNI',cb:'ashima'}),
-    L({ln:'SMS – Goa Budget',ld:d(-15,M1.y,M1.m),ch:'Direct',src:'SMS Campaign',gn:'Mr. Jay Patel',cn:'9876333444',rn:'Emerald Palms (South Goa)',it:'Low',ps:'Lost',ss:'Not Interested',lv:24000,cv:false,rm:'Price too high.',lf:d(-17,M1.y,M1.m),gc:'Budget',cb:'ashima'}),
-    L({ln:'Corporate – Mussoorie Team',ld:d(-8,M1.y,M1.m),ch:'Corporate',src:'Corporate Partner',gn:'Ms. Sonia Mehra',cn:'9876444555',rn:'Mussoorie',it:'Medium',ps:'Contacted',ss:'Follow Up',nr:2,nn:2,lv:34000,cv:false,rm:'Deferred to this month.',lf:d(-3,M1.y,M1.m),nf:d(5),ad:4,gc:'Mid Segment',cb:'ashima'}),
-
-    L({ln:'Booking.com – Jaisalmer',ld:d(-6,M1.y,M1.m),ch:'OTA',src:'Booking.com',gn:'Mr. Sameer Agarwal',cn:'9700111222',rn:'Jaisalmer',it:'High',ps:'Won',ss:'Demo Done',nr:1,nn:3,lv:30000,cv:true,bk:'CV-LM-003',cvv:30000,rm:'Desert safari add-on.',lf:d(-8,M1.y,M1.m),mp:'Full Board',gc:'HNI',cb:'ravi'}),
-    L({ln:'Google Ads – Pahalgam',ld:d(-12,M1.y,M1.m),ch:'Direct',src:'Google Ads',gn:'Ms. Zara Khan',cn:'9701111222',rn:'Pahalgam',it:'Medium',ps:'Lost',ss:'Not Reachable',lv:20000,cv:false,rm:'No response after callback.',lf:d(-13,M1.y,M1.m),cb:'ravi'}),
-    L({ln:'Instagram – Corbett Wild',ld:d(-9,M1.y,M1.m),ch:'OTA',src:'Instagram',gn:'Mr. Tej Kapoor',cn:'9702111222',rn:'Corbett',it:'High',ps:'Won',ss:'Demo Done',nr:1,nn:2,lv:22000,cv:true,bk:'CV-LM-004',cvv:22000,rm:'Photography trip.',lf:d(-10,M1.y,M1.m),mp:'Breakfast Only',ad:1,cb:'ravi'}),
-    L({ln:'Referral – Nainital Deferred',ld:d(-4,M1.y,M1.m),ch:'Referral',src:'Referral',gn:'Mrs. Preeti Malhotra',cn:'9703111222',rn:'Nainital',it:'High',ps:'Contacted',ss:'Follow Up',nr:1,nn:3,lv:24000,cv:false,rm:'Deferred to this month.',lf:d(-5,M1.y,M1.m),nf:d(3),ki:1,cb:'ravi'}),
-
-    L({ln:'MMT – Kumarakom Backwaters',ld:d(-7,M1.y,M1.m),ch:'OTA',src:'MakeMyTrip',gn:'Mr. Rajan Pillai',cn:'9800111222',rn:'Kumarakom',it:'High',ps:'Won',ss:'Demo Done',nr:1,nn:4,lv:40000,cv:true,bk:'CV-LM-005',cvv:40000,rm:'Anniversary getaway, premium.',lf:d(-9,M1.y,M1.m),mp:'Full Board',gc:'HNI',cb:'meera'}),
-    L({ln:'Yatra – Ooty Family',ld:d(-13,M1.y,M1.m),ch:'OTA',src:'Yatra',gn:'Ms. Deepa Nair',cn:'9801111222',rn:'Ooty',it:'Medium',ps:'Won',ss:'Demo Done',nr:1,nn:3,lv:24000,cv:true,bk:'CV-LM-006',cvv:24000,rm:'School holiday trip.',lf:d(-14,M1.y,M1.m),mp:'Half Board',ki:2,cb:'meera'}),
-    L({ln:'Corporate – Coorg Retreat',ld:d(-4,M1.y,M1.m),ch:'Corporate',src:'Corporate Partner',gn:'Mr. Aryan Singh',cn:'9802111222',rn:'Coorg',it:'Low',ps:'Lost',ss:'Not Interested',lv:25500,cv:false,rm:'Budget cut.',lf:d(-5,M1.y,M1.m),gc:'Budget',cb:'meera'}),
-
-    L({ln:'Agoda – Corbett Package',ld:d(-8,M1.y,M1.m),ch:'OTA',src:'Agoda',gn:'Dr. Shiv Kumar',cn:'9900111222',rn:'Corbett',it:'High',ps:'Won',ss:'Demo Done',nr:1,nn:3,lv:33000,cv:true,bk:'CV-LM-007',cvv:33000,rm:'Quick conversion.',lf:d(-9,M1.y,M1.m),mp:'Full Board',gc:'HNI',cb:'pooja'}),
-    L({ln:'Facebook – Udaipur Luxury',ld:d(-5,M1.y,M1.m),ch:'OTA',src:'Facebook',gn:'Ms. Isha Walia',cn:'9901111222',rn:'Udaipur',it:'Medium',ps:'Lost',ss:'Busy',lv:33000,cv:false,rm:'Found cheaper option.',lf:d(-6,M1.y,M1.m),cb:'pooja'}),
-    L({ln:'Referral – Shimla Weekend',ld:d(-11,M1.y,M1.m),ch:'Referral',src:'Referral',gn:'Mr. Nakul Mehra',cn:'9902111222',rn:'Shimla',it:'High',ps:'Won',ss:'Demo Done',nr:1,nn:2,lv:15000,cv:true,bk:'CV-LM-008',cvv:15000,rm:'Fast close, referral trust.',lf:d(-12,M1.y,M1.m),mp:'Breakfast Only',cb:'pooja'}),
-
-    // ──────────── M-2 (8 leads) ────────────
-    L({ln:'MMT – Sikkim Trek',ld:d(-10,M2.y,M2.m),ch:'OTA',src:'MakeMyTrip',gn:'Mr. Saurav Bose',cn:'9876511111',rn:'Baiguney (Sikkim)',it:'High',ps:'Won',ss:'Demo Done',nr:1,nn:4,lv:28000,cv:true,bk:'CV-M2-001',cvv:28000,rm:'Northeast trip.',lf:d(-11,M2.y,M2.m),mp:'Full Board',cb:'ashima'}),
-    L({ln:'Corporate – Mussoorie Summit',ld:d(-7,M2.y,M2.m),ch:'Corporate',src:'Corporate Partner',gn:'Ms. Riddhi Sharma',cn:'9876522222',rn:'Mussoorie',it:'Medium',ps:'Lost',ss:'Not Interested',lv:34000,cv:false,rm:'Budget reallocated.',lf:d(-8,M2.y,M2.m),cb:'ashima'}),
-    L({ln:'Agoda – Ranthambhore Safari',ld:d(-5,M2.y,M2.m),ch:'OTA',src:'Agoda',gn:'Mr. Deepak Joshi',cn:'9701533333',rn:'Ranthambhore',it:'High',ps:'Won',ss:'Demo Done',nr:1,nn:3,lv:33000,cv:true,bk:'CV-M2-002',cvv:33000,rm:'Wildlife enthusiast.',lf:d(-6,M2.y,M2.m),mp:'Full Board',gc:'HNI',cb:'ravi'}),
-    L({ln:'Walk-in – Goa Extended',ld:d(-12,M2.y,M2.m),ch:'Walk-in',src:'Walk-in',gn:'Mrs. Kavita Sood',cn:'9702544444',rn:'Emerald Palms (South Goa)',it:'High',ps:'Won',ss:'Demo Done',nr:1,nn:5,lv:60000,cv:true,bk:'CV-M2-003',cvv:60000,rm:'Extended vacation.',lf:d(-13,M2.y,M2.m),mp:'Full Board',gc:'HNI',cb:'ravi'}),
-    L({ln:'Instagram – Kanha Safari',ld:d(-8,M2.y,M2.m),ch:'OTA',src:'Instagram',gn:'Mr. Vivek Nair',cn:'9802555555',rn:'Kanha',it:'High',ps:'Won',ss:'Demo Done',nr:2,nn:3,lv:36000,cv:true,bk:'CV-M2-004',cvv:34000,rm:'Group of 4, safari confirmed.',lf:d(-9,M2.y,M2.m),ad:4,mp:'Full Board',cb:'meera'}),
-    L({ln:'MMT – Ooty Hills',ld:d(-4,M2.y,M2.m),ch:'OTA',src:'MakeMyTrip',gn:'Ms. Shruti Iyer',cn:'9803566666',rn:'Ooty',it:'Medium',ps:'Lost',ss:'Not Reachable',lv:16000,cv:false,rm:'No response.',lf:d(-5,M2.y,M2.m),gc:'Budget',cb:'meera'}),
-    L({ln:'Facebook – Corbett Family',ld:d(-6,M2.y,M2.m),ch:'OTA',src:'Facebook',gn:'Mr. Harish Nanda',cn:'9901577777',rn:'Corbett',it:'High',ps:'Won',ss:'Demo Done',nr:2,nn:2,lv:44000,cv:true,bk:'CV-M2-005',cvv:44000,rm:'Family wildlife trip.',lf:d(-7,M2.y,M2.m),ad:4,ki:2,mp:'Full Board',cb:'pooja'}),
-    L({ln:'Referral – Shimla Offsite',ld:d(-9,M2.y,M2.m),ch:'Referral',src:'Referral',gn:'Dr. Nandita Saha',cn:'9902588888',rn:'Shimla',it:'Medium',ps:'Won',ss:'Demo Done',nr:1,nn:3,lv:22500,cv:true,bk:'CV-M2-006',cvv:22500,rm:'Repeat referral.',lf:d(-10,M2.y,M2.m),mp:'Breakfast Only',cb:'pooja'}),
-
-    // ──────────── M-3 (7 leads) ────────────
-    L({ln:'Yatra – Munnar Tea Estate',ld:d(-8,M3.y,M3.m),ch:'OTA',src:'Yatra',gn:'Mr. Krishnan Pillai',cn:'9876611111',rn:'Munnar',it:'High',ps:'Won',ss:'Demo Done',nr:1,nn:4,lv:38000,cv:true,bk:'CV-M3-001',cvv:38000,rm:'Leisure holiday.',lf:d(-9,M3.y,M3.m),mp:'Full Board',cb:'ashima'}),
-    L({ln:'MMT – Nainital Hills',ld:d(-13,M3.y,M3.m),ch:'OTA',src:'MakeMyTrip',gn:'Ms. Geeta Verma',cn:'9876622222',rn:'Nainital',it:'Medium',ps:'Lost',ss:'Not Interested',lv:24000,cv:false,rm:'Opted for different destination.',lf:d(-14,M3.y,M3.m),gc:'Budget',cb:'ashima'}),
-    L({ln:'Corporate – Coorg Team',ld:d(-5,M3.y,M3.m),ch:'Corporate',src:'Corporate Partner',gn:'Ms. Bindu Rao',cn:'9702611111',rn:'Coorg',it:'High',ps:'Won',ss:'Demo Done',nr:3,nn:2,lv:51000,cv:true,bk:'CV-M3-002',cvv:51000,rm:'Team offsite.',lf:d(-6,M3.y,M3.m),ad:6,mp:'Full Board',gc:'HNI',cb:'ravi'}),
-    L({ln:'Booking.com – Manali Snow',ld:d(-7,M3.y,M3.m),ch:'OTA',src:'Booking.com',gn:'Mr. Tarun Kapoor',cn:'9702622222',rn:'Manali',it:'Medium',ps:'Lost',ss:'Not Reachable',lv:18000,cv:false,rm:'3 attempts, no response.',lf:d(-8,M3.y,M3.m),cb:'ravi'}),
-    L({ln:'Instagram – Udaipur Luxury',ld:d(-10,M3.y,M3.m),ch:'OTA',src:'Instagram',gn:'Mr. Raghav Singhania',cn:'9803611111',rn:'Udaipur',it:'High',ps:'Won',ss:'Demo Done',nr:2,nn:4,lv:88000,cv:true,bk:'CV-M3-003',cvv:85000,rm:'Destination wedding prep.',lf:d(-11,M3.y,M3.m),mp:'Full Board',gc:'HNI',cb:'meera'}),
-    L({ln:'Facebook – Ooty Honeymoon',ld:d(-4,M3.y,M3.m),ch:'OTA',src:'Facebook',gn:'Mr. Sanjay Krishnan',cn:'9803622222',rn:'Ooty',it:'High',ps:'Won',ss:'Demo Done',nr:1,nn:3,lv:24000,cv:true,bk:'CV-M3-004',cvv:24000,rm:'Honeymoon couple.',lf:d(-5,M3.y,M3.m),mp:'Full Board',cb:'meera'}),
-    L({ln:'Walk-in – Goa Party Group',ld:d(-6,M3.y,M3.m),ch:'Walk-in',src:'Walk-in',gn:'Ms. Megha Walia',cn:'9902611111',rn:'Emerald Palms (South Goa)',it:'High',ps:'Won',ss:'Demo Done',nr:1,nn:5,lv:60000,cv:true,bk:'CV-M3-005',cvv:60000,rm:'Long weekend group.',lf:d(-7,M3.y,M3.m),ad:4,mp:'All Inclusive',gc:'HNI',cb:'pooja'}),
-
-    // ──────────── M-4 (5 leads) ────────────
-    L({ln:'Agoda – Jaisalmer Dunes',ld:d(-9,M4.y,M4.m),ch:'OTA',src:'Agoda',gn:'Mr. Anup Choudhary',cn:'9876711111',rn:'Jaisalmer',it:'High',ps:'Won',ss:'Demo Done',nr:1,nn:3,lv:30000,cv:true,bk:'CV-M4-001',cvv:30000,rm:'Desert experience.',lf:d(-10,M4.y,M4.m),mp:'Full Board',gc:'HNI',cb:'ashima'}),
-    L({ln:'MMT – Corbett Jungle',ld:d(-7,M4.y,M4.m),ch:'OTA',src:'MakeMyTrip',gn:'Ms. Divya Nair',cn:'9702711111',rn:'Corbett',it:'High',ps:'Won',ss:'Demo Done',nr:1,nn:2,lv:22000,cv:true,bk:'CV-M4-002',cvv:22000,rm:'Nature photography trip.',lf:d(-8,M4.y,M4.m),mp:'Breakfast Only',cb:'ravi'}),
-    L({ln:'Instagram – Kumarakom',ld:d(-5,M4.y,M4.m),ch:'OTA',src:'Instagram',gn:'Dr. Rema Krishnan',cn:'9803711111',rn:'Kumarakom',it:'High',ps:'Won',ss:'Demo Done',nr:1,nn:3,lv:30000,cv:true,bk:'CV-M4-003',cvv:30000,rm:'Houseboat + resort combo.',lf:d(-6,M4.y,M4.m),mp:'Full Board',gc:'HNI',cb:'meera'}),
-    L({ln:'Referral – Pahalgam Valley',ld:d(-11,M4.y,M4.m),ch:'Referral',src:'Referral',gn:'Mr. Omar Farooq',cn:'9902711111',rn:'Pahalgam',it:'High',ps:'Won',ss:'Demo Done',nr:2,nn:4,lv:60000,cv:true,bk:'CV-M4-004',cvv:58000,rm:'Valley view upgrade.',lf:d(-12,M4.y,M4.m),ad:4,ki:1,mp:'Full Board',gc:'HNI',cb:'pooja'}),
-    L({ln:'Walk-in – Mahabaleshwar',ld:d(-6,M4.y,M4.m),ch:'Walk-in',src:'Walk-in',gn:'Ms. Pallavi Patil',cn:'9702722222',rn:'Mahabaleshwar',it:'Medium',ps:'Lost',ss:'Not Interested',lv:17000,cv:false,rm:'Price sensitive.',lf:d(-7,M4.y,M4.m),gc:'Budget',cb:'ravi'}),
-
-    // ──────────── M-5 (4 leads) ────────────
-    L({ln:'MMT – Coorg Plantation',ld:d(-8,M5.y,M5.m),ch:'OTA',src:'MakeMyTrip',gn:'Mr. Prasad Murthy',cn:'9876811111',rn:'Coorg',it:'High',ps:'Won',ss:'Demo Done',nr:1,nn:3,lv:25500,cv:true,bk:'CV-M5-001',cvv:25500,rm:'Coffee estate tour included.',lf:d(-9,M5.y,M5.m),mp:'Breakfast Only',cb:'ashima'}),
-    L({ln:'Corporate – Shimla Leadership',ld:d(-12,M5.y,M5.m),ch:'Corporate',src:'Corporate Partner',gn:'Mr. Adarsh Gupta',cn:'9803811111',rn:'Shimla',it:'High',ps:'Won',ss:'Demo Done',nr:4,nn:2,lv:60000,cv:true,bk:'CV-M5-002',cvv:60000,rm:'Annual leadership summit.',lf:d(-13,M5.y,M5.m),ad:8,mp:'Full Board',gc:'HNI',cb:'meera'}),
-    L({ln:'Instagram – Udaipur Pre-Wedding',ld:d(-6,M5.y,M5.m),ch:'OTA',src:'Instagram',gn:'Ms. Aisha Qureshi',cn:'9902811111',rn:'Udaipur',it:'High',ps:'Won',ss:'Demo Done',nr:3,nn:4,lv:99000,cv:true,bk:'CV-M5-003',cvv:97000,rm:'Pre-wedding photoshoot stay.',lf:d(-7,M5.y,M5.m),ad:6,mp:'Full Board',gc:'HNI',cb:'pooja'}),
-    L({ln:'Agoda – Gangtok Trek',ld:d(-9,M5.y,M5.m),ch:'OTA',src:'Agoda',gn:'Mr. Neel Chakraborty',cn:'9702811111',rn:'Gangtok',it:'Medium',ps:'Won',ss:'Demo Done',nr:1,nn:4,lv:28000,cv:true,bk:'CV-M5-004',cvv:28000,rm:'Trekking + resort package.',lf:d(-10,M5.y,M5.m),mp:'Full Board',cb:'ravi'}),
+  // Pools of realistic seed data
+  const firstNames=['Rahul','Priya','Arjun','Anita','Suresh','Karan','Nisha','Rohit','Preethi','Sunil','Rekha','Dinesh','Anjali','Rishabh','Varun','Kamla','Jay','Sonia','Saurav','Riddhi','Deepak','Kavita','Vivek','Shruti','Harish','Aditi','Aarav','Ananya','Vikrant','Sneha','Manish','Divya','Omar','Pallavi','Adarsh','Aisha','Neel','Rema','Prasad','Tara','Ishaan','Meera','Avani','Ravi','Anup','Kiran','Sameer','Priyanka','Naina','Rohan'];
+  const lastNames =['Sharma','Kapoor','Mehta','Nair','Pai','Singh','Gupta','Verma','Iyer','Joshi','Reddy','Khanna','Malhotra','Pillai','Bose','Shetty','Bhat','Roy','Thomas','Walia','Mehra','Kumar','Sood','Patel','Aggarwal','Chowdhary','Banerjee','Khan','Kaur','Rao','Murthy','Krishnan','Qureshi','Sengupta','Mukherjee'];
+  const titles=['Mr.','Ms.','Mrs.','Dr.'];
+  const channels=['OTA','Wedding / Social','Travel Agent','Corporate','Referral','Walk-in'];
+  const channelWeights=[3,2,2,2,2,1];  // OTA most common, walk-ins rare
+  const guestSegments=['Corporate','Travel Agent','Wedding','Individual','Group','Conference'];
+  const occupancies =['Single','Double','Triple'];
+  const mealPlans   =['Room Only','Breakfast Only','Half Board','Full Board','All Inclusive'];
+  const interests   =['High','Medium','Low'];
+  const dropReasons =[
+    'Price too high — chose lower-cost competitor',
+    'Dates did not work out',
+    'Budget approval failed at company',
+    'Lost interest mid-conversation',
+    'Wanted a different location',
+    'Postponed plans indefinitely',
+    'Not reachable after multiple follow-ups',
+    'Found better offer elsewhere'
   ];
+  const tripTypes=['Family Holiday','Couple Getaway','Solo Retreat','Anniversary Trip','Honeymoon','Corporate Offsite','Wedding Stay','Reunion','Workation','Birthday Trip'];
+
+  const rand=(arr)=>arr[Math.floor(Math.random()*arr.length)];
+  const randInt=(min,max)=>Math.floor(Math.random()*(max-min+1))+min;
+  const randPhone=()=>'9'+String(randInt(700000000,999999999));
+  const randEmail=(fn,ln)=>(fn+ln).toLowerCase().replace(/[^a-z]/g,'')+randInt(10,99)+'@gmail.com';
+  // Weighted random pick
+  const weightedPick=(items,weights)=>{const sum=weights.reduce((a,b)=>a+b,0);let r=Math.random()*sum;for(let i=0;i<items.length;i++){r-=weights[i];if(r<=0)return items[i];}return items[items.length-1];};
+
+  const sourcesByChannel=DEF_S.sourcesByChannel;
+  const freeTextExamples={
+    'Travel Agent':['Thomas Cook','SOTC','Yatra Agent Network','TBM Travels','Cox & Kings','Make My Trip Agent'],
+    'Corporate':   ['TCS','Infosys','Reliance','HDFC Bank','Wipro','Deloitte','EY','KPMG','Accenture'],
+    'Referral':    ['Existing Member','Word of Mouth','Returning Guest','Member Referral'],
+    'Walk-in':     ['Resort Lobby','Front Desk','Concierge Recommendation']
+  };
+
+  const leads=[];
+  let bookingCounter=1001;
+
+  // Generate leads for 12 months (current + 11 back)
+  for(let monthBack=0; monthBack<12; monthBack++){
+    const M=mo(monthBack);
+    // Volume: current/recent months have more (active pipeline), older months fewer but heavily-closed
+    const leadsInMonth = monthBack===0 ? 14 : monthBack<=3 ? randInt(12,15) : monthBack<=6 ? randInt(10,13) : randInt(9,12);
+
+    for(let i=0;i<leadsInMonth;i++){
+      // Pick zone — distribute roughly evenly across the 4 active zones
+      const zoneOrder=['North','South','West','East'];
+      const zone=zoneOrder[(i+monthBack)%zoneOrder.length];
+      const username=mgrByZone[zone];
+      const assignedName=mgrName[username];
+
+      // Pick a resort in that zone
+      const resortList=resortsByZone[zone]||['Coorg'];
+      const resort=rand(resortList);
+
+      // Channel + source
+      const ch=weightedPick(channels,channelWeights);
+      const srcCfg=sourcesByChannel[ch];
+      let src;
+      if(Array.isArray(srcCfg)){src=rand(srcCfg);}
+      else{const ex=freeTextExamples[ch]||['Walk-in'];src=rand(ex);}
+
+      // Guest details
+      const title=rand(titles);
+      const fn=rand(firstNames);
+      const ln=rand(lastNames);
+      const guest=`${title} ${fn} ${ln}`;
+      const phone=randPhone();
+
+      // Stay
+      const nr=randInt(1,3);
+      const nn=randInt(2,5);
+      const leadDay=randInt(1,28);
+      const leadDate=dStr(M.y,M.m,leadDay);
+
+      // Check-in is in the future relative to the lead date
+      const ciOffset=randInt(7,45);
+      const ciDate=new Date(M.y,M.m,leadDay+ciOffset);
+      const coDate=new Date(M.y,M.m,leadDay+ciOffset+nn);
+      const checkIn=ciDate.toISOString().split('T')[0];
+      const checkOut=coDate.toISOString().split('T')[0];
+
+      // Status: older months heavily closed, recent months more open pipeline
+      let status;
+      const r=Math.random();
+      if(monthBack>=4){
+        // Old leads — mostly closed
+        status=r<0.55?'Won':r<0.80?'Lost':r<0.90?'Negotiation':r<0.96?'Proposal Sent':'Contacted';
+      }else if(monthBack>=1){
+        status=r<0.40?'Won':r<0.60?'Lost':r<0.75?'Negotiation':r<0.88?'Proposal Sent':'Contacted';
+      }else{
+        // Current month — active pipeline
+        status=r<0.18?'Won':r<0.28?'Lost':r<0.50?'Negotiation':r<0.72?'Proposal Sent':'Contacted';
+      }
+
+      // Lead value: rate × nights × rooms; fall back to a sensible default
+      const rate=(DEF_S.rates&&DEF_S.rates[resort])||randInt(7500,12000);
+      const lv=rate*nn*nr;
+
+      const converted=status==='Won'?'Yes':'No';
+      const bookingCV=converted==='Yes'?`CV-${bookingCounter++}`:'';
+      const convertedValue=converted==='Yes'?Math.round(lv*(0.85+Math.random()*0.15)):0;
+
+      // Next follow-up: only for open leads, in the next 0-7 days from today
+      let nextFollowUp='';
+      if(['Contacted','Proposal Sent','Negotiation'].includes(status)){
+        const offset=monthBack===0?randInt(-3,7):randInt(-2,5);
+        const dt=new Date();dt.setDate(dt.getDate()+offset);
+        nextFollowUp=dt.toISOString().split('T')[0];
+      }
+
+      const dropOutReason=status==='Lost'?rand(dropReasons):'';
+
+      // Secondary status
+      let secondary;
+      if(status==='Won')secondary=rand(['Demo Done','Meeting Scheduled']);
+      else if(status==='Lost')secondary=rand(['Not Interested','Not Reachable','Busy','Wrong Number']);
+      else secondary=rand(['Follow Up','Call Back Later','Email Sent','WhatsApp Sent','Meeting Scheduled','Demo Done']);
+
+      // Remarks
+      const remarks=rand([
+        'Interested guest, awaiting confirmation.',
+        'Compared rates with two other properties.',
+        'Asked for an early-bird discount.',
+        'Premium stay request — needs lake/valley view.',
+        'First-time enquiry from this guest.',
+        'Repeat member — fast close expected.',
+        'Anniversary trip, requested upgrade.',
+        'Group of 4-6, dates are flexible.',
+        'Wedding-related booking, requires multiple rooms.',
+        'Workation request — needs reliable wi-fi.'
+      ]);
+
+      const leadName=`${src} – ${resort.split('(')[0].trim()} ${rand(tripTypes)}`;
+
+      leads.push({
+        leadName,leadDate,channel:ch,sourceName:src,
+        assignedTo:assignedName,createdBy:username,originalCreatedBy:username,
+        guestName:guest,contactNumber:phone,email:randEmail(fn,ln),
+        guestSegment:rand(guestSegments),
+        resortName:resort,interest:rand(interests),
+        primaryStatus:status,secondaryStatus:secondary,
+        dropOutReason,
+        checkIn,checkOut,
+        noRooms:nr,noNights:nn,roomNights:nr*nn,
+        occupancy:rand(occupancies),mealPlan:rand(mealPlans),
+        leadValue:lv,converted,bookingCV,convertedValue,
+        remarks,
+        lastFollowUp:leadDate,
+        nextFollowUp,
+        nextAction:['Won','Lost'].includes(status)?'Closed':'Open'
+      });
+    }
+  }
+  return leads;
 }
 
 // ===== APP STATE =====
@@ -1064,13 +1171,20 @@ async function loadSettings(){
     if(doc){APP.settings={...doc};delete APP.settings.id}
     else{APP.settings={...DEF_S};fsSet('settings','config',DEF_S).catch(()=>{});}
   }catch(e){APP.settings={...DEF_S};}
-  // Migration: if deployed Firestore has the old long status list, force-replace with the new 5
+  // Migration: keep Firestore in sync with the canonical defaults for new field structures.
+  let needsWrite=false;
   const ps=APP.settings.primaryStatuses||[];
-  const hasOld=ps.includes('Not Contacted')||ps.includes('In Progress')||ps.includes('On Hold');
-  if(hasOld||ps.length!==5){
-    APP.settings.primaryStatuses=[...DEF_S.primaryStatuses];
-    fsSet('settings','config',APP.settings).catch(()=>{});
+  if(ps.includes('Not Contacted')||ps.includes('In Progress')||ps.includes('On Hold')||ps.length!==5){
+    APP.settings.primaryStatuses=[...DEF_S.primaryStatuses];needsWrite=true;
   }
+  if(!APP.settings.sourcesByChannel){APP.settings.sourcesByChannel={...DEF_S.sourcesByChannel};needsWrite=true;}
+  if(!APP.settings.guestSegments){APP.settings.guestSegments=[...DEF_S.guestSegments];needsWrite=true;}
+  if(!APP.settings.occupancyTypes){APP.settings.occupancyTypes=[...DEF_S.occupancyTypes];needsWrite=true;}
+  // Trim old channels (Direct is gone in the v2 spec)
+  if(Array.isArray(APP.settings.channels)&&APP.settings.channels.includes('Direct')){
+    APP.settings.channels=APP.settings.channels.filter(c=>c!=='Direct');needsWrite=true;
+  }
+  if(needsWrite)fsSet('settings','config',APP.settings).catch(()=>{});
 }
 
 async function saveSettings(){await fsSet('settings','config',APP.settings)}
@@ -1202,7 +1316,7 @@ async function doLogin(){
   APP.leads=sample.map((l,i)=>({...l,id:'demo-'+i}));
   setLoading(false);
   if(defUser.role==='admin'){showScreen('admin');initAdmin();}
-  else if(defUser.role==='national_sales_head'){showScreen('nsh');initNSH();}
+  else if(defUser.role==='national_sales_head'||defUser.role==='regional_sales_head'){showScreen('nsh');initNSH();}
   else{showScreen('manager');initManager();}
   // ── BACKGROUND: real Firebase Auth + data sync — happens after the screen is visible ──
   _signInWithFirebaseInBackground(u,p,defUser);
@@ -1291,7 +1405,7 @@ async function handleAuthenticatedUser(authUser){
   APP.leads=sample.map((l,i)=>({...l,id:'demo-'+i}));
   setLoading(false);
   if(profile.role==='admin'){showScreen('admin');initAdmin();}
-  else if(profile.role==='national_sales_head'){showScreen('nsh');initNSH();}
+  else if((profile.role==='national_sales_head'||profile.role==='regional_sales_head')){showScreen('nsh');initNSH();}
   else{showScreen('manager');initManager();}
   // Sync real data + attach real-time listeners
   syncFromFirestore(profile);
@@ -1342,12 +1456,13 @@ function setLoading(on,msg='Loading…'){const o=document.getElementById('loadin
 function initManager(){
   document.getElementById('mgr-name').textContent=APP.user.name;
   document.getElementById('f-leadDate').value=today();
-  document.getElementById('f-lastFollowUp').value=today();
   document.getElementById('f-assignedTo').value=APP.user.name;
   const s=APP.settings;
-  fillSel('f-channel',s.channels);fillSel('f-sourceName',s.sourceNames);
+  fillSel('f-channel',s.channels);
   fillSel('f-resortName',s.resorts);fillSel('f-primaryStatus',s.primaryStatuses);
   fillSel('f-secondaryStatus',s.secondaryStatuses);
+  fillSel('f-guestSegment',s.guestSegments||DEF_S.guestSegments);
+  fillSel('f-occupancy',s.occupancyTypes||DEF_S.occupancyTypes);
   fillSel2('filter-status',['All Statuses',...(s.primaryStatuses||[])]);
   renderLeadList();
   switchTab('new-lead',document.querySelector('.tab-btn'));
@@ -1377,25 +1492,102 @@ function switchTab(name,btn){
 // ===== FORM LOGIC =====
 function today(){return new Date().toISOString().split('T')[0]}
 
-function calcRN(){
-  const r=parseInt(document.getElementById('f-noRooms').value)||0;
-  const n=parseInt(document.getElementById('f-noNights').value)||0;
-  document.getElementById('f-roomNights').value=r*n;autoLV();
-}
+// Auto-calc lead value: rate × nights × rooms (room nights derived from check-in/check-out + rooms field)
 function autoLV(){
-  const resort=document.getElementById('f-resortName').value;
-  const rn=parseInt(document.getElementById('f-roomNights').value)||0;
+  const prefix = arguments[0] || 'f';
+  const resort=document.getElementById(prefix+'-resortName').value;
+  const nights=parseInt(document.getElementById(prefix+'-noNights').value)||0;
+  const rooms=parseInt(document.getElementById(prefix+'-noRooms').value)||0;
   const rate=(APP.settings.rates&&APP.settings.rates[resort])||0;
-  if(rate>0&&rn>0)document.getElementById('f-leadValue').value=rate*rn;
+  if(rate>0&&nights>0&&rooms>0){
+    const lv=document.getElementById(prefix+'-leadValue');
+    if(lv)lv.value=rate*nights*rooms;
+  }
 }
-function calcNA(){
-  const st=document.getElementById('f-primaryStatus').value;
-  document.getElementById('f-nextAction').value=['Won','Lost'].includes(st)?'Closed':'Open';
+
+// Auto-calculate nights from check-in/check-out dates
+function autoCalcNights(prefix){
+  const ci=document.getElementById(prefix+'-checkIn').value;
+  const co=document.getElementById(prefix+'-checkOut').value;
+  if(ci&&co){
+    const days=Math.max(0,Math.round((new Date(co+'T00:00:00')-new Date(ci+'T00:00:00'))/86400000));
+    document.getElementById(prefix+'-noNights').value=days;
+    autoLV(prefix);
+  }
+}
+
+// Channel → source mapping. Channel drives whether source is a dropdown or a free-text input.
+function onChannelChange(prefix){
+  const channel=document.getElementById(prefix+'-channel').value;
+  const sel=document.getElementById(prefix+'-sourceSel');
+  const txt=document.getElementById(prefix+'-sourceTxt');
+  const ph=document.getElementById(prefix+'-sourcePlaceholder');
+  const hidden=document.getElementById(prefix+'-sourceName');
+  if(!sel||!txt||!hidden)return;
+  const map=(APP.settings.sourcesByChannel)||DEF_S.sourcesByChannel;
+  const cfg=map[channel];
+  // Reset all three displays
+  sel.style.display='none';txt.style.display='none';if(ph)ph.style.display='none';
+  hidden.value='';
+  if(!channel){if(ph){ph.style.display='block';ph.value='';ph.placeholder='Pick a channel first';}return;}
+  if(Array.isArray(cfg)){
+    // Dropdown
+    sel.style.display='block';
+    while(sel.options.length>1)sel.remove(1);
+    cfg.forEach(s=>sel.add(new Option(s,s)));
+    sel.value='';
+  }else if(cfg&&cfg.freeText){
+    // Text input
+    txt.style.display='block';
+    txt.placeholder=cfg.placeholder||'Enter source';
+    txt.value='';
+  }else{
+    if(ph){ph.style.display='block';ph.value='';ph.placeholder='No sources configured for this channel';}
+  }
+}
+function syncSource(prefix){
+  const sel=document.getElementById(prefix+'-sourceSel');
+  const txt=document.getElementById(prefix+'-sourceTxt');
+  const hidden=document.getElementById(prefix+'-sourceName');
+  if(!hidden)return;
+  if(sel&&sel.style.display!=='none')hidden.value=sel.value;
+  else if(txt&&txt.style.display!=='none')hidden.value=txt.value;
+}
+
+// Toggle the "vary by night" textarea for custom room counts
+function toggleCustomRooms(prefix){
+  const ta=document.getElementById(prefix+'-roomsBreakdown');
+  const link=document.getElementById(prefix+'-customRoomsLink');
+  if(!ta||!link)return;
+  if(ta.style.display==='none'){ta.style.display='block';link.textContent='× Hide custom rooms';}
+  else{ta.style.display='none';link.textContent='+ Vary by night?';ta.value='';}
+}
+
+// Primary status changed — show drop-out reason field if "Lost"
+function onStatusChange(prefix){
+  const st=document.getElementById(prefix+'-primaryStatus').value;
+  const wrap=document.getElementById(prefix+'-dropOutWrap');
+  if(wrap)wrap.style.display=(st==='Lost'?'block':'none');
 }
 function togCF(divId,selId){document.getElementById(divId).style.display=document.getElementById(selId).value==='Yes'?'block':'none'}
 
 function validateNewLead(){
-  const checks=[['f-leadName','e-leadName',v=>!v],['f-channel','e-channel',v=>!v],['f-sourceName','e-sourceName',v=>!v],['f-guestName','e-guestName',v=>!v],['f-contactNumber','e-contactNumber',v=>!/^\d{10}$/.test(v)],['f-email','e-email',v=>v&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)],['f-resortName','e-resortName',v=>!v],['f-interest','e-interest',v=>!v],['f-primaryStatus','e-primaryStatus',v=>!v],['f-secondaryStatus','e-secondaryStatus',v=>!v],['f-lastFollowUp','e-lastFollowUp',v=>!v]];
+  // Sync the hidden source field one more time before reading
+  syncSource('f');
+  const checks=[
+    ['f-leadName','e-leadName',v=>!v],
+    ['f-channel','e-channel',v=>!v],
+    ['f-sourceName','e-sourceName',v=>!v],
+    ['f-guestName','e-guestName',v=>!v],
+    ['f-contactNumber','e-contactNumber',v=>!/^\d{10}$/.test(v)],
+    ['f-email','e-email',v=>v&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)],
+    ['f-guestSegment','e-guestSegment',v=>!v],
+    ['f-resortName','e-resortName',v=>!v],
+    ['f-interest','e-interest',v=>!v],
+    ['f-primaryStatus','e-primaryStatus',v=>!v],
+    ['f-secondaryStatus','e-secondaryStatus',v=>!v],
+    ['f-dropOutReason','e-dropOutReason',v=>document.getElementById('f-primaryStatus').value==='Lost'&&!v]
+  ];
   let ok=true;
   checks.forEach(([fid,eid,fail])=>{const el=document.getElementById(eid);if(!el)return;const bad=fail(document.getElementById(fid).value);el.style.display=bad?'block':'none';if(bad)ok=false;});
   return ok;
@@ -1403,7 +1595,25 @@ function validateNewLead(){
 
 function readForm(px){
   function v(id){const el=document.getElementById(px+id);return el?el.value:''}
-  return{leadName:v('leadName'),leadDate:v('leadDate'),channel:v('channel'),sourceName:v('sourceName'),assignedTo:v('assignedTo'),guestName:v('guestName'),contactNumber:v('contactNumber'),resortName:v('resortName'),email:v('email'),interest:v('interest'),primaryStatus:v('primaryStatus'),secondaryStatus:v('secondaryStatus'),checkIn:v('checkIn'),checkOut:v('checkOut'),noRooms:+v('noRooms')||0,noNights:+v('noNights')||0,roomNights:+v('roomNights')||0,mealPlan:v('mealPlan'),leadValue:+v('leadValue')||0,converted:v('converted'),bookingCV:v('bookingCV'),convertedValue:+v('convertedValue')||0,remarks:v('remarks'),lastFollowUp:v('lastFollowUp'),nextFollowUp:v('nextFollowUp'),nextAction:v('nextAction'),adults:+v('adults')||0,children:+v('children')||0,contactTime:v('contactTime'),guestCategory:v('guestCategory')};
+  const noRooms=+v('noRooms')||0, noNights=+v('noNights')||0;
+  return{
+    leadName:v('leadName'),leadDate:v('leadDate'),channel:v('channel'),sourceName:v('sourceName'),
+    assignedTo:v('assignedTo'),guestName:v('guestName'),contactNumber:v('contactNumber'),
+    resortName:v('resortName'),email:v('email'),guestSegment:v('guestSegment'),
+    interest:v('interest'),primaryStatus:v('primaryStatus'),secondaryStatus:v('secondaryStatus'),
+    dropOutReason:v('dropOutReason'),
+    checkIn:v('checkIn'),checkOut:v('checkOut'),
+    noRooms,noNights,roomNights:noRooms*noNights,
+    roomsBreakdown:v('roomsBreakdown'),occupancy:v('occupancy'),mealPlan:v('mealPlan'),
+    leadValue:+v('leadValue')||0,converted:v('converted'),
+    bookingCV:v('bookingCV'),convertedValue:+v('convertedValue')||0,
+    remarks:v('remarks'),
+    nextFollowUp:v('nextFollowUp'),
+    // Derived: lastFollowUp = leadDate for new leads (no manual entry anymore);
+    // nextAction is computed from status, not user-set.
+    lastFollowUp:v('leadDate'),
+    nextAction:['Won','Lost'].includes(v('primaryStatus'))?'Closed':'Open'
+  };
 }
 
 async function submitNewLead(e){
@@ -1428,11 +1638,20 @@ async function submitNewLead(e){
 function resetNewLeadForm(){
   document.getElementById('new-lead-form').reset();
   document.getElementById('f-leadDate').value=today();
-  document.getElementById('f-lastFollowUp').value=today();
   document.getElementById('f-assignedTo').value=APP.user.name;
-  document.getElementById('f-nextAction').value='Open';
   document.getElementById('f-leadValue').value='0';
   document.getElementById('f-conv-fields').style.display='none';
+  document.getElementById('f-dropOutWrap').style.display='none';
+  // Reset the dynamic source field back to "pick a channel first"
+  document.getElementById('f-sourceSel').style.display='none';
+  document.getElementById('f-sourceTxt').style.display='none';
+  document.getElementById('f-sourcePlaceholder').style.display='block';
+  document.getElementById('f-sourcePlaceholder').placeholder='Pick a channel first';
+  document.getElementById('f-sourceName').value='';
+  // Reset custom rooms link
+  const link=document.getElementById('f-customRoomsLink');
+  if(link)link.textContent='+ Vary by night?';
+  document.getElementById('f-roomsBreakdown').style.display='none';
   document.querySelectorAll('#new-lead-form .err').forEach(el=>el.style.display='none');
 }
 
@@ -1495,6 +1714,19 @@ function buildEditForm(l,s){
   const mInp=(id,type,val,ex='')=>`<input type="${type}" id="ef-${id}" value="${esc(String(val||''))}" ${ex} style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;outline:none">`;
   const ro='style="background:#f8f8f8;color:var(--sub)" readonly';
   const fld=(lbl,html,req=false)=>`<div class="field"><label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">${lbl}${req?' <span style="color:var(--red)">*</span>':''}</label>${html}</div>`;
+  // Source field markup: same dual-input pattern as the New Lead form
+  const srcMap=(s.sourcesByChannel)||DEF_S.sourcesByChannel;
+  const srcCfg=srcMap[l.channel];
+  const srcIsArr=Array.isArray(srcCfg);
+  const srcIsTxt=srcCfg&&srcCfg.freeText;
+  const srcField=`
+    <select id="ef-sourceSel" onchange="syncSource('ef')" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;background:#fff;-webkit-appearance:none;appearance:none;outline:none;display:${srcIsArr?'block':'none'}">
+      <option value="">Select</option>
+      ${srcIsArr?srcCfg.map(o=>`<option${o===l.sourceName?' selected':''}>${esc(o)}</option>`).join(''):''}
+    </select>
+    <input type="text" id="ef-sourceTxt" oninput="syncSource('ef')" value="${srcIsTxt?esc(l.sourceName||''):''}" placeholder="${srcIsTxt?esc(srcCfg.placeholder||''):''}" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;outline:none;display:${srcIsTxt?'block':'none'}">
+    <input type="text" id="ef-sourcePlaceholder" value="" placeholder="Pick a channel first" readonly style="background:#f8f8f8;color:var(--sub);width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;display:${!srcIsArr&&!srcIsTxt?'block':'none'}">
+    <input type="hidden" id="ef-sourceName" value="${esc(l.sourceName||'')}">`;
   return`
   <div class="form-sec">${[['form-sec-title','Lead Information']].map(x=>`<div class="${x[0]}">${x[1]}</div>`).join('')}
     ${fld('Lead Name',mInp('leadName','text',l.leadName),true)}
@@ -1503,8 +1735,8 @@ function buildEditForm(l,s){
       ${fld('Assigned To',`<input type="text" id="ef-assignedTo" value="${esc(l.assignedTo||'')}" ${ro}>`)}
     </div>
     <div class="field-row">
-      ${fld('Channel',mSel('channel',s.channels||[],l.channel),true)}
-      ${fld('Source Name',mSel('sourceName',s.sourceNames||[],l.sourceName),true)}
+      ${fld('Channel',mSel('channel',s.channels||[],l.channel,"onChannelChange('ef')"),true)}
+      ${fld('Source',srcField,true)}
     </div>
   </div>
   <div class="form-sec"><div class="form-sec-title">Guest Details</div>
@@ -1513,32 +1745,34 @@ function buildEditForm(l,s){
       ${fld('Contact Number',mInp('contactNumber','tel',l.contactNumber,'maxlength="10" inputmode="numeric"'),true)}
       ${fld('Email ID',mInp('email','email',l.email))}
     </div>
-    <div class="field-row">
-      ${fld('No. of Adults',mInp('adults','number',l.adults,'min="0" inputmode="numeric"'))}
-      ${fld('No. of Children',mInp('children','number',l.children,'min="0" inputmode="numeric"'))}
-    </div>
+    ${fld('Guest Segment',mSel('guestSegment',s.guestSegments||DEF_S.guestSegments,l.guestSegment),true)}
   </div>
   <div class="form-sec"><div class="form-sec-title">Stay Preferences</div>
-    ${fld('Resort Name',mSel('resortName',s.resorts||[],l.resortName,'calcERN()'),true)}
+    ${fld('Resort Name',mSel('resortName',s.resorts||[],l.resortName,"autoLV('ef')"),true)}
     <div class="field-row">
-      ${fld('Check In',mInp('checkIn','date',l.checkIn))}
-      ${fld('Check Out',mInp('checkOut','date',l.checkOut))}
+      ${fld('Check In',`<input type="date" id="ef-checkIn" value="${l.checkIn||''}" onchange="autoCalcNights('ef')" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;outline:none">`)}
+      ${fld('Check Out',`<input type="date" id="ef-checkOut" value="${l.checkOut||''}" onchange="autoCalcNights('ef')" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;outline:none">`)}
     </div>
     <div class="field-row">
-      ${fld('No. of Rooms',`<input type="number" id="ef-noRooms" value="${l.noRooms||0}" min="0" inputmode="numeric" oninput="calcERN()" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;outline:none">`)}
-      ${fld('No. of Nights',`<input type="number" id="ef-noNights" value="${l.noNights||0}" min="0" inputmode="numeric" oninput="calcERN()" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;outline:none">`)}
+      ${fld('No. of Rooms',`<input type="number" id="ef-noRooms" value="${l.noRooms||0}" min="0" inputmode="numeric" oninput="autoLV('ef')" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;outline:none">
+        <div style="font-size:10px;color:var(--sub);margin-top:3px;cursor:pointer;text-decoration:underline" onclick="toggleCustomRooms('ef')" id="ef-customRoomsLink">${l.roomsBreakdown?'× Hide custom rooms':'+ Vary by night?'}</div>
+        <textarea id="ef-roomsBreakdown" placeholder="E.g. Night 1: 2 rooms, Night 2: 3 rooms" style="display:${l.roomsBreakdown?'block':'none'};margin-top:5px;width:100%;min-height:50px;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit">${esc(l.roomsBreakdown||'')}</textarea>`)}
+      ${fld('No. of Nights',`<input type="number" id="ef-noNights" value="${l.noNights||0}" ${ro}>`)}
     </div>
-    ${fld('Room Nights',`<input type="number" id="ef-roomNights" value="${l.roomNights||0}" ${ro}>`)}
-    ${fld('Meal Plan',mSel('mealPlan',['Room Only','Breakfast Only','Half Board','Full Board','All Inclusive'],l.mealPlan))}
+    <div class="field-row">
+      ${fld('Occupancy',mSel('occupancy',s.occupancyTypes||DEF_S.occupancyTypes,l.occupancy))}
+      ${fld('Meal Plan',mSel('mealPlan',['Room Only','Breakfast Only','Half Board','Full Board','All Inclusive'],l.mealPlan))}
+    </div>
   </div>
   <div class="form-sec"><div class="form-sec-title">Lead Qualification</div>
     <div class="field-row">
       ${fld('Interest',mSel('interest',['Low','Medium','High'],l.interest),true)}
-      ${fld('Guest Category',mSel('guestCategory',['HNI','Mid Segment','Budget'],l.guestCategory))}
+      ${fld('Primary Status',mSel('primaryStatus',s.primaryStatuses||[],l.primaryStatus,"onStatusChange('ef')"),true)}
     </div>
-    <div class="field-row">
-      ${fld('Primary Status',mSel('primaryStatus',s.primaryStatuses||[],l.primaryStatus,'calcENA()'),true)}
-      ${fld('Secondary Status',mSel('secondaryStatus',s.secondaryStatuses||[],l.secondaryStatus),true)}
+    ${fld('Secondary Status',mSel('secondaryStatus',s.secondaryStatuses||[],l.secondaryStatus),true)}
+    <div class="field" id="ef-dropOutWrap" style="display:${l.primaryStatus==='Lost'?'block':'none'}">
+      <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">Drop-out Reason${l.primaryStatus==='Lost'?' <span style="color:var(--red)">*</span>':''}</label>
+      <textarea id="ef-dropOutReason" placeholder="Why was this lead lost?" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;min-height:60px;resize:vertical;font-family:inherit;outline:none">${esc(l.dropOutReason||'')}</textarea>
     </div>
   </div>
   <div class="form-sec"><div class="form-sec-title">Revenue &amp; Booking</div>
@@ -1554,12 +1788,10 @@ function buildEditForm(l,s){
     </div>
   </div>
   <div class="form-sec"><div class="form-sec-title">Follow Up</div>
-    <div class="field-row">
-      ${fld('Last Follow Up',mInp('lastFollowUp','date',l.lastFollowUp),true)}
-      ${fld('Next Follow Up',`<input type="date" id="ef-nextFollowUp" value="${l.nextFollowUp||''}" onchange="calcENA()" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;outline:none">`)}
-    </div>
-    ${fld('Next Action',`<input type="text" id="ef-nextAction" value="${esc(l.nextAction||'Open')}" ${ro}>`)}
+    ${fld('Next Follow Up',`<input type="date" id="ef-nextFollowUp" value="${l.nextFollowUp||''}" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;outline:none">`)}
     ${fld('Remarks',`<textarea id="ef-remarks" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;min-height:80px;resize:vertical;font-family:inherit;outline:none">${esc(l.remarks||'')}</textarea>`)}
+    <input type="hidden" id="ef-lastFollowUp" value="${l.lastFollowUp||l.leadDate||''}">
+    <input type="hidden" id="ef-nextAction" value="${esc(l.nextAction||'Open')}">
   </div>
   <input type="hidden" id="ef-id" value="${esc(l.id)}">
   <div style="display:flex;gap:10px;margin-top:4px">
@@ -1641,31 +1873,38 @@ function formatHistoryEntry(e){
   </div>`;
 }
 
-function calcERN(){
-  const r=parseInt(document.getElementById('ef-noRooms').value)||0;
-  const n=parseInt(document.getElementById('ef-noNights').value)||0;
-  document.getElementById('ef-roomNights').value=r*n;
-  const resort=document.getElementById('ef-resortName').value;
-  const rate=(APP.settings.rates&&APP.settings.rates[resort])||0;
-  if(rate>0&&(r*n)>0)document.getElementById('ef-leadValue').value=rate*r*n;
-}
-function calcENA(){
-  const st=document.getElementById('ef-primaryStatus').value;
-  document.getElementById('ef-nextAction').value=['Won','Lost'].includes(st)?'Closed':'Open';
-}
-
 async function saveEditLead(){
   const id=document.getElementById('ef-id').value;
   function v(fid){const el=document.getElementById('ef-'+fid);return el?el.value:''}
+  // Sync source field before reading
+  syncSource('ef');
   if(!v('guestName')){showToast('Guest name required','error');return}
   if(!/^\d{10}$/.test(v('contactNumber'))){showToast('Enter valid 10-digit contact number','error');return}
   const dupEdit=APP.leads.find(l=>l.contactNumber===v('contactNumber')&&l.id!==id);
   if(dupEdit&&!confirm(`⚠️ Another lead already exists for ${dupEdit.guestName} (${dupEdit.contactNumber}).\nSave anyway?`))return;
   if(!v('primaryStatus')){showToast('Primary status required','error');return}
-  if(!v('lastFollowUp')){showToast('Last follow-up date required','error');return}
+  if(v('primaryStatus')==='Lost'&&!v('dropOutReason')){showToast('Drop-out reason required when status is Lost','error');return}
   const btn=document.getElementById('save-edit-btn');
   btn.disabled=true;btn.textContent='Saving…';
-  const upd={leadName:v('leadName'),channel:v('channel'),sourceName:v('sourceName'),guestName:v('guestName'),contactNumber:v('contactNumber'),email:v('email'),resortName:v('resortName'),interest:v('interest'),primaryStatus:v('primaryStatus'),secondaryStatus:v('secondaryStatus'),checkIn:v('checkIn'),checkOut:v('checkOut'),noRooms:+v('noRooms')||0,noNights:+v('noNights')||0,roomNights:+v('roomNights')||0,mealPlan:v('mealPlan'),leadValue:+v('leadValue')||0,converted:v('converted'),bookingCV:v('bookingCV'),convertedValue:+v('convertedValue')||0,remarks:v('remarks'),lastFollowUp:v('lastFollowUp'),nextFollowUp:v('nextFollowUp'),nextAction:v('nextAction'),adults:+v('adults')||0,children:+v('children')||0,guestCategory:v('guestCategory'),updatedAt:new Date().toISOString()};
+  const nr=+v('noRooms')||0, nn=+v('noNights')||0;
+  const ps=v('primaryStatus');
+  const upd={
+    leadName:v('leadName'),channel:v('channel'),sourceName:v('sourceName'),
+    guestName:v('guestName'),contactNumber:v('contactNumber'),email:v('email'),
+    guestSegment:v('guestSegment'),
+    resortName:v('resortName'),interest:v('interest'),
+    primaryStatus:ps,secondaryStatus:v('secondaryStatus'),
+    dropOutReason:ps==='Lost'?v('dropOutReason'):'',
+    checkIn:v('checkIn'),checkOut:v('checkOut'),
+    noRooms:nr,noNights:nn,roomNights:nr*nn,
+    roomsBreakdown:v('roomsBreakdown'),occupancy:v('occupancy'),mealPlan:v('mealPlan'),
+    leadValue:+v('leadValue')||0,converted:v('converted'),
+    bookingCV:v('bookingCV'),convertedValue:+v('convertedValue')||0,
+    remarks:v('remarks'),
+    lastFollowUp:v('lastFollowUp'),nextFollowUp:v('nextFollowUp'),
+    nextAction:['Won','Lost'].includes(ps)?'Closed':'Open',
+    updatedAt:new Date().toISOString()
+  };
   // Build history entry for audit trail — only if something actually changed
   const before=APP.leads.find(l=>l.id===id)||{};
   const changes=_diffForHistory(before,upd);
@@ -1739,6 +1978,13 @@ function getLMTDRange(year,month,endDay){
   const ld=Math.min(endDay,maxDay);
   return{start:new Date(ly,lm,1,0,0,0),end:new Date(ly,lm,ld,23,59,59),year:ly,month:lm};
 }
+// Last-Year-MTD: same elapsed days in the same calendar month, one year ago.
+function getLYMTDRange(year,month,endDay){
+  const ly=year-1;
+  const maxDay=new Date(ly,month+1,0).getDate();
+  const ld=Math.min(endDay,maxDay);
+  return{start:new Date(ly,month,1,0,0,0),end:new Date(ly,month,ld,23,59,59),year:ly,month};
+}
 function filterByRange(leads,start,end){
   return leads.filter(l=>{
     const d=new Date((l.leadDate?l.leadDate+'T00:00:00':l.createdAt));
@@ -1763,9 +2009,10 @@ function achStats(mtd,tgt){
 }
 function progColor(pct){return pct>=100?'var(--green)':pct>=75?'var(--orange)':'var(--red)'}
 
-// Full-width KPI card (revenue / ₹ values)
-function kpiCard1(title,mtd,lmtd,tgt){
+// Full-width KPI card (revenue / ₹ values). Accepts optional lymtd (last-year-MTD) for a third comparison row.
+function kpiCard1(title,mtd,lmtd,tgt,lymtd){
   const d=deltaStats(mtd,lmtd),a=achStats(mtd,tgt);
+  const dY=(lymtd!==undefined&&lymtd!==null)?deltaStats(mtd,lymtd):null;
   const tgtV=tgt||0;
   return`<div class="kpi1">
     <div class="kpi1-lbl">${title}</div>
@@ -1774,20 +2021,23 @@ function kpiCard1(title,mtd,lmtd,tgt){
       <div class="kpi1-delta ${d.cls}">${d.str}</div>
     </div>
     <div class="kpi1-sub">vs ₹${shortNum(lmtd)} last month</div>
+    ${dY?`<div class="kpi1-sub" style="color:#5856d6;font-weight:600">vs ₹${shortNum(lymtd)} same month last year <span style="margin-left:8px">${dY.str} YoY</span></div>`:''}
     ${tgtV>0?`<div class="kpi1-prog-wrap"><div class="kpi1-prog" style="width:${a.pct}%;background:${progColor(a.pct)}"></div></div>
     <div class="kpi1-tgt"><span>Target: ₹${shortNum(tgtV)}</span><strong class="${a.cls}">${a.str} achieved</strong></div>`
     :`<div class="kpi1-tgt"><span style="font-style:italic">No target set for this month</span></div>`}
   </div>`;
 }
 
-// Half-width KPI card (counts)
-function kpiCard2(title,mtd,lmtd,tgt){
+// Half-width KPI card (counts). Accepts optional lymtd for a third comparison line.
+function kpiCard2(title,mtd,lmtd,tgt,lymtd){
   const d=deltaStats(mtd,lmtd),a=achStats(mtd,tgt);
+  const dY=(lymtd!==undefined&&lymtd!==null)?deltaStats(mtd,lymtd):null;
   const tgtV=tgt||0;
   return`<div class="kpi2">
     <div class="kpi2-lbl">${title}</div>
     <div class="kpi2-val">${mtd}</div>
-    <div class="kpi2-delta ${d.cls}">${d.str} <span class="vs">vs ${lmtd}</span></div>
+    <div class="kpi2-delta ${d.cls}">${d.str} <span class="vs">vs ${lmtd} LMTD</span></div>
+    ${dY?`<div class="kpi2-delta" style="color:#5856d6;font-size:11px;margin-top:2px">${dY.str} <span class="vs" style="color:#9088d4">vs ${lymtd} LYMTD</span></div>`:''}
     ${tgtV>0?`<div class="kpi2-prog-wrap"><div class="kpi2-prog" style="width:${a.pct}%;background:${progColor(a.pct)}"></div></div>
     <div class="kpi2-tgt ${a.cls}"><strong>${a.str}</strong> of ${tgtV}</div>`
     :`<div class="kpi2-tgt">No target set</div>`}
@@ -1822,21 +2072,26 @@ function renderAnalytics(){
   const year=APP.analyticsYear,month=APP.analyticsMonth;
   const {start,end,endDay,isCur}=getMTDRange(year,month);
   const lmtd=getLMTDRange(year,month,endDay);
+  const lymtd=getLYMTDRange(year,month,endDay);
   const mine=getMyLeads();
   const mtdLeads=filterByRange(mine,start,end);
   const lmtdLeads=filterByRange(mine,lmtd.start,lmtd.end);
+  const lymtdLeads=filterByRange(mine,lymtd.start,lymtd.end);
   const tgt=getTarget(APP.user.username,year,month);
   const s=APP.settings;
   const mNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const canGoNext=!(year===new Date().getFullYear()&&month===new Date().getMonth());
 
-  // Core KPI metrics
+  // Core KPI metrics (MTD vs LMTD vs LYMTD)
   const mtdTotal=mtdLeads.length;
   const lmtdTotal=lmtdLeads.length;
+  const lymtdTotal=lymtdLeads.length;
   const mtdWon=mtdLeads.filter(l=>l.primaryStatus==='Won').length;
   const lmtdWon=lmtdLeads.filter(l=>l.primaryStatus==='Won').length;
+  const lymtdWon=lymtdLeads.filter(l=>l.primaryStatus==='Won').length;
   const mtdRev=mtdLeads.filter(l=>l.primaryStatus==='Won').reduce((s,l)=>s+(l.convertedValue||0),0);
   const lmtdRev=lmtdLeads.filter(l=>l.primaryStatus==='Won').reduce((s,l)=>s+(l.convertedValue||0),0);
+  const lymtdRev=lymtdLeads.filter(l=>l.primaryStatus==='Won').reduce((s,l)=>s+(l.convertedValue||0),0);
 
   // Funnel: fixed 4-stage progression — Leads → Contacted → Negotiation → Won
   // Each stage is a superset of the next, mirroring the actual sales journey
@@ -1900,10 +2155,10 @@ function renderAnalytics(){
 
     <!-- KPI Cards -->
     <div class="kpi2-grid">
-      ${kpiCard2('Total Leads',mtdTotal,lmtdTotal,tgt?.leadsTarget)}
-      ${kpiCard2('Conversions',mtdWon,lmtdWon,tgt?.convertedTarget)}
+      ${kpiCard2('Total Leads',mtdTotal,lmtdTotal,tgt?.leadsTarget,lymtdTotal)}
+      ${kpiCard2('Conversions',mtdWon,lmtdWon,tgt?.convertedTarget,lymtdWon)}
     </div>
-    ${kpiCard1('Revenue Won',mtdRev,lmtdRev,tgt?.revenueTarget)}
+    ${kpiCard1('Revenue Won',mtdRev,lmtdRev,tgt?.revenueTarget,lymtdRev)}
 
     <!-- Visual Funnel -->
     <div class="funnel-wrap">
@@ -2255,16 +2510,27 @@ async function saveTargetAdmin(){
 function closeAdmModal(){document.getElementById('adm-modal').classList.remove('open')}
 
 // ===== NSH (National Sales Head) =====
-let NSH={period:'MTD',fyYear:0,customMonths:[],zone:'',state:'',resort:'',filterOpen:false};
+// Custom period now uses an arbitrary date range (customFrom/customTo) instead of the FY month grid.
+// customMonths is kept for backward compatibility but no longer set by the UI.
+let NSH={period:'MTD',fyYear:0,customMonths:[],customFrom:'',customTo:'',zone:'',state:'',resort:'',filterOpen:false};
 let NSH_CHARTS={};
 
 function initNSH(){
+  // For Regional Sales Heads, the zone is locked to their region and the zone selector is hidden.
+  const isRSH=APP.user.role==='regional_sales_head';
+  const lockedZone=isRSH?(APP.user.zone||''):'';
+  // Update header label to reflect role
   document.getElementById('nsh-name').textContent=APP.user.name;
+  const roleLbl=document.querySelector('#screen-nsh .hdr-user span');
+  if(roleLbl)roleLbl.textContent=isRSH?(`Reg. Sales Head · ${lockedZone}`):'Nat. Sales Head';
   const now=new Date();
-  NSH={period:'MTD',fyYear:now.getMonth()>=3?now.getFullYear():now.getFullYear()-1,customMonths:[],zone:'',state:'',resort:'',filterOpen:false};
+  NSH={period:'MTD',fyYear:now.getMonth()>=3?now.getFullYear():now.getFullYear()-1,customMonths:[],customFrom:'',customTo:'',zone:lockedZone,state:'',resort:'',filterOpen:false,lockedZone};
   // Reset UI chrome
   document.querySelectorAll('.nchip[data-period]').forEach(c=>c.classList.toggle('active',c.dataset.period==='MTD'));
-  document.querySelectorAll('.nchip[data-zone]').forEach(c=>c.classList.toggle('active',c.dataset.zone===''));
+  document.querySelectorAll('.nchip[data-zone]').forEach(c=>c.classList.toggle('active',c.dataset.zone===lockedZone));
+  // Hide the zone chip row entirely for RSH (zone is fixed)
+  const zoneFilterRow=document.querySelector('#nsh-filter-expanded .nsh-filter-row');
+  if(zoneFilterRow)zoneFilterRow.style.display=isRSH?'none':'flex';
   const fe=document.getElementById('nsh-filter-expanded');if(fe)fe.style.display='none';
   const mp=document.getElementById('nsh-month-picker');if(mp)mp.style.display='none';
   const ft=document.getElementById('nsh-filter-toggle');if(ft){ft.textContent='Filters ▾';ft.classList.remove('open');}
@@ -2309,6 +2575,21 @@ function nshDrillToZone(zone){
   showToast(`Filtered to ${zone} zone`,'success');
 }
 
+// Drill into a specific resort from the Top Resorts list — sets all geography filters to point at that resort
+function nshDrillToResort(resort){
+  const meta=RESORT_META[resort]||{};
+  if(meta.zone&&NSH.lockedZone&&meta.zone!==NSH.lockedZone){
+    showToast(`${resort} is in ${meta.zone} — outside your region`,'error');return;
+  }
+  if(meta.zone)NSH.zone=meta.zone;
+  if(meta.state)NSH.state=meta.state;
+  NSH.resort=resort;
+  document.querySelectorAll('.nchip[data-zone]').forEach(c=>c.classList.toggle('active',c.dataset.zone===(meta.zone||'')));
+  updateNSHStateDropdown();updateNSHResortDropdown();renderNSH();
+  document.getElementById('nsh-body').scrollIntoView({behavior:'smooth',block:'start'});
+  showToast(`Filtered to ${resort}`,'success');
+}
+
 function updateNSHStateDropdown(){
   const sel=document.getElementById('nsh-state-sel');if(!sel)return;
   const states=new Set();
@@ -2337,6 +2618,15 @@ function shiftNSHFY(dir){
   if(NSH.period==='CUSTOM')renderNSH();
 }
 function clearNSHMonths(){NSH.customMonths=[];renderNSHMonthGrid();renderNSH();}
+// Read the from/to date inputs and re-render
+function onCustomRangeChange(){
+  NSH.customFrom=document.getElementById('nsh-custom-from').value;
+  NSH.customTo=document.getElementById('nsh-custom-to').value;
+  if(NSH.customFrom&&NSH.customTo&&new Date(NSH.customFrom)>new Date(NSH.customTo)){
+    showToast('From date must be before To date','error');return;
+  }
+  renderNSH();
+}
 
 function renderNSHMonthGrid(){
   const grid=document.getElementById('nsh-month-grid');if(!grid)return;
@@ -2460,6 +2750,78 @@ function closeMgrDrilldown(){document.getElementById('nsh-mgr-modal').classList.
 let _drilldownMgr=null,_drilldownLeads=null;
 function exportMgrLeads(username){if(_drilldownLeads&&_drilldownMgr===username)exportToCSV(_drilldownLeads,'leads_'+username);}
 
+// ===== RSH DRILL-DOWN =====
+// Tap an RSH row in the leaderboard → modal shows their zone's pipeline + their managers as a sub-leaderboard.
+function openRshDrilldown(username){
+  const rsh=APP.users.find(u=>u.username===username);
+  if(!rsh){showToast('Regional Head not found','error');return}
+  // Filter scope: same geography rules as renderNSH but locked to RSH's zone, same period filter
+  const{cur}=getNSHRanges();
+  const inRange=(leads,{start,end})=>leads.filter(l=>{const d=new Date(l.leadDate?l.leadDate+'T00:00:00':l.createdAt);return d>=start&&d<=end;});
+  const allInZone=APP.leads.filter(l=>{const meta=RESORT_META[l.resortName]||{};return meta.zone===rsh.zone;});
+  const zoneLeads=inRange(allInZone,cur);
+  const won=zoneLeads.filter(l=>l.primaryStatus==='Won');
+  const lost=zoneLeads.filter(l=>l.primaryStatus==='Lost');
+  const active=zoneLeads.filter(l=>!['Won','Lost'].includes(l.primaryStatus));
+  const rev=won.reduce((s,l)=>s+(l.convertedValue||0),0);
+  const pipe=active.reduce((s,l)=>s+(l.leadValue||0),0);
+  const cr=zoneLeads.length?((won.length/zoneLeads.length)*100).toFixed(0):0;
+  // Managers in this zone with their own roll-ups
+  const reportees=APP.users.filter(u=>u.role==='sales_manager'&&u.zone===rsh.zone);
+  const tNow=new Date(); const ty=tNow.getFullYear(), tm=tNow.getMonth();
+  const mgrRows=reportees.map(m=>{
+    const theirs=zoneLeads.filter(l=>l.createdBy===m.username);
+    const myWon=theirs.filter(l=>l.primaryStatus==='Won');
+    const myRev=myWon.reduce((s,l)=>s+(l.convertedValue||0),0);
+    const t=NSH.period==='MTD'?getTarget(m.username,ty,tm):null;
+    const revPct=(t&&t.revenueTarget>0)?Math.min(myRev/t.revenueTarget*100,100):null;
+    return{username:m.username,name:m.name,leads:theirs.length,won:myWon.length,rev:myRev,target:t,revPct};
+  }).sort((a,b)=>b.rev-a.rev);
+  const initls=rsh.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+  // Target rollup for whole region (MTD only)
+  let zLeadsTgt=0,zWonTgt=0,zRevTgt=0;
+  if(NSH.period==='MTD'){
+    reportees.forEach(u=>{const t=getTarget(u.username,ty,tm);if(t){zLeadsTgt+=(t.leadsTarget||0);zWonTgt+=(t.convertedTarget||0);zRevTgt+=(t.revenueTarget||0);}});
+  }
+  const revPct=zRevTgt>0?Math.min(rev/zRevTgt*100,100):null;
+  const col=revPct===null?'#5856d6':(revPct>=100?'#34c759':revPct>=75?'#ff9500':'#C8102E');
+  const tag=revPct===null?'':(revPct>=100?'on target':revPct>=75?'close':'behind');
+  document.getElementById('nsh-mgr-modal-title').textContent=rsh.name+' · '+rsh.zone+' Region';
+  document.getElementById('nsh-mgr-modal-body').innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+      <div style="width:48px;height:48px;border-radius:50%;background:${col};display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:17px">${initls}</div>
+      <div><div style="font-size:15px;font-weight:700">${esc(rsh.name)}</div><div style="font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:.4px">Regional Sales Head · ${esc(rsh.zone)}</div></div>
+    </div>
+    <div class="kpi2-grid" style="margin-bottom:14px">
+      <div class="kpi2"><div class="kpi2-lbl">Zone Pipeline</div><div class="kpi2-val">₹${shortNum(pipe)}</div><div class="kpi2-delta">${active.length} open · ${zoneLeads.length} total</div></div>
+      <div class="kpi2"><div class="kpi2-lbl">Conv. Rate</div><div class="kpi2-val">${cr}%</div><div class="kpi2-delta">${won.length}W · ${lost.length}L</div></div>
+    </div>
+    ${zRevTgt?`<div style="background:#fafafa;border-radius:10px;padding:12px;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--sub);margin-bottom:8px">Region Target · MTD</div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap">
+        <div style="flex:1;min-width:90px"><div style="font-size:10px;color:var(--sub)">LEADS</div><div style="font-size:18px;font-weight:800">${zoneLeads.length}<span style="font-size:11px;color:var(--sub);font-weight:500"> / ${zLeadsTgt||'—'}</span></div></div>
+        <div style="flex:1;min-width:90px"><div style="font-size:10px;color:var(--sub)">WON</div><div style="font-size:18px;font-weight:800">${won.length}<span style="font-size:11px;color:var(--sub);font-weight:500"> / ${zWonTgt||'—'}</span></div></div>
+        <div style="flex:1;min-width:100px"><div style="font-size:10px;color:var(--sub)">REVENUE</div><div style="font-size:18px;font-weight:800">₹${shortNum(rev)}<span style="font-size:11px;color:var(--sub);font-weight:500"> / ₹${shortNum(zRevTgt)}</span></div></div>
+      </div>
+      <div style="height:6px;background:#e5e5ea;border-radius:3px;overflow:hidden;margin-top:12px"><div style="height:100%;width:${(revPct||0).toFixed(0)}%;background:${col};border-radius:3px"></div></div>
+      <div style="font-size:11px;color:${col};font-weight:700;margin-top:5px">${(revPct||0).toFixed(0)}% of revenue target · ${tag}</div>
+    </div>`:''}
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--sub);margin-bottom:8px">Reportees (${reportees.length})</div>
+    ${mgrRows.length?mgrRows.map(m=>{
+      const mcol=m.revPct===null?'#5856d6':(m.revPct>=100?'#34c759':m.revPct>=75?'#ff9500':'#C8102E');
+      const minit=m.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+      return`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="closeMgrDrilldown();setTimeout(()=>openMgrDrilldown('${esc(m.username)}'),100)">
+        <div style="width:32px;height:32px;border-radius:50%;background:${mcol};display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:11px;flex-shrink:0">${minit}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:700">${esc(m.name)}${m.revPct!==null?`<span style="display:inline-block;background:${mcol};color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:8px;margin-left:6px">${m.revPct.toFixed(0)}% revenue</span>`:''}</div>
+          <div style="font-size:11px;color:var(--sub)">${m.leads} leads · ${m.won} won · ₹${shortNum(m.rev)} revenue</div>
+        </div>
+        <div style="color:var(--sub);font-size:14px">›</div>
+      </div>`;
+    }).join(''):'<p style="font-size:13px;color:var(--sub);font-style:italic">No reportees in this region yet.</p>'}`;
+  document.getElementById('nsh-mgr-modal').classList.add('open');
+}
+
 function getNSHRanges(){
   const now=new Date();
   const curFY=now.getMonth()>=3?now.getFullYear():now.getFullYear()-1;
@@ -2468,7 +2830,10 @@ function getNSHRanges(){
   if(NSH.period==='MTD'){
     const{start,end,endDay}=getMTDRange(now.getFullYear(),now.getMonth());
     const lm=getLMTDRange(now.getFullYear(),now.getMonth(),endDay);
+    const ly=getLYMTDRange(now.getFullYear(),now.getMonth(),endDay);
+    // For MTD, also expose LYMTD (last-year-same-month-same-days) for YoY comparison
     return{cur:{start,end},prev:{start:lm.start,end:lm.end},
+      lastYear:{start:ly.start,end:ly.end},
       label:`${MN[now.getMonth()]} ${now.getFullYear()} MTD`,prevLabel:`${MN[lm.month]} ${lm.year} LMTD`};
   }
 
@@ -2482,32 +2847,39 @@ function getNSHRanges(){
       label:`FY ${curFY}-${String(curFY+1).slice(-2)} YTD`,prevLabel:`FY ${curFY-1}-${String(curFY).slice(-2)} LYTD`};
   }
 
-  // CUSTOM
-  if(!NSH.customMonths.length)
-    return{cur:{start:new Date(0),end:new Date(0)},prev:{start:new Date(0),end:new Date(0)},label:'Select months below',prevLabel:'(prior year same months)'};
-  const parsed=NSH.customMonths.map(k=>{const[y,m]=k.split('_').map(Number);return{y,m};}).sort((a,b)=>a.y!==b.y?a.y-b.y:a.m-b.m);
-  const first=parsed[0],last=parsed[parsed.length-1];
-  const fmtM=({y,m})=>`${MN[m]} ${y}`;
-  const lbl=parsed.length===1?fmtM(first):`${fmtM(first)} – ${fmtM(last)}`;
-  const prevLbl=parsed.length===1?fmtM({y:first.y-1,m:first.m}):`${fmtM({y:first.y-1,m:first.m})} – ${fmtM({y:last.y-1,m:last.m})}`;
+  // CUSTOM — uses arbitrary date range picked by user
+  if(!NSH.customFrom||!NSH.customTo){
+    return{cur:{start:new Date(0),end:new Date(0)},prev:{start:new Date(0),end:new Date(0)},label:'Pick a date range above',prevLabel:'(same range, previous month)'};
+  }
+  const fromDate=new Date(NSH.customFrom+'T00:00:00');
+  const toDate=new Date(NSH.customTo+'T23:59:59');
+  // Comparison: same number of days, one month earlier
+  const fmt=(d)=>`${d.getDate()} ${MN[d.getMonth()]} ${d.getFullYear()}`;
+  const prevFrom=new Date(fromDate);prevFrom.setMonth(prevFrom.getMonth()-1);
+  const prevTo=new Date(toDate);prevTo.setMonth(prevTo.getMonth()-1);
   return{
-    cur:{start:new Date(first.y,first.m,1,0,0,0),end:new Date(last.y,last.m+1,0,23,59,59)},
-    prev:{start:new Date(first.y-1,first.m,1,0,0,0),end:new Date(last.y-1,last.m+1,0,23,59,59)},
-    label:lbl,prevLabel:prevLbl
+    cur:{start:fromDate,end:toDate},
+    prev:{start:prevFrom,end:prevTo},
+    label:`${fmt(fromDate)} → ${fmt(toDate)}`,
+    prevLabel:`${fmt(prevFrom)} → ${fmt(prevTo)} (prev month, same range)`
   };
 }
 
 function renderNSH(){
   const all=getNSHFilteredLeads();
-  const{cur,prev,label,prevLabel}=getNSHRanges();
+  const{cur,prev,label,prevLabel,lastYear}=getNSHRanges();
   const inRange=(leads,{start,end})=>leads.filter(l=>{const d=new Date(l.leadDate?l.leadDate+'T00:00:00':l.createdAt);return d>=start&&d<=end;});
   const cL=inRange(all,cur), pL=inRange(all,prev);
+  const yL=lastYear?inRange(all,lastYear):null;
 
-  // Core KPIs
+  // Core KPIs (current + previous + last-year for YoY comparison)
   const cTotal=cL.length, pTotal=pL.length;
+  const yTotal=yL?yL.length:null;
   const cWon=cL.filter(l=>l.primaryStatus==='Won').length, pWon=pL.filter(l=>l.primaryStatus==='Won').length;
+  const yWon=yL?yL.filter(l=>l.primaryStatus==='Won').length:null;
   const cRev=cL.filter(l=>l.primaryStatus==='Won').reduce((s,l)=>s+(l.convertedValue||0),0);
   const pRev=pL.filter(l=>l.primaryStatus==='Won').reduce((s,l)=>s+(l.convertedValue||0),0);
+  const yRev=yL?yL.filter(l=>l.primaryStatus==='Won').reduce((s,l)=>s+(l.convertedValue||0),0):null;
   const cConvR=cTotal?(cWon/cTotal*100).toFixed(1):'0.0';
   const pConvR=pTotal?(pWon/pTotal*100).toFixed(1):'0.0';
   const cPipe=cL.filter(l=>!['Won','Lost'].includes(l.primaryStatus)).reduce((s,l)=>s+(l.leadValue||0),0);
@@ -2521,15 +2893,20 @@ function renderNSH(){
     return{zone:z,count:zL.length,won:zL.filter(l=>l.primaryStatus==='Won').length,rev:zRev};
   }).filter(z=>z.count>0).sort((a,b)=>b.count-a.count);
 
-  // Manager leaderboard
+  // Manager leaderboard — include EVERY sales manager (filtered by zone if a zone is active),
+  // even those with 0 leads in the period. Lets NSH see who's underperforming, not just top names.
   const mgrMap={};
+  // Pre-populate with all relevant managers
+  APP.users.filter(u=>u.role==='sales_manager'&&(!NSH.zone||u.zone===NSH.zone)).forEach(u=>{
+    mgrMap[u.username]={username:u.username,name:u.name,zone:u.zone,leads:0,won:0,rev:0};
+  });
   cL.forEach(l=>{
     const k=l.createdBy||'unknown';
-    if(!mgrMap[k]){const u=APP.users.find(x=>x.username===k);mgrMap[k]={username:k,name:u?u.name:(l.assignedTo||k),leads:0,won:0,rev:0};}
+    if(!mgrMap[k]){const u=APP.users.find(x=>x.username===k);mgrMap[k]={username:k,name:u?u.name:(l.assignedTo||k),zone:u?u.zone:'',leads:0,won:0,rev:0};}
     mgrMap[k].leads++;
     if(l.primaryStatus==='Won'){mgrMap[k].won++;mgrMap[k].rev+=(l.convertedValue||0);}
   });
-  const mgrList=Object.values(mgrMap).sort((a,b)=>b.leads-a.leads);
+  const mgrList=Object.values(mgrMap).sort((a,b)=>b.leads-a.leads||b.rev-a.rev);
 
   // Resort breakdown
   const resMap={};
@@ -2591,6 +2968,39 @@ function renderNSH(){
     if(any){nshLeadsTgt=lt;nshWonTgt=ct;nshRevTgt=rt;}
   }
 
+  // ── Regional Heads leaderboard (only shown to NSH, not RSH) ──
+  // For each zone, roll up: leads count, wins, revenue from all sales managers in that zone.
+  const isNshViewer=APP.user.role==='national_sales_head';
+  const rshList=[];
+  if(isNshViewer){
+    const tNow=new Date(); const ty=tNow.getFullYear(), tm=tNow.getMonth();
+    const allRSH=APP.users.filter(u=>u.role==='regional_sales_head');
+    allRSH.forEach(rsh=>{
+      // Sales managers reporting to this RSH (by matching zone)
+      const reportees=APP.users.filter(u=>u.role==='sales_manager'&&u.zone===rsh.zone);
+      // Aggregate leads + wins + revenue across the zone (period-filtered)
+      const zoneLeads=cL.filter(l=>{const meta=RESORT_META[l.resortName]||{};return meta.zone===rsh.zone;});
+      const won=zoneLeads.filter(l=>l.primaryStatus==='Won');
+      // Target rollup for this zone (MTD only)
+      let zLeadsTgt=0,zWonTgt=0,zRevTgt=0;
+      if(NSH.period==='MTD'){
+        reportees.forEach(u=>{
+          const t=getTarget(u.username,ty,tm);
+          if(t){zLeadsTgt+=(t.leadsTarget||0);zWonTgt+=(t.convertedTarget||0);zRevTgt+=(t.revenueTarget||0);}
+        });
+      }
+      rshList.push({
+        username:rsh.username,name:rsh.name,zone:rsh.zone,
+        reportees:reportees.length,
+        leads:zoneLeads.length,won:won.length,
+        rev:won.reduce((s,l)=>s+(l.convertedValue||0),0),
+        leadsTarget:zLeadsTgt,wonTarget:zWonTgt,revTarget:zRevTgt
+      });
+    });
+    // Sort by revenue
+    rshList.sort((a,b)=>b.rev-a.rev);
+  }
+
   document.getElementById('nsh-body').innerHTML=`
     <!-- Context bar -->
     <div style="background:#fff;border-radius:10px;padding:10px 14px;margin-bottom:10px;box-shadow:var(--sh);display:flex;justify-content:space-between;align-items:center;gap:8px">
@@ -2606,10 +3016,10 @@ function renderNSH(){
 
     <!-- Primary KPIs (targets rolled up from per-manager targets, scoped to current zone filter) -->
     <div class="kpi2-grid">
-      ${kpiCard2('Total Leads',cTotal,pTotal,nshLeadsTgt)}
-      ${kpiCard2('Conversions',cWon,pWon,nshWonTgt)}
+      ${kpiCard2('Total Leads',cTotal,pTotal,nshLeadsTgt,yTotal)}
+      ${kpiCard2('Conversions',cWon,pWon,nshWonTgt,yWon)}
     </div>
-    ${kpiCard1('Revenue Won',cRev,pRev,nshRevTgt)}
+    ${kpiCard1('Revenue Won',cRev,pRev,nshRevTgt,yRev)}
 
     <!-- Secondary metrics row -->
     <div class="card" style="padding:14px 16px;margin-bottom:10px">
@@ -2652,9 +3062,33 @@ function renderNSH(){
     <div class="nsh-sec-title">Pipeline Funnel</div>
     <div class="funnel-wrap" style="padding:12px 14px">${buildFunnelSVG(funnel)}</div>`:''}
 
+    <!-- Regional Heads Leaderboard (NSH only — RSH already sees their own zone) -->
+    ${isNshViewer&&rshList.length?`
+    <div class="nsh-sec-title">Regional Heads · Performance by Zone <span style="font-size:10px;color:var(--sub);font-weight:500;text-transform:none;letter-spacing:0;margin-left:6px">tap a row to drill into the region</span></div>
+    <div class="card" style="padding:0 14px">
+      ${rshList.map(r=>{
+        const revPct=r.revTarget>0?Math.min(r.rev/r.revTarget*100,100):null;
+        const col=revPct===null?'#5856d6':(revPct>=100?'#34c759':revPct>=75?'#ff9500':'#C8102E');
+        const tag=revPct===null?'':(revPct>=100?'on target':revPct>=75?'close':'behind');
+        const init=r.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+        return`<div style="display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer;border-left:4px solid ${col};padding-left:8px;margin-left:-8px" onclick="openRshDrilldown('${esc(r.username)}')">
+          <div style="width:36px;height:36px;border-radius:50%;background:${col};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0">${init}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:700">${esc(r.name)} <span style="font-size:10px;font-weight:600;color:var(--sub);margin-left:4px">· ${esc(r.zone)} zone</span>${revPct!==null?`<span style="display:inline-block;background:${col};color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:8px;margin-left:6px">${revPct.toFixed(0)}% revenue · ${tag}</span>`:''}</div>
+            <div style="font-size:11px;color:var(--sub)">${r.reportees} reportee${r.reportees===1?'':'s'} · ${r.leads} leads · ${r.won} won · ${r.leads?(r.won/r.leads*100).toFixed(0):0}% conv</div>
+            ${r.revTarget?`<div style="margin-top:5px"><div style="height:4px;background:#f0f0f0;border-radius:2px;overflow:hidden"><div style="height:100%;width:${(revPct||0).toFixed(0)}%;background:${col};border-radius:2px"></div></div></div>`:''}
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:15px;font-weight:800">₹${shortNum(r.rev)}</div>
+            <div style="font-size:10px;color:var(--sub)">${r.revTarget?`/ ₹${shortNum(r.revTarget)}`:'revenue'}</div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`:''}
+
     <!-- Manager Leaderboard -->
     ${mgrList.length?`
-    <div class="nsh-sec-title">Manager Leaderboard</div>
+    <div class="nsh-sec-title">Manager Leaderboard${isNshViewer?' <span style="font-size:10px;color:var(--sub);font-weight:500;text-transform:none;letter-spacing:0;margin-left:6px">all sales managers across zones</span>':''}</div>
     <div class="card" style="padding:0 14px">
       ${mgrList.map((m,i)=>{
         const init=m.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
@@ -2696,12 +3130,12 @@ function renderNSH(){
       }).join('')}
     </div>`:''}
 
-    <!-- Top Resorts -->
+    <!-- Top Resorts (clickable to filter dashboard to that resort) -->
     ${topRes.length?`
-    <div class="nsh-sec-title">Top Resorts by Enquiry</div>
+    <div class="nsh-sec-title">Top Resorts by Enquiry <span style="font-size:10px;color:var(--sub);font-weight:500;text-transform:none;letter-spacing:0;margin-left:6px">tap to drill into a resort</span></div>
     <div class="card" style="padding:12px 16px">
       ${topRes.map(r=>`
-        <div class="f-row">
+        <div class="f-row" style="cursor:pointer;transition:background .15s" onmouseover="this.style.background='#f7f7f9'" onmouseout="this.style.background=''" onclick="nshDrillToResort('${esc(r.name)}')">
           <div class="f-lbl">${esc(r.name.split('(')[0].trim())}</div>
           <div class="f-bar-wrap"><div class="f-bar" style="width:${cTotal?(r.count/cTotal*100):0}%;background:var(--blue)"><span>${r.count}</span></div></div>
           <div class="f-pct">₹${shortNum(r.rev)}</div>
