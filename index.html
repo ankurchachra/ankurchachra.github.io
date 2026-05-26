@@ -664,6 +664,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
           <option value="">All Resorts</option>
         </select>
       </div>
+      <!-- People filters: cascade RSH → Sales Manager. For RSH users the RSH filter is disabled and locked to themselves. -->
+      <div class="nsh-filter-row" style="margin-top:8px">
+        <span class="nsh-filter-lbl">Reg. Head</span>
+        <select id="nsh-rsh-sel" onchange="setNSHRsh(this.value)" style="flex:1;padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:#fff;outline:none;-webkit-appearance:none;appearance:none">
+          <option value="">All Regional Heads</option>
+        </select>
+      </div>
+      <div class="nsh-filter-row">
+        <span class="nsh-filter-lbl">Sales Mgr</span>
+        <select id="nsh-sm-sel" onchange="setNSHSm(this.value)" style="flex:1;padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:#fff;outline:none;-webkit-appearance:none;appearance:none">
+          <option value="">All Sales Managers</option>
+        </select>
+      </div>
     </div>
   </div>
 
@@ -2518,7 +2531,8 @@ function closeAdmModal(){document.getElementById('adm-modal').classList.remove('
 // ===== NSH (National Sales Head) =====
 // Custom period now uses an arbitrary date range (customFrom/customTo) instead of the FY month grid.
 // customMonths is kept for backward compatibility but no longer set by the UI.
-let NSH={period:'MTD',fyYear:0,customMonths:[],customFrom:'',customTo:'',zone:'',state:'',resort:'',filterOpen:false};
+// `rsh` + `sm` are the people filters added in v2.1 — they cascade with zone (RSH selection auto-sets zone).
+let NSH={period:'MTD',fyYear:0,customMonths:[],customFrom:'',customTo:'',zone:'',state:'',resort:'',rsh:'',sm:'',filterOpen:false};
 let NSH_CHARTS={};
 
 function initNSH(){
@@ -2530,7 +2544,9 @@ function initNSH(){
   const roleLbl=document.querySelector('#screen-nsh .hdr-user span');
   if(roleLbl)roleLbl.textContent=isRSH?(`Reg. Sales Head · ${lockedZone}`):'Nat. Sales Head';
   const now=new Date();
-  NSH={period:'MTD',fyYear:now.getMonth()>=3?now.getFullYear():now.getFullYear()-1,customMonths:[],customFrom:'',customTo:'',zone:lockedZone,state:'',resort:'',filterOpen:false,lockedZone};
+  // For RSH user, also lock the RSH filter to themselves
+  const lockedRsh=isRSH?(APP.user.username||''):'';
+  NSH={period:'MTD',fyYear:now.getMonth()>=3?now.getFullYear():now.getFullYear()-1,customMonths:[],customFrom:'',customTo:'',zone:lockedZone,state:'',resort:'',rsh:lockedRsh,sm:'',filterOpen:false,lockedZone,lockedRsh};
   // Reset UI chrome
   document.querySelectorAll('.nchip[data-period]').forEach(c=>c.classList.toggle('active',c.dataset.period==='MTD'));
   document.querySelectorAll('.nchip[data-zone]').forEach(c=>c.classList.toggle('active',c.dataset.zone===lockedZone));
@@ -2543,6 +2559,8 @@ function initNSH(){
   renderNSHMonthGrid();
   updateNSHStateDropdown();
   updateNSHResortDropdown();
+  updateNSHRshDropdown();
+  updateNSHSmDropdown();
   renderNSH();
 }
 
@@ -2564,13 +2582,44 @@ function toggleNSHFilter(){
 }
 
 function setNSHZone(zone,btn){
+  // Changing zone resets state/resort, and clears RSH/SM unless the current RSH is in this zone
   NSH.zone=zone;NSH.state='';NSH.resort='';
+  // Reset RSH if it doesn't belong to the new zone (and zone isn't all)
+  if(zone&&NSH.rsh){
+    const r=APP.users.find(u=>u.username===NSH.rsh);
+    if(!r||r.zone!==zone)NSH.rsh='';
+  }
+  // Reset SM if it doesn't belong to the new zone
+  if(zone&&NSH.sm){
+    const m=APP.users.find(u=>u.username===NSH.sm);
+    if(!m||m.zone!==zone)NSH.sm='';
+  }
   document.querySelectorAll('.nchip[data-zone]').forEach(c=>c.classList.remove('active'));
   if(btn)btn.classList.add('active');
-  updateNSHStateDropdown();updateNSHResortDropdown();renderNSH();
+  updateNSHStateDropdown();updateNSHResortDropdown();updateNSHRshDropdown();updateNSHSmDropdown();renderNSH();
 }
 function setNSHState(val){NSH.state=val;NSH.resort='';updateNSHResortDropdown();renderNSH();}
 function setNSHResort(val){NSH.resort=val;renderNSH();}
+
+// People-filter setters
+function setNSHRsh(val){
+  // Selecting an RSH auto-sets the zone to theirs (since each RSH owns exactly one zone)
+  NSH.rsh=val;
+  if(val){
+    const r=APP.users.find(u=>u.username===val);
+    if(r&&r.zone){
+      NSH.zone=r.zone;
+      document.querySelectorAll('.nchip[data-zone]').forEach(c=>c.classList.toggle('active',c.dataset.zone===r.zone));
+    }
+  }
+  // Clear SM if it's not in the (new) zone or not under this RSH
+  if(NSH.sm){
+    const m=APP.users.find(u=>u.username===NSH.sm);
+    if(val&&(!m||m.zone!==NSH.zone))NSH.sm='';
+  }
+  updateNSHStateDropdown();updateNSHResortDropdown();updateNSHSmDropdown();renderNSH();
+}
+function setNSHSm(val){NSH.sm=val;renderNSH();}
 
 // Drill into a zone from the "Performance by Zone" row — sets the zone filter, updates the chip UI, and scrolls back to top
 function nshDrillToZone(zone){
@@ -2610,8 +2659,11 @@ function nshDrillToResort(resort){
   if(meta.zone)NSH.zone=meta.zone;
   if(meta.state)NSH.state=meta.state;
   NSH.resort=resort;
+  // Reset stale RSH/SM if they don't belong to the new zone
+  if(meta.zone&&NSH.rsh){const r=APP.users.find(u=>u.username===NSH.rsh);if(!r||r.zone!==meta.zone)NSH.rsh='';}
+  if(meta.zone&&NSH.sm){const m=APP.users.find(u=>u.username===NSH.sm);if(!m||m.zone!==meta.zone)NSH.sm='';}
   document.querySelectorAll('.nchip[data-zone]').forEach(c=>c.classList.toggle('active',c.dataset.zone===(meta.zone||'')));
-  updateNSHStateDropdown();updateNSHResortDropdown();renderNSH();
+  updateNSHStateDropdown();updateNSHResortDropdown();updateNSHRshDropdown();updateNSHSmDropdown();renderNSH();
   document.getElementById('nsh-body').scrollIntoView({behavior:'smooth',block:'start'});
   showToast(`Filtered to ${resort}`,'success');
 }
@@ -2633,6 +2685,33 @@ function updateNSHResortDropdown(){
   }).sort();
   sel.innerHTML='<option value="">All Resorts</option>'+resorts.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');
   sel.value=NSH.resort;
+}
+// Regional Head dropdown — disabled & locked for RSH users, otherwise lists all RSHs (filtered by zone if set)
+function updateNSHRshDropdown(){
+  const sel=document.getElementById('nsh-rsh-sel');if(!sel)return;
+  let rshList=APP.users.filter(u=>u.role==='regional_sales_head');
+  if(NSH.zone)rshList=rshList.filter(u=>u.zone===NSH.zone);
+  rshList.sort((a,b)=>a.name.localeCompare(b.name));
+  sel.innerHTML='<option value="">All Regional Heads</option>'+rshList.map(u=>`<option value="${esc(u.username)}">${esc(u.name)} · ${esc(u.zone)}</option>`).join('');
+  sel.value=NSH.rsh;
+  // Lock for RSH users
+  if(NSH.lockedRsh){sel.disabled=true;sel.style.opacity='0.6';sel.style.cursor='not-allowed';}
+  else{sel.disabled=false;sel.style.opacity='1';sel.style.cursor='';}
+}
+// Sales Manager dropdown — cascades from RSH (if set) or Zone, otherwise lists all SMs.
+function updateNSHSmDropdown(){
+  const sel=document.getElementById('nsh-sm-sel');if(!sel)return;
+  let smList=APP.users.filter(u=>u.role==='sales_manager');
+  // If an RSH is selected, only show their reportees (matching zone). Else if a zone is set, show that zone's SMs.
+  if(NSH.rsh){
+    const r=APP.users.find(u=>u.username===NSH.rsh);
+    if(r)smList=smList.filter(u=>u.zone===r.zone);
+  }else if(NSH.zone){
+    smList=smList.filter(u=>u.zone===NSH.zone);
+  }
+  smList.sort((a,b)=>a.name.localeCompare(b.name));
+  sel.innerHTML='<option value="">All Sales Managers</option>'+smList.map(u=>`<option value="${esc(u.username)}">${esc(u.name)} · ${esc(u.zone||'—')}</option>`).join('');
+  sel.value=NSH.sm;
 }
 
 function shiftNSHFY(dir){
@@ -2676,11 +2755,21 @@ function toggleNSHMonth(key,btn){
 }
 
 function getNSHFilteredLeads(){
+  // Resolve the RSH filter to a set of usernames (their reportees) once, outside the loop
+  let rshReportees=null;
+  if(NSH.rsh){
+    const r=APP.users.find(u=>u.username===NSH.rsh);
+    if(r){
+      rshReportees=new Set(APP.users.filter(u=>u.role==='sales_manager'&&u.zone===r.zone).map(u=>u.username));
+    }
+  }
   return APP.leads.filter(l=>{
     const meta=RESORT_META[l.resortName]||{};
     if(NSH.zone&&meta.zone!==NSH.zone)return false;
     if(NSH.state&&meta.state!==NSH.state)return false;
     if(NSH.resort&&l.resortName!==NSH.resort)return false;
+    if(rshReportees&&!rshReportees.has(l.createdBy))return false;
+    if(NSH.sm&&l.createdBy!==NSH.sm)return false;
     return true;
   });
 }
@@ -2974,7 +3063,10 @@ function renderNSH(){
   ];
 
   const MGRC=['#C8102E','#007aff','#34c759','#ff9500','#5856d6','#ff2d55','#00c7be'];
-  const filterTag=[NSH.zone,NSH.state,NSH.resort].filter(Boolean).join(' › ')||'🇮🇳 All India';
+  // Show the active filters in the breadcrumb, including the new RSH + SM filters
+  const rshName=NSH.rsh?(APP.users.find(u=>u.username===NSH.rsh)?.name||NSH.rsh):'';
+  const smName =NSH.sm?(APP.users.find(u=>u.username===NSH.sm)?.name||NSH.sm):'';
+  const filterTag=[NSH.zone,NSH.state,NSH.resort,rshName&&('RSH: '+rshName),smName&&('SM: '+smName)].filter(Boolean).join(' › ')||'🇮🇳 All India';
 
   // ── Target rollup for NSH KPIs ──
   // Per-manager targets (set by admin) → summed across the managers whose primary zone
