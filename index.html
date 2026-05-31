@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fantasy Cricket League - IPL 2026</title>
+  <title>LAST DAY - IPL 2026</title>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -327,8 +327,8 @@
 <!-- LOGIN PAGE -->
 <div id="login-page" style="display:none">
   <div class="login-box">
-    <h2>Fantasy Cricket</h2>
-    <p>IPL 2026 - Private League<span class="sync-badge">Live Sync</span></p>
+    <h2>Aakhri din</h2>
+    <p>Jugaadu Dream11<span class="sync-badge">Live Sync</span></p>
     <div class="form-group">
       <label>Select Player</label>
       <select id="login-user">
@@ -835,6 +835,7 @@ const FULL_SCHEDULE = [
   [68, '2026-05-23','19:30','LSG','PBKS','Ekana Cricket Stadium, Lucknow','1529311'],
   [69, '2026-05-24','19:30','MI', 'RR', 'Wankhede Stadium, Mumbai','1529312'],
   [70, '2026-05-25','19:30','DC', 'KKR','Arun Jaitley Stadium, Delhi','1529313'],
+  [71, '2026-05-31','19:30','RCB','GT', 'Narendra Modi Stadium, Ahmedabad','1535465'],
 ];
 
 // ── Auto-detect today's matches (resets at midnight IST) ──
@@ -1137,6 +1138,7 @@ function startApp() {
           defaults.status = existing.status || defaults.status;
           defaults.playerScores = existing.playerScores || defaults.playerScores;
           defaults.result = existing.result || defaults.result;
+          if (existing.scoreMultiplier) defaults.scoreMultiplier = existing.scoreMultiplier;
         }
         db.ref('matches/' + mid).set(defaults);
         db.ref('leaderboard/' + mid).once('value').then(lbSnap => {
